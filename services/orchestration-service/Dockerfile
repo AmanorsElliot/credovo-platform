@@ -7,7 +7,7 @@ COPY services/orchestration-service/package*.json ./
 COPY services/orchestration-service/tsconfig.json ./
 COPY shared ./shared
 
-RUN npm ci
+RUN npm install
 
 COPY services/orchestration-service/src ./src
 RUN npm run build
