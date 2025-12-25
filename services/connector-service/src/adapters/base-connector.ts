@@ -31,7 +31,7 @@ export abstract class BaseConnector {
     const apiKey = await this.getApiKey();
     const url = `${this.baseUrl}${endpoint}`;
 
-    const requestHeaders = {
+    const requestHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       ...headers
     };
