@@ -1,16 +1,15 @@
 # Workload Identity Federation for GitHub Actions
 # This creates the provider that the CLI/Console is having trouble with
+# Note: The pool "github-actions-pool-v2" must already exist
 
-# First, ensure the pool exists (it should already exist)
-data "google_iam_workload_identity_pool" "github_pool" {
-  workload_identity_pool_id = "github-actions-pool-v2"
-  location                  = "global"
-  project                   = var.project_id
+# Get project number for principal format
+data "google_project" "project" {
+  project_id = var.project_id
 }
 
 # Create the provider
 resource "google_iam_workload_identity_pool_provider" "github_provider" {
-  workload_identity_pool_id          = data.google_iam_workload_identity_pool.github_pool.workload_identity_pool_id
+  workload_identity_pool_id          = "github-actions-pool-v2"
   workload_identity_pool_provider_id = "github-provider"
   location                           = "global"
   display_name                        = "GitHub Provider"
@@ -40,7 +39,8 @@ resource "google_service_account" "github_actions" {
 resource "google_service_account_iam_member" "github_actions_workload_identity" {
   service_account_id = google_service_account.github_actions.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${data.google_iam_workload_identity_pool.github_pool.name}"
+  # Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID
+  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/github-actions-pool-v2"
   
   depends_on = [google_iam_workload_identity_pool_provider.github_provider]
 }
