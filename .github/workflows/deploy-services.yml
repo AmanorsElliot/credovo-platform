@@ -44,10 +44,14 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           set -e
-          echo "Building Docker image for connector-service..."
-          echo "Verifying Dockerfile content..."
-          head -10 services/connector-service/Dockerfile
-          docker build -f services/connector-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
+          echo "=== Build Information ==="
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Verifying required files exist..."
+          ls -la services/connector-service/tsconfig.json
+          ls -la services/connector-service/package.json
+          echo ""
+          echo "=== Building Docker image ==="
+          docker build --no-cache -f services/connector-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:latest
           echo "Pushing images to Artifact Registry..."
@@ -92,10 +96,14 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           set -e
-          echo "Building Docker image for kyc-kyb-service..."
-          echo "Verifying Dockerfile content..."
-          head -10 services/kyc-kyb-service/Dockerfile
-          docker build -f services/kyc-kyb-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
+          echo "=== Build Information ==="
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Verifying required files exist..."
+          ls -la services/kyc-kyb-service/tsconfig.json
+          ls -la services/kyc-kyb-service/package.json
+          echo ""
+          echo "=== Building Docker image ==="
+          docker build --no-cache -f services/kyc-kyb-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:latest
           echo "Pushing images to Artifact Registry..."
