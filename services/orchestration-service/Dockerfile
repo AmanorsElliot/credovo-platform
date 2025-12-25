@@ -18,7 +18,7 @@ WORKDIR /app
 
 # Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/shared ./shared

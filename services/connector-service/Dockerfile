@@ -10,7 +10,7 @@ COPY services/connector-service/tsconfig.json ./
 COPY shared ./shared
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY services/connector-service/src ./src
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY services/connector-service/package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
