@@ -25,12 +25,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy shared packages first (needed for npm install)
+COPY --from=builder /app/shared ./shared
+
 # Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
 RUN npm install --omit=dev
 
+# Install shared packages' production dependencies
+RUN cd shared/auth && npm install --omit=dev || true
+
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/shared ./shared
 
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001

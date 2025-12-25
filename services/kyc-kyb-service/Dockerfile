@@ -32,15 +32,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy shared packages first (needed for npm install)
+COPY --from=builder /app/shared ./shared
+
 # Copy package files
 COPY services/kyc-kyb-service/package*.json ./
 
-# Install production dependencies only
+# Install production dependencies (this will also install shared package dependencies)
 RUN npm install --omit=dev
+
+# Install shared packages' production dependencies
+RUN cd shared/auth && npm install --omit=dev || true
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/shared ./shared
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
