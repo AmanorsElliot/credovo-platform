@@ -45,92 +45,60 @@ foreach ($role in $roles) {
     gcloud projects add-iam-policy-binding $ProjectId `
         --member="serviceAccount:$serviceAccountEmail" `
         --role=$role `
-        --condition=None
+        --condition=None 2>&1 | Out-Null
 }
 
-# Step 3: Create Workload Identity Pool
+# Step 3: Delete existing pool and provider if they exist (clean slate)
 Write-Host ""
-Write-Host "Step 3: Creating Workload Identity Pool..." -ForegroundColor Yellow
+Write-Host "Step 3: Cleaning up existing Workload Identity resources..." -ForegroundColor Yellow
 $poolId = "github-actions-pool"
-$poolName = "projects/$ProjectId/locations/global/workloadIdentityPools/$poolId"
-
-$poolExists = gcloud iam workload-identity-pools describe $poolId --location=global --project=$ProjectId 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Creating workload identity pool..." -ForegroundColor Yellow
-    gcloud iam workload-identity-pools create $poolId `
-        --location=global `
-        --project=$ProjectId `
-        --display-name="GitHub Actions Pool"
-} else {
-    Write-Host "Workload identity pool already exists." -ForegroundColor Green
-}
-
-# Step 4: Create Workload Identity Provider
-Write-Host ""
-Write-Host "Step 4: Creating Workload Identity Provider..." -ForegroundColor Yellow
 $providerId = "github-provider"
-$providerName = "$poolName/providers/$providerId"
 
-$providerExists = gcloud iam workload-identity-pools providers describe $providerId `
+# Delete provider first (if exists)
+gcloud iam workload-identity-pools providers delete $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
-    --project=$ProjectId 2>&1
+    --project=$ProjectId 2>&1 | Out-Null
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Creating workload identity provider..." -ForegroundColor Yellow
-    gcloud iam workload-identity-pools providers create-oidc $providerId `
-        --workload-identity-pool=$poolId `
-        --location=global `
-        --project=$ProjectId `
-        --display-name="GitHub Provider" `
-        --attribute-mapping="google.subject=assertion.sub,attribute.repository_owner=assertion.repository_owner,attribute.repository=assertion.repository" `
-        --attribute-condition="assertion.repository == '$GitHubRepo'" `
-        --issuer-uri="https://token.actions.githubusercontent.com"
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to create workload identity provider." -ForegroundColor Red
-        Write-Host "Trying without attribute condition..." -ForegroundColor Yellow
-        gcloud iam workload-identity-pools providers create-oidc $providerId `
-            --workload-identity-pool=$poolId `
-            --location=global `
-            --project=$ProjectId `
-            --display-name="GitHub Provider" `
-            --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" `
-            --issuer-uri="https://token.actions.githubusercontent.com"
-    }
-} else {
-    Write-Host "Workload identity provider already exists." -ForegroundColor Green
-}
+# Delete pool (if exists)
+gcloud iam workload-identity-pools delete $poolId `
+    --location=global `
+    --project=$ProjectId 2>&1 | Out-Null
 
-# Step 5: Allow GitHub Actions to impersonate the service account
+# Step 4: Create Workload Identity Pool
 Write-Host ""
-Write-Host "Step 5: Granting GitHub Actions permission to impersonate service account..." -ForegroundColor Yellow
+Write-Host "Step 4: Creating Workload Identity Pool..." -ForegroundColor Yellow
+$poolName = "projects/$ProjectId/locations/global/workloadIdentityPools/$poolId"
 
-# Wait a moment for the provider to be fully created
-Start-Sleep -Seconds 5
+gcloud iam workload-identity-pools create $poolId `
+    --location=global `
+    --project=$ProjectId `
+    --display-name="GitHub Actions Pool"
+
+# Step 5: Create Workload Identity Provider (without condition first)
+Write-Host ""
+Write-Host "Step 5: Creating Workload Identity Provider..." -ForegroundColor Yellow
+$providerName = "$poolName/providers/$providerId"
+
+gcloud iam workload-identity-pools providers create-oidc $providerId `
+    --workload-identity-pool=$poolId `
+    --location=global `
+    --project=$ProjectId `
+    --display-name="GitHub Provider" `
+    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" `
+    --issuer-uri="https://token.actions.githubusercontent.com"
+
+# Step 6: Allow GitHub Actions to impersonate the service account
+Write-Host ""
+Write-Host "Step 6: Granting GitHub Actions permission to impersonate service account..." -ForegroundColor Yellow
 
 # Use principalSet with repository attribute
-$principal = "principalSet://iam.googleapis.com/projects/$ProjectId/locations/global/workloadIdentityPools/$poolId/attribute.repository/$GitHubRepo"
-
-Write-Host "Binding principal: $principal" -ForegroundColor Cyan
+$principal = "principalSet://iam.googleapis.com/$poolName/attribute.repository/$GitHubRepo"
 
 gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
     --project=$ProjectId `
     --role="roles/iam.workloadIdentityUser" `
     --member="$principal"
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "WARNING: Failed to add IAM policy binding with repository condition." -ForegroundColor Yellow
-    Write-Host "Trying with principalSet (all repositories in pool)..." -ForegroundColor Yellow
-    
-    # Fallback: allow all principals in the pool (less restrictive but should work)
-    $principalFallback = "principalSet://iam.googleapis.com/projects/$ProjectId/locations/global/workloadIdentityPools/$poolId"
-    
-    gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
-        --project=$ProjectId `
-        --role="roles/iam.workloadIdentityUser" `
-        --member="$principalFallback"
-}
 
 Write-Host ""
 Write-Host "=== Workload Identity Federation Setup Complete ===" -ForegroundColor Green
@@ -153,4 +121,3 @@ Write-Host "4. ARTIFACT_REGISTRY" -ForegroundColor White
 Write-Host "   Value: credovo-services" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Note: You do NOT need GCP_SA_KEY anymore - Workload Identity Federation replaces it!" -ForegroundColor Green
-
