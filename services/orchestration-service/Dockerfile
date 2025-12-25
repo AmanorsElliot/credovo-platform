@@ -59,6 +59,9 @@ RUN npm install --omit=dev
 RUN echo "=== Verifying node_modules symlinks ===" && \
     ls -la node_modules/@credovo/ || true && \
     readlink node_modules/@credovo/shared-auth || true && \
+    echo "=== Checking shared/auth/dist structure ===" && \
+    ls -la shared/auth/dist/ || true && \
+    echo "=== Checking symlink resolution ===" && \
     ls -la node_modules/@credovo/shared-auth/dist/ || (echo "ERROR: node_modules/@credovo/shared-auth/dist does not exist!" && exit 1) && \
     test -f node_modules/@credovo/shared-auth/dist/index.js || (echo "ERROR: node_modules/@credovo/shared-auth/dist/index.js does not exist!" && exit 1)
 

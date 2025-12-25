@@ -4,8 +4,11 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "../",
-    "baseUrl": "../",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@credovo/shared-utils/*": ["../utils/*.ts"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,7 +19,7 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["*.ts", "../utils/**/*.ts"],
+  "include": ["*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
 
