@@ -53,6 +53,10 @@ RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.d.ts shared/types
 
 # Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
+
+# Fix file: paths in package.json to be relative to /app (where we run npm install)
+RUN sed -i 's|file:../../shared/|file:./shared/|g' package.json
+
 RUN npm install --omit=dev
 
 # Verify the symlink was created and points to the right place

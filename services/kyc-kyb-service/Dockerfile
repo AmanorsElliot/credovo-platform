@@ -61,6 +61,9 @@ RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.d.ts shared/types
 # Copy package files
 COPY services/kyc-kyb-service/package*.json ./
 
+# Fix file: paths in package.json to be relative to /app (where we run npm install)
+RUN sed -i 's|file:../../shared/|file:./shared/|g' package.json
+
 # Install production dependencies (this will also install shared package dependencies)
 RUN npm install --omit=dev
 
