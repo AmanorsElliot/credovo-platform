@@ -71,10 +71,5 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Debug: List files to verify structure
-RUN ls -la dist/src/ || true
-RUN ls -la node_modules/@credovo/ || true
-RUN ls -la shared/ || true
-
 CMD ["node", "dist/src/index.js"]
 
