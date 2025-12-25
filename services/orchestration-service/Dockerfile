@@ -2,6 +2,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
 COPY services/orchestration-service/tsconfig.json ./
 COPY shared ./shared
@@ -15,6 +16,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
 RUN npm ci --only=production
 
