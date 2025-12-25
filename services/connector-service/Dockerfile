@@ -46,10 +46,32 @@ COPY --from=builder /app/shared ./shared
 
 # Copy compiled shared files to shared directories BEFORE npm install
 # This ensures the .js files exist when npm creates symlinks
-RUN if [ -d "dist/shared/utils" ]; then cp dist/shared/utils/*.js shared/utils/ 2>/dev/null || true; fi
-RUN if [ -d "dist/shared/utils" ]; then cp dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true; fi
-RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.js shared/types/ 2>/dev/null || true; fi
-RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true; fi
+RUN echo "=== Checking dist structure ===" && \
+    ls -la dist/ || true && \
+    ls -la dist/shared/ || true && \
+    ls -la dist/shared/utils/ || true && \
+    ls -la dist/shared/types/ || true
+RUN if [ -d "dist/shared/utils" ]; then \
+      echo "Copying utils files..." && \
+      cp -v dist/shared/utils/*.js shared/utils/ 2>&1 || echo "No utils .js files found"; \
+    else \
+      echo "dist/shared/utils directory does not exist"; \
+    fi
+RUN if [ -d "dist/shared/utils" ]; then \
+      cp -v dist/shared/utils/*.d.ts shared/utils/ 2>&1 || echo "No utils .d.ts files found"; \
+    fi
+RUN if [ -d "dist/shared/types" ]; then \
+      echo "Copying types files..." && \
+      cp -v dist/shared/types/*.js shared/types/ 2>&1 || echo "No types .js files found"; \
+    else \
+      echo "dist/shared/types directory does not exist"; \
+    fi
+RUN if [ -d "dist/shared/types" ]; then \
+      cp -v dist/shared/types/*.d.ts shared/types/ 2>&1 || echo "No types .d.ts files found"; \
+    fi
+RUN echo "=== Verifying copied files ===" && \
+    ls -la shared/utils/ || true && \
+    ls -la shared/types/ || true
 
 # Copy package files
 COPY services/connector-service/package*.json ./
