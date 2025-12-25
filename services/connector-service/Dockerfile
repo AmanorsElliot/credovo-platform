@@ -89,16 +89,19 @@ RUN npm install --omit=dev
 # Verify the symlink was created and points to the right place
 RUN echo "=== Verifying node_modules symlinks ===" && \
     ls -la node_modules/@credovo/ || true && \
+    echo "=== Symlink target (readlink) ===" && \
+    readlink node_modules/@credovo/shared-auth || true && \
+    echo "=== Symlink target (readlink -f) ===" && \
     readlink -f node_modules/@credovo/shared-auth || true && \
     echo "=== Checking shared/auth/dist structure ===" && \
     ls -la shared/auth/dist/ || true && \
     echo "=== Checking shared/auth/dist/auth structure ===" && \
     ls -la shared/auth/dist/auth/ || true && \
-    echo "=== Testing symlink access ===" && \
-    (test -d node_modules/@credovo/shared-auth && echo "Symlink directory exists" || echo "Symlink directory does not exist") && \
-    (test -d node_modules/@credovo/shared-auth/dist && echo "Symlink dist directory exists" || echo "Symlink dist directory does not exist") && \
-    (test -f shared/auth/dist/auth/index.js && echo "Direct path works: shared/auth/dist/auth/index.js exists" || echo "Direct path failed") && \
-    (test -f node_modules/@credovo/shared-auth/dist/auth/index.js && echo "Symlink path works!" || (echo "Symlink path failed, trying to debug..." && ls -la node_modules/@credovo/shared-auth/ 2>&1 || true))
+    echo "=== Testing direct path ===" && \
+    test -f shared/auth/dist/auth/index.js && echo "✓ shared/auth/dist/auth/index.js exists" || echo "✗ shared/auth/dist/auth/index.js does not exist" && \
+    echo "=== Testing symlink resolution ===" && \
+    (cd node_modules/@credovo/shared-auth && pwd && ls -la . | head -5) || true && \
+    (cd node_modules/@credovo/shared-auth && test -f dist/auth/index.js && echo "✓ Symlink path works!" || echo "✗ Symlink path failed") || true
 
 # Install shared packages' production dependencies
 RUN cd shared/auth && npm install --omit=dev || true
