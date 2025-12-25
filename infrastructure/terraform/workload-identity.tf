@@ -29,14 +29,6 @@ data "google_project" "project" {
 #   depends_on = [time_sleep.wait_for_apis]
 # }
 
-# Data source to reference the manually created provider
-data "google_iam_workload_identity_pool_provider" "github_provider" {
-  workload_identity_pool_id          = "github-actions-pool-v2"
-  workload_identity_pool_provider_id = "github-provider"
-  location                            = "global"
-  project                             = var.project_id
-}
-
 # Use existing github-actions service account (already created)
 data "google_service_account" "github_actions" {
   account_id = "github-actions"
@@ -44,14 +36,15 @@ data "google_service_account" "github_actions" {
 }
 
 # Grant GitHub Actions permission to impersonate the service account
-# Use principalSet for all principals in the pool (simpler)
+# Note: The Workload Identity Pool and Provider must be created manually (see docs/WORKLOAD_IDENTITY_MANUAL_SETUP.md)
+# The provider was created with attribute condition: assertion.repository == "AmanorsElliot/credovo-platform"
+# Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/attribute.ATTRIBUTE_NAME/ATTRIBUTE_VALUE
+# Must include attribute path to match the provider's condition
 resource "google_service_account_iam_member" "github_actions_workload_identity" {
   service_account_id = data.google_service_account.github_actions.name
   role               = "roles/iam.workloadIdentityUser"
-  # Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/attribute.ATTRIBUTE_NAME/ATTRIBUTE_VALUE
-  # Must include attribute path to match the provider's condition
   member             = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/github-actions-pool-v2/attribute.repository/AmanorsElliot/credovo-platform"
   
-  depends_on = [data.google_iam_workload_identity_pool_provider.github_provider]
+  # No depends_on needed - the provider exists manually and IAM binding works independently
 }
 
