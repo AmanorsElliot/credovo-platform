@@ -37,14 +37,18 @@ After the provider is created, run this command:
 $projectNumber = "762270842258"
 $poolId = "github-actions-pool-v2"
 $serviceAccount = "github-actions@credovo-platform-dev.iam.gserviceaccount.com"
+$repository = "AmanorsElliot/credovo-platform"
 
-$principal = "principalSet://iam.googleapis.com/projects/$projectNumber/locations/global/workloadIdentityPools/$poolId"
+# The principal must include the attribute path matching the condition
+$principal = "principalSet://iam.googleapis.com/projects/$projectNumber/locations/global/workloadIdentityPools/$poolId/attribute.repository/$repository"
 
 gcloud iam service-accounts add-iam-policy-binding $serviceAccount `
     --project=credovo-platform-dev `
     --role="roles/iam.workloadIdentityUser" `
     --member="$principal"
 ```
+
+**Important**: The principal format must include `/attribute.repository/AmanorsElliot/credovo-platform` to match the attribute condition in the provider. This restricts access to your specific repository.
 
 ### Step 3: Add GitHub Secrets
 
