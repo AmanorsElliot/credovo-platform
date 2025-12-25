@@ -9,6 +9,9 @@ param(
 Write-Host "=== Credovo Platform GCP Deployment ===" -ForegroundColor Cyan
 Write-Host ""
 
+# Refresh PATH to ensure all executables are available
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
 # Step 1: Verify GCP authentication
 Write-Host "Step 1: Verifying GCP authentication..." -ForegroundColor Yellow
 $currentProject = gcloud config get-value project 2>&1
@@ -43,11 +46,27 @@ if ($LASTEXITCODE -ne 0) {
 # Step 4: Initialize Terraform
 Write-Host ""
 Write-Host "Step 4: Initializing Terraform..." -ForegroundColor Yellow
+
+# Find Terraform executable
+$terraformCmd = Get-Command terraform -ErrorAction SilentlyContinue
+if (-not $terraformCmd) {
+    Write-Host "ERROR: Terraform not found in PATH." -ForegroundColor Red
+    Write-Host "Please ensure Terraform is installed and added to your PATH." -ForegroundColor Yellow
+    Write-Host "You can install it using: winget install HashiCorp.Terraform" -ForegroundColor Cyan
+    Write-Host "Or download from: https://developer.hashicorp.com/terraform/downloads" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "After installing, you may need to:" -ForegroundColor Yellow
+    Write-Host "1. Close and reopen PowerShell" -ForegroundColor White
+    Write-Host "2. Or refresh PATH: `$env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')" -ForegroundColor White
+    exit 1
+}
+
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptPath
 $terraformDir = Join-Path $repoRoot "infrastructure\terraform"
 Set-Location $terraformDir
-terraform init
+
+& $terraformCmd.Source init
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Terraform initialization failed." -ForegroundColor Red
@@ -57,7 +76,7 @@ if ($LASTEXITCODE -ne 0) {
 # Step 5: Terraform plan
 Write-Host ""
 Write-Host "Step 5: Running Terraform plan..." -ForegroundColor Yellow
-terraform plan -out=tfplan
+& $terraformCmd.Source plan -out=tfplan
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Terraform plan failed." -ForegroundColor Red
@@ -75,7 +94,7 @@ if ($confirm -ne "yes") {
 # Step 7: Terraform apply
 Write-Host ""
 Write-Host "Step 7: Applying Terraform configuration..." -ForegroundColor Yellow
-terraform apply tfplan
+& $terraformCmd.Source apply tfplan
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Terraform apply failed." -ForegroundColor Red
@@ -92,6 +111,7 @@ Write-Host "3. Deploy services using GitHub Actions or manually"
 Write-Host ""
 Write-Host "To view outputs:" -ForegroundColor Cyan
 Write-Host "  terraform output" -ForegroundColor White
+Write-Host "  (or: cd $terraformDir; terraform output)" -ForegroundColor Gray
 
 # Return to original directory
 Set-Location $repoRoot
