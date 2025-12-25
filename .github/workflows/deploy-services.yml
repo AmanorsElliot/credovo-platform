@@ -140,13 +140,22 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           set -e
-          echo "Building Docker image for orchestration-service..."
-          echo "Verifying Dockerfile content..."
-          head -10 services/orchestration-service/Dockerfile
-          echo "Verifying build context..."
-          ls -la services/orchestration-service/ | head -5
-          ls -la shared/ | head -5
-          docker build -f services/orchestration-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
+          echo "=== Build Information ==="
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Workflow run: ${{ github.run_id }}"
+          echo ""
+          echo "=== Verifying Dockerfile content ==="
+          cat services/orchestration-service/Dockerfile
+          echo ""
+          echo "=== Verifying build context ==="
+          echo "Files in service directory:"
+          ls -la services/orchestration-service/ | head -10
+          echo ""
+          echo "Files in shared directory:"
+          ls -la shared/ | head -10
+          echo ""
+          echo "=== Building Docker image ==="
+          docker build --no-cache -f services/orchestration-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:latest
           echo "Pushing images to Artifact Registry..."
