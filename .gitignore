@@ -36,9 +36,9 @@ Thumbs.db
 terraform.tfvars
 
 # GCP
-*.json
 service-account-*.json
 gcp-key.json
+# Note: tsconfig.json and package.json are NOT ignored - they're needed for builds
 
 # Secrets
 secrets/
