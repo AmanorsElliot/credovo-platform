@@ -5,6 +5,12 @@
     "lib": ["ES2020"],
     "outDir": "./dist",
     "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@credovo/shared-types": ["../../shared/types/index.ts"],
+      "@credovo/shared-auth": ["../../shared/auth/index.ts"],
+      "@credovo/shared-utils/*": ["../../shared/utils/*.ts"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
