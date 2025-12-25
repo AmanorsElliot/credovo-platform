@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 
   backend "gcs" {
@@ -43,6 +47,18 @@ resource "google_project_service" "required_apis" {
 
   disable_dependent_services = false
   disable_on_destroy         = false
+  
+  timeouts {
+    create = "10m"
+    update = "10m"
+  }
+}
+
+# Wait for APIs to be fully enabled and propagated
+resource "time_sleep" "wait_for_apis" {
+  depends_on = [google_project_service.required_apis]
+  
+  create_duration = "60s"  # Wait 60 seconds for APIs to propagate
 }
 
 # Service accounts for each microservice
@@ -112,7 +128,7 @@ resource "google_artifact_registry_repository" "docker_repo" {
   description   = "Docker repository for Credovo services"
   format        = "DOCKER"
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 # VPC Connector for Cloud Run
@@ -126,7 +142,7 @@ resource "google_vpc_access_connector" "cloud_run_connector" {
   max_instances = 3
   machine_type  = "e2-micro"
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 

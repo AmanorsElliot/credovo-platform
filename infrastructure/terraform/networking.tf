@@ -70,7 +70,7 @@ resource "google_secret_manager_secret" "lovable_jwks_uri" {
     purpose     = "auth"
   }
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 resource "google_secret_manager_secret" "lovable_audience" {
@@ -85,7 +85,7 @@ resource "google_secret_manager_secret" "lovable_audience" {
     purpose     = "auth"
   }
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 resource "google_secret_manager_secret" "service_jwt_secret" {
@@ -100,7 +100,7 @@ resource "google_secret_manager_secret" "service_jwt_secret" {
     purpose     = "auth"
   }
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 # Example: Secret for SumSub API key
@@ -116,7 +116,7 @@ resource "google_secret_manager_secret" "sumsub_api_key" {
     provider     = "sumsub"
   }
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 # Example: Secret for Companies House API key
@@ -132,6 +132,6 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
     provider     = "companies-house"
   }
   
-  depends_on = [google_project_service.required_apis]
+  depends_on = [time_sleep.wait_for_apis]
 }
 

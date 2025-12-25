@@ -8,7 +8,8 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
       service_account_name = google_service_account.services["kyc-kyb-service"].email
       
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/kyc-kyb-service:latest"
+        # Use placeholder image initially - will be updated by CI/CD
+        image = "gcr.io/cloudrun/hello"
 
         resources {
           limits = {
@@ -91,8 +92,14 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
   }
 
   depends_on = [
-    google_project_service.required_apis
+    time_sleep.wait_for_apis,
+    google_artifact_registry_repository.docker_repo
   ]
+  
+  lifecycle {
+    # Ignore image changes - CI/CD will update the image
+    ignore_changes = [template[0].spec[0].containers[0].image]
+  }
 }
 
 # Cloud Run service for Connector Service
@@ -105,7 +112,8 @@ resource "google_cloud_run_service" "connector_service" {
       service_account_name = google_service_account.services["connector-service"].email
       
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/connector-service:latest"
+        # Use placeholder image initially - will be updated by CI/CD
+        image = "gcr.io/cloudrun/hello"
 
         resources {
           limits = {
@@ -151,6 +159,16 @@ resource "google_cloud_run_service" "connector_service" {
     percent         = 100
     latest_revision = true
   }
+  
+  depends_on = [
+    time_sleep.wait_for_apis,
+    google_artifact_registry_repository.docker_repo
+  ]
+  
+  lifecycle {
+    # Ignore image changes - CI/CD will update the image
+    ignore_changes = [template[0].spec[0].containers[0].image]
+  }
 }
 
 # Cloud Run service for Orchestration Service
@@ -163,7 +181,8 @@ resource "google_cloud_run_service" "orchestration_service" {
       service_account_name = google_service_account.services["orchestration-service"].email
       
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker_repo.repository_id}/orchestration-service:latest"
+        # Use placeholder image initially - will be updated by CI/CD
+        image = "gcr.io/cloudrun/hello"
 
         resources {
           limits = {
@@ -238,6 +257,18 @@ resource "google_cloud_run_service" "orchestration_service" {
   traffic {
     percent         = 100
     latest_revision = true
+  }
+  
+  depends_on = [
+    time_sleep.wait_for_apis,
+    google_artifact_registry_repository.docker_repo,
+    google_cloud_run_service.kyc_kyb_service,
+    google_cloud_run_service.connector_service
+  ]
+  
+  lifecycle {
+    # Ignore image changes - CI/CD will update the image
+    ignore_changes = [template[0].spec[0].containers[0].image]
   }
 }
 
