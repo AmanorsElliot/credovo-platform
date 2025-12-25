@@ -43,6 +43,12 @@ RUN cd shared/auth && npm install --omit=dev || true
 
 COPY --from=builder /app/dist ./dist
 
+# Copy compiled shared files to shared directories for runtime resolution
+RUN cp -r dist/shared/utils/*.js shared/utils/ 2>/dev/null || true
+RUN cp -r dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true
+RUN cp -r dist/shared/types/*.js shared/types/ 2>/dev/null || true
+RUN cp -r dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true
+
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
