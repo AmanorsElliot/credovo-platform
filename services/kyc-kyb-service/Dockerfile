@@ -64,6 +64,13 @@ COPY services/kyc-kyb-service/package*.json ./
 # Install production dependencies (this will also install shared package dependencies)
 RUN npm install --omit=dev
 
+# Verify the symlink was created and points to the right place
+RUN echo "=== Verifying node_modules symlinks ===" && \
+    ls -la node_modules/@credovo/ || true && \
+    readlink node_modules/@credovo/shared-auth || true && \
+    ls -la node_modules/@credovo/shared-auth/dist/ || (echo "ERROR: node_modules/@credovo/shared-auth/dist does not exist!" && exit 1) && \
+    test -f node_modules/@credovo/shared-auth/dist/index.js || (echo "ERROR: node_modules/@credovo/shared-auth/dist/index.js does not exist!" && exit 1)
+
 # Install shared packages' production dependencies
 RUN cd shared/auth && npm install --omit=dev || true
 
