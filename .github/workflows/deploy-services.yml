@@ -45,6 +45,8 @@ jobs:
         run: |
           set -e
           echo "Building Docker image for connector-service..."
+          echo "Verifying Dockerfile content..."
+          head -10 services/connector-service/Dockerfile
           docker build -f services/connector-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:latest
@@ -91,6 +93,8 @@ jobs:
         run: |
           set -e
           echo "Building Docker image for kyc-kyb-service..."
+          echo "Verifying Dockerfile content..."
+          head -10 services/kyc-kyb-service/Dockerfile
           docker build -f services/kyc-kyb-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:latest
@@ -137,6 +141,11 @@ jobs:
         run: |
           set -e
           echo "Building Docker image for orchestration-service..."
+          echo "Verifying Dockerfile content..."
+          head -10 services/orchestration-service/Dockerfile
+          echo "Verifying build context..."
+          ls -la services/orchestration-service/ | head -5
+          ls -la shared/ | head -5
           docker build -f services/orchestration-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:latest
