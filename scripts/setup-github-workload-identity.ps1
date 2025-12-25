@@ -187,4 +187,4 @@ Write-Host ""
 Write-Host "4. ARTIFACT_REGISTRY" -ForegroundColor White
 Write-Host "   Value: credovo-services" -ForegroundColor Gray
 Write-Host ""
-Write-Host "Note: You do NOT need GCP_SA_KEY anymore - Workload Identity Federation replaces it!" -ForegroundColor Green
+Write-Host "Note: You do NOT need GCP_SA_KEY anymore - Workload Identity Federation replaces it" -ForegroundColor Green
