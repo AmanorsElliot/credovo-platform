@@ -84,7 +84,7 @@ if ($LASTEXITCODE -ne 0) {
         --project=$ProjectId `
         --display-name="GitHub Provider" `
         --attribute-mapping="google.subject=assertion.sub,attribute.repository_owner=assertion.repository_owner,attribute.repository=assertion.repository" `
-        --attribute-condition="attribute.repository == '$GitHubRepo'" `
+        --attribute-condition="assertion.repository == '$GitHubRepo'" `
         --issuer-uri="https://token.actions.githubusercontent.com"
     
     if ($LASTEXITCODE -ne 0) {
