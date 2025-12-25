@@ -43,7 +43,10 @@ if ($LASTEXITCODE -ne 0) {
 # Step 4: Initialize Terraform
 Write-Host ""
 Write-Host "Step 4: Initializing Terraform..." -ForegroundColor Yellow
-Set-Location "infrastructure\terraform"
+$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptPath
+$terraformDir = Join-Path $repoRoot "infrastructure\terraform"
+Set-Location $terraformDir
 terraform init
 
 if ($LASTEXITCODE -ne 0) {
@@ -90,5 +93,6 @@ Write-Host ""
 Write-Host "To view outputs:" -ForegroundColor Cyan
 Write-Host "  terraform output" -ForegroundColor White
 
-Set-Location ..\..
+# Return to original directory
+Set-Location $repoRoot
 
