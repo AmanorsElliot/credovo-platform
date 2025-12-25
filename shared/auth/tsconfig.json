@@ -4,7 +4,8 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "../",
+    "baseUrl": "../",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,7 +16,7 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["*.ts"],
+  "include": ["auth/*.ts", "utils/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
 

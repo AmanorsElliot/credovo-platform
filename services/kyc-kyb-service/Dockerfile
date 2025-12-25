@@ -13,8 +13,10 @@ COPY shared ./shared
 RUN npm install
 RUN cd shared/auth && npm install || true
 
-# Build shared packages first
-RUN cd shared/auth && npm run build || true
+# Build shared packages first (build from shared directory to handle cross-package imports)
+WORKDIR /app/shared
+RUN cd auth && npm run build || true
+WORKDIR /app
 
 # Copy source code
 COPY services/kyc-kyb-service/src ./src
