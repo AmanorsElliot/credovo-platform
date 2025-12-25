@@ -51,7 +51,8 @@ foreach ($role in $roles) {
 # Step 3: Delete existing pool and provider if they exist (clean slate)
 Write-Host ""
 Write-Host "Step 3: Cleaning up existing Workload Identity resources..." -ForegroundColor Yellow
-$poolId = "github-actions-pool"
+# Use a new pool name to avoid the deleted pool
+$poolId = "github-actions-pool-v2"
 $providerId = "github-provider"
 
 # Check if provider exists and delete it
