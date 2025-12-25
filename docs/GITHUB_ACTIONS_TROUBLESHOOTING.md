@@ -21,16 +21,28 @@ jobs:
       # ... your steps
 ```
 
-#### Solution 2: Check Repository Settings
+#### Solution 2: Check Repository Settings (CRITICAL)
 
-GitHub has repository-level settings that can override workflow permissions:
+GitHub has repository-level settings that can override workflow permissions. This is often the root cause:
 
 1. Go to: https://github.com/AmanorsElliot/credovo-platform/settings/actions
-2. Scroll to **Workflow permissions**
-3. Ensure it's set to **Read and write permissions** (not "Read repository contents and packages permissions")
-4. OR check **Allow GitHub Actions to create and approve pull requests** if using read-only
+2. Scroll down to **"Workflow permissions"** section
+3. You have two options:
 
-**Important**: If the repository is set to "Read repository contents and packages permissions", you MUST add the `permissions` block to each job in your workflow files.
+   **Option A (Recommended):** Set to **"Read and write permissions"**
+   - This allows workflows to request OIDC tokens by default
+   - Your `permissions` block in workflows will still work
+   
+   **Option B:** Keep "Read repository contents and packages permissions" BUT:
+   - You MUST have `permissions` block with `id-token: write` in EVERY job (which you do)
+   - However, some repository settings may still block this
+   
+4. **IMPORTANT**: After changing this setting, you MUST trigger a NEW workflow run. Old runs won't work.
+
+**If you're still seeing the error after setting permissions:**
+- Make sure you clicked "Save" after changing the repository setting
+- Trigger a completely NEW workflow run (don't re-run an old one)
+- The repository setting change only affects NEW runs
 
 #### Solution 3: Verify Secrets Are Set
 
