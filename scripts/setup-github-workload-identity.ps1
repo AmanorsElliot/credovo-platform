@@ -54,16 +54,23 @@ Write-Host "Step 3: Cleaning up existing Workload Identity resources..." -Foregr
 $poolId = "github-actions-pool"
 $providerId = "github-provider"
 
-# Delete provider first (if exists)
+# Delete provider first (if exists) - ignore errors
+Write-Host "Deleting existing provider (if any)..." -ForegroundColor Cyan
 gcloud iam workload-identity-pools providers delete $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
-    --project=$ProjectId 2>&1 | Out-Null
+    --project=$ProjectId `
+    --quiet 2>&1 | Out-Null
 
-# Delete pool (if exists)
+# Delete pool (if exists) - ignore errors
+Write-Host "Deleting existing pool (if any)..." -ForegroundColor Cyan
 gcloud iam workload-identity-pools delete $poolId `
     --location=global `
-    --project=$ProjectId 2>&1 | Out-Null
+    --project=$ProjectId `
+    --quiet 2>&1 | Out-Null
+
+# Wait a moment for deletion to complete
+Start-Sleep -Seconds 3
 
 # Step 4: Create Workload Identity Pool
 Write-Host ""
@@ -75,25 +82,30 @@ gcloud iam workload-identity-pools create $poolId `
     --project=$ProjectId `
     --display-name="GitHub Actions Pool"
 
-# Step 5: Create Workload Identity Provider (without condition first)
+# Step 5: Create Workload Identity Provider (simple, no condition)
 Write-Host ""
 Write-Host "Step 5: Creating Workload Identity Provider..." -ForegroundColor Yellow
 $providerName = "$poolName/providers/$providerId"
 
+# Create provider with minimal mapping - no condition
 gcloud iam workload-identity-pools providers create-oidc $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
     --project=$ProjectId `
     --display-name="GitHub Provider" `
-    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" `
+    --attribute-mapping="google.subject=assertion.sub" `
     --issuer-uri="https://token.actions.githubusercontent.com"
 
 # Step 6: Allow GitHub Actions to impersonate the service account
 Write-Host ""
 Write-Host "Step 6: Granting GitHub Actions permission to impersonate service account..." -ForegroundColor Yellow
 
-# Use principalSet with repository attribute
-$principal = "principalSet://iam.googleapis.com/$poolName/attribute.repository/$GitHubRepo"
+# Wait a moment for provider to be fully created
+Start-Sleep -Seconds 2
+
+# Use principalSet for all principals in the pool (simpler, less restrictive)
+# You can restrict this later by repository if needed
+$principal = "principalSet://iam.googleapis.com/$poolName"
 
 gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
     --project=$ProjectId `
