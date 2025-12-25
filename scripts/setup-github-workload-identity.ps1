@@ -109,20 +109,28 @@ if ($LASTEXITCODE -ne 0 -and $poolCreate -notmatch "ALREADY_EXISTS") {
 Write-Host ""
 Write-Host "Step 5: Ensuring provider is clean..." -ForegroundColor Yellow
 
-# Try to delete provider (ignore errors)
-gcloud iam workload-identity-pools providers delete $providerId `
+# Check and delete provider if it exists
+$providerCheck = gcloud iam workload-identity-pools providers describe $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
-    --project=$ProjectId `
-    --quiet 2>&1 | Out-Null
+    --project=$ProjectId 2>&1
 
-Start-Sleep -Seconds 2
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Deleting existing provider..." -ForegroundColor Cyan
+    gcloud iam workload-identity-pools providers delete $providerId `
+        --workload-identity-pool=$poolId `
+        --location=global `
+        --project=$ProjectId `
+        --quiet
+    Start-Sleep -Seconds 3
+}
 
 # Create Workload Identity Provider (simple, no condition)
 Write-Host "Creating Workload Identity Provider..." -ForegroundColor Yellow
 $providerName = "$poolName/providers/$providerId"
 
-# Create provider with minimal mapping - no condition, no extra attributes
+# Create provider with minimal mapping - ONLY google.subject, no other attributes
+# This avoids any condition issues
 gcloud iam workload-identity-pools providers create-oidc $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
@@ -130,6 +138,14 @@ gcloud iam workload-identity-pools providers create-oidc $providerId `
     --display-name="GitHub Provider" `
     --attribute-mapping="google.subject=assertion.sub" `
     --issuer-uri="https://token.actions.githubusercontent.com"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: Failed to create provider. Trying to get more details..." -ForegroundColor Red
+    Write-Host "This might be due to an existing provider with incompatible configuration." -ForegroundColor Yellow
+    Write-Host "Try deleting it manually from the GCP Console:" -ForegroundColor Yellow
+    Write-Host "  https://console.cloud.google.com/iam-admin/workload-identity-pools" -ForegroundColor Cyan
+    exit 1
+}
 
 # Step 6: Allow GitHub Actions to impersonate the service account
 Write-Host ""
@@ -141,13 +157,16 @@ Start-Sleep -Seconds 3
 # Get project number (needed for principal format)
 $projectNumber = (gcloud projects describe $ProjectId --format="value(projectNumber)")
 
-# Use the correct principal format - need to use the full resource name
-# Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID
-$principal = "principalSet://iam.googleapis.com/projects/$projectNumber/locations/global/workloadIdentityPools/$poolId"
+Write-Host "Waiting for provider to be fully ready..." -ForegroundColor Cyan
+Start-Sleep -Seconds 5
+
+# Use the correct principal format for Workload Identity Federation
+# The format should be: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID
+# But we need to use the pool's full resource name, not just the ID
+$poolResourceName = "projects/$projectNumber/locations/global/workloadIdentityPools/$poolId"
+$principal = "principalSet://iam.googleapis.com/$poolResourceName"
 
 Write-Host "Using principal: $principal" -ForegroundColor Gray
-Write-Host "Waiting for provider to be fully ready..." -ForegroundColor Cyan
-Start-Sleep -Seconds 3
 
 # Try to add IAM binding
 Write-Host "Adding IAM policy binding..." -ForegroundColor Cyan
