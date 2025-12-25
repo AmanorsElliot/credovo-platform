@@ -135,3 +135,40 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
   depends_on = [time_sleep.wait_for_apis]
 }
 
+# Create initial placeholder secret versions so Cloud Run can reference them
+# These will be updated with actual values later via the configure-secrets script
+resource "google_secret_manager_secret_version" "lovable_jwks_uri_version" {
+  secret      = google_secret_manager_secret.lovable_jwks_uri.id
+  secret_data = "https://auth.lovable.dev/.well-known/jwks.json"  # Placeholder - will be updated
+  
+  depends_on = [google_secret_manager_secret.lovable_jwks_uri]
+}
+
+resource "google_secret_manager_secret_version" "lovable_audience_version" {
+  secret      = google_secret_manager_secret.lovable_audience.id
+  secret_data = "credovo-api"  # Placeholder - will be updated
+  
+  depends_on = [google_secret_manager_secret.lovable_audience]
+}
+
+resource "google_secret_manager_secret_version" "service_jwt_secret_version" {
+  secret      = google_secret_manager_secret.service_jwt_secret.id
+  secret_data = base64encode("placeholder-jwt-secret-change-me")  # Placeholder - will be updated
+  
+  depends_on = [google_secret_manager_secret.service_jwt_secret]
+}
+
+resource "google_secret_manager_secret_version" "sumsub_api_key_version" {
+  secret      = google_secret_manager_secret.sumsub_api_key.id
+  secret_data = "placeholder-sumsub-key"  # Placeholder - will be updated
+  
+  depends_on = [google_secret_manager_secret.sumsub_api_key]
+}
+
+resource "google_secret_manager_secret_version" "companies_house_api_key_version" {
+  secret      = google_secret_manager_secret.companies_house_api_key.id
+  secret_data = "placeholder-companies-house-key"  # Placeholder - will be updated
+  
+  depends_on = [google_secret_manager_secret.companies_house_api_key]
+}
+

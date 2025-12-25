@@ -162,7 +162,8 @@ resource "google_cloud_run_service" "connector_service" {
   
   depends_on = [
     time_sleep.wait_for_apis,
-    google_artifact_registry_repository.docker_repo
+    google_artifact_registry_repository.docker_repo,
+    google_secret_manager_secret_version.service_jwt_secret_version
   ]
   
   lifecycle {
@@ -263,7 +264,10 @@ resource "google_cloud_run_service" "orchestration_service" {
     time_sleep.wait_for_apis,
     google_artifact_registry_repository.docker_repo,
     google_cloud_run_service.kyc_kyb_service,
-    google_cloud_run_service.connector_service
+    google_cloud_run_service.connector_service,
+    google_secret_manager_secret_version.lovable_jwks_uri_version,
+    google_secret_manager_secret_version.lovable_audience_version,
+    google_secret_manager_secret_version.service_jwt_secret_version
   ]
   
   lifecycle {

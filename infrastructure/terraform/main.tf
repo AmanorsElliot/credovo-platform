@@ -58,7 +58,7 @@ resource "google_project_service" "required_apis" {
 resource "time_sleep" "wait_for_apis" {
   depends_on = [google_project_service.required_apis]
   
-  create_duration = "60s"  # Wait 60 seconds for APIs to propagate
+  create_duration = "120s"  # Wait 120 seconds for APIs to propagate
 }
 
 # Service accounts for each microservice
