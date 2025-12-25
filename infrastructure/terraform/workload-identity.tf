@@ -11,9 +11,8 @@ data "google_project" "project" {
 resource "google_iam_workload_identity_pool_provider" "github_provider" {
   workload_identity_pool_id          = "github-actions-pool-v2"
   workload_identity_pool_provider_id = "github-provider"
-  location                           = "global"
   display_name                        = "GitHub Provider"
-  project                            = var.project_id
+  project                             = var.project_id
   
   attribute_mapping = {
     "google.subject" = "assertion.sub"
