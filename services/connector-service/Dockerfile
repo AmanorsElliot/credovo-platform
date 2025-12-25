@@ -3,17 +3,17 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
+COPY services/connector-service/package*.json ./
+COPY services/connector-service/tsconfig.json ./
 
 # Copy shared dependencies
-COPY ../../shared ./shared
+COPY shared ./shared
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
-COPY src ./src
+COPY services/connector-service/src ./src
 
 # Build
 RUN npm run build
@@ -24,7 +24,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY services/connector-service/package*.json ./
 
 # Install production dependencies only
 RUN npm ci --only=production
