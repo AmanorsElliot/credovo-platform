@@ -31,8 +31,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy shared packages first (needed for npm install)
+# Copy built application first (needed for copying compiled shared files)
+COPY --from=builder /app/dist ./dist
+
+# Copy shared packages (source structure)
 COPY --from=builder /app/shared ./shared
+
+# Copy compiled shared files to shared directories BEFORE npm install
+# This ensures the .js files exist when npm creates symlinks
+RUN if [ -d "dist/shared/utils" ]; then cp dist/shared/utils/*.js shared/utils/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/utils" ]; then cp dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.js shared/types/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/types" ]; then cp dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true; fi
 
 # Copy package files (build context is repo root)
 COPY services/orchestration-service/package*.json ./
@@ -40,14 +50,6 @@ RUN npm install --omit=dev
 
 # Install shared packages' production dependencies
 RUN cd shared/auth && npm install --omit=dev || true
-
-COPY --from=builder /app/dist ./dist
-
-# Copy compiled shared files to shared directories for runtime resolution
-RUN cp -r dist/shared/utils/*.js shared/utils/ 2>/dev/null || true
-RUN cp -r dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true
-RUN cp -r dist/shared/types/*.js shared/types/ 2>/dev/null || true
-RUN cp -r dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true
 
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
