@@ -2,8 +2,8 @@
   "name": "@credovo/shared-auth",
   "version": "1.0.0",
   "description": "Shared authentication utilities for Credovo services",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/auth/index.js",
+  "types": "dist/auth/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest"
