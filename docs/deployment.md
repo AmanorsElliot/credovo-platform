@@ -33,12 +33,24 @@ gsutil mb -p $PROJECT_ID -l $REGION gs://credovo-terraform-state
 
 ## Step 3: Deploy Infrastructure
 
+### Option 1: Using PowerShell Script (Windows - Recommended)
+
+```powershell
+cd scripts
+.\deploy-to-gcp.ps1
+```
+
+### Option 2: Manual Deployment
+
 ```bash
 cd infrastructure/terraform
 
-# Copy and edit variables
-cp terraform.tfvars.example terraform.tfvars
+# Copy and edit variables (already done if terraform.tfvars exists)
+# cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars with your project details
+
+# Authenticate (if not already done)
+gcloud auth application-default login
 
 # Initialize Terraform
 terraform init
@@ -52,27 +64,38 @@ terraform apply
 
 ## Step 4: Configure Secrets
 
+### Option 1: Using PowerShell Script (Windows - Recommended)
+
+```powershell
+cd scripts
+.\configure-secrets.ps1
+```
+
+### Option 2: Manual Configuration (Linux/Mac)
+
 ```bash
 # Lovable JWKS URI
 echo -n "https://auth.lovable.dev/.well-known/jwks.json" | \
-  gcloud secrets create lovable-jwks-uri --data-file=-
+  gcloud secrets versions add lovable-jwks-uri --data-file=-
 
 # Lovable Audience
 echo -n "credovo-api" | \
-  gcloud secrets create lovable-audience --data-file=-
+  gcloud secrets versions add lovable-audience --data-file=-
 
 # Service JWT Secret
 openssl rand -base64 32 | \
-  gcloud secrets create service-jwt-secret --data-file=-
+  gcloud secrets versions add service-jwt-secret --data-file=-
 
 # SumSub API Key
 echo -n "your-sumsub-api-key" | \
-  gcloud secrets create sumsub-api-key --data-file=-
+  gcloud secrets versions add sumsub-api-key --data-file=-
 
 # Companies House API Key
 echo -n "your-companies-house-api-key" | \
-  gcloud secrets create companies-house-api-key --data-file=-
+  gcloud secrets versions add companies-house-api-key --data-file=-
 ```
+
+**Note**: If secrets don't exist yet, Terraform will create them. Use `gcloud secrets versions add` to add values to existing secrets.
 
 ## Step 5: Build and Deploy Services
 
