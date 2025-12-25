@@ -125,22 +125,4 @@ resource "google_vpc_access_connector" "cloud_run_connector" {
   machine_type  = "e2-micro"
 }
 
-# Outputs
-output "project_id" {
-  value = var.project_id
-}
-
-output "region" {
-  value = var.region
-}
-
-output "service_accounts" {
-  value = {
-    for k, v in google_service_account.services : k => v.email
-  }
-}
-
-output "artifact_registry" {
-  value = google_artifact_registry_repository.docker_repo.name
-}
 

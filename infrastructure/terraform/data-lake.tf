@@ -163,16 +163,4 @@ resource "google_bigquery_dataset" "credovo_analytics" {
   }
 }
 
-# Outputs
-output "data_lake_raw_bucket" {
-  value = google_storage_bucket.data_lake_raw.name
-}
-
-output "data_lake_archive_bucket" {
-  value = google_storage_bucket.data_lake_archive.name
-}
-
-output "bigquery_dataset" {
-  value = google_bigquery_dataset.credovo_analytics.dataset_id
-}
 

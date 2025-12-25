@@ -256,16 +256,4 @@ resource "google_cloud_run_service_iam_member" "orchestration_public_access" {
   member   = "allUsers"
 }
 
-# Outputs
-output "kyc_kyb_service_url" {
-  value = google_cloud_run_service.kyc_kyb_service.status[0].url
-}
-
-output "connector_service_url" {
-  value = google_cloud_run_service.connector_service.status[0].url
-}
-
-output "orchestration_service_url" {
-  value = google_cloud_run_service.orchestration_service.status[0].url
-}
 
