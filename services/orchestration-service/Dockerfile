@@ -21,6 +21,12 @@ RUN npm install
 COPY services/orchestration-service/src ./src
 RUN npm run build
 
+# Copy compiled shared files back to shared directories for runtime resolution
+RUN cp -r dist/shared/utils/*.js shared/utils/ 2>/dev/null || true
+RUN cp -r dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true
+RUN cp -r dist/shared/types/*.js shared/types/ 2>/dev/null || true
+RUN cp -r dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true
+
 FROM node:20-alpine
 
 WORKDIR /app
