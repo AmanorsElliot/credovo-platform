@@ -18,6 +18,9 @@ WORKDIR /app/shared
 RUN cd auth && npm run build || true
 WORKDIR /app
 
+# Reinstall to pick up built shared packages
+RUN npm install
+
 # Copy source code
 COPY services/kyc-kyb-service/src ./src
 

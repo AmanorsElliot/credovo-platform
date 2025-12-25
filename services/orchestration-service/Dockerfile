@@ -15,6 +15,9 @@ WORKDIR /app/shared
 RUN cd auth && npm run build || true
 WORKDIR /app
 
+# Reinstall to pick up built shared packages
+RUN npm install
+
 COPY services/orchestration-service/src ./src
 RUN npm run build
 
