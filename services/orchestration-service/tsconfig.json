@@ -7,9 +7,9 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@credovo/shared-types": ["../shared/types/index.ts"],
-      "@credovo/shared-auth": ["../shared/auth/index.ts"],
-      "@credovo/shared-utils/*": ["../shared/utils/*.ts"]
+      "@credovo/shared-types": ["shared/types/index.ts"],
+      "@credovo/shared-auth": ["shared/auth/index.ts"],
+      "@credovo/shared-utils/*": ["shared/utils/*.ts"]
     },
     "strict": true,
     "esModuleInterop": true,
@@ -21,7 +21,7 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "../shared/**/*.ts"],
+  "include": ["src/**/*", "shared/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
 
