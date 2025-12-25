@@ -103,7 +103,9 @@ jobs:
           ls -la services/kyc-kyb-service/package.json
           echo ""
           echo "=== Building Docker image ==="
-          docker build --no-cache -f services/kyc-kyb-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} . || (echo "Docker build failed" && exit 1)
+          docker build --no-cache -f services/kyc-kyb-service/Dockerfile -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} . 2>&1 | tee /tmp/docker-build.log || (echo "Docker build failed" && cat /tmp/docker-build.log && exit 1)
+          echo ""
+          echo "=== Build completed successfully ==="
           echo "Tagging image as latest..."
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:latest
           echo "Pushing images to Artifact Registry..."
