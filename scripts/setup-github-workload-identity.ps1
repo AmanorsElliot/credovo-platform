@@ -54,23 +54,37 @@ Write-Host "Step 3: Cleaning up existing Workload Identity resources..." -Foregr
 $poolId = "github-actions-pool"
 $providerId = "github-provider"
 
-# Delete provider first (if exists) - ignore errors
-Write-Host "Deleting existing provider (if any)..." -ForegroundColor Cyan
-gcloud iam workload-identity-pools providers delete $providerId `
+# Check if provider exists and delete it
+Write-Host "Checking for existing provider..." -ForegroundColor Cyan
+$providerCheck = gcloud iam workload-identity-pools providers describe $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
-    --project=$ProjectId `
-    --quiet 2>&1 | Out-Null
+    --project=$ProjectId 2>&1
 
-# Delete pool (if exists) - ignore errors
-Write-Host "Deleting existing pool (if any)..." -ForegroundColor Cyan
-gcloud iam workload-identity-pools delete $poolId `
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Deleting existing provider..." -ForegroundColor Cyan
+    gcloud iam workload-identity-pools providers delete $providerId `
+        --workload-identity-pool=$poolId `
+        --location=global `
+        --project=$ProjectId `
+        --quiet
+    Start-Sleep -Seconds 2
+}
+
+# Check if pool exists and delete it
+Write-Host "Checking for existing pool..." -ForegroundColor Cyan
+$poolCheck = gcloud iam workload-identity-pools describe $poolId `
     --location=global `
-    --project=$ProjectId `
-    --quiet 2>&1 | Out-Null
+    --project=$ProjectId 2>&1
 
-# Wait a moment for deletion to complete
-Start-Sleep -Seconds 3
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Deleting existing pool..." -ForegroundColor Cyan
+    gcloud iam workload-identity-pools delete $poolId `
+        --location=global `
+        --project=$ProjectId `
+        --quiet
+    Start-Sleep -Seconds 3
+}
 
 # Step 4: Create Workload Identity Pool
 Write-Host ""
@@ -101,11 +115,15 @@ Write-Host ""
 Write-Host "Step 6: Granting GitHub Actions permission to impersonate service account..." -ForegroundColor Yellow
 
 # Wait a moment for provider to be fully created
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 3
 
-# Use principalSet for all principals in the pool (simpler, less restrictive)
-# You can restrict this later by repository if needed
-$principal = "principalSet://iam.googleapis.com/$poolName"
+# Get project number (needed for principal format)
+$projectNumber = (gcloud projects describe $ProjectId --format="value(projectNumber)")
+
+# Use principalSet with project number (correct format)
+$principal = "principalSet://iam.googleapis.com/projects/$projectNumber/locations/global/workloadIdentityPools/$poolId"
+
+Write-Host "Using principal: $principal" -ForegroundColor Gray
 
 gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
     --project=$ProjectId `
