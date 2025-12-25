@@ -86,22 +86,42 @@ if ($LASTEXITCODE -eq 0) {
     Start-Sleep -Seconds 3
 }
 
-# Step 4: Create Workload Identity Pool
+# Step 4: Create Workload Identity Pool (or use existing)
 Write-Host ""
 Write-Host "Step 4: Creating Workload Identity Pool..." -ForegroundColor Yellow
 $poolName = "projects/$ProjectId/locations/global/workloadIdentityPools/$poolId"
 
-gcloud iam workload-identity-pools create $poolId `
+# Try to create pool, ignore if it already exists
+$poolCreate = gcloud iam workload-identity-pools create $poolId `
     --location=global `
     --project=$ProjectId `
-    --display-name="GitHub Actions Pool"
+    --display-name="GitHub Actions Pool" 2>&1
 
-# Step 5: Create Workload Identity Provider (simple, no condition)
+if ($LASTEXITCODE -ne 0 -and $poolCreate -notmatch "ALREADY_EXISTS") {
+    Write-Host "ERROR: Failed to create pool: $poolCreate" -ForegroundColor Red
+    exit 1
+} else {
+    Write-Host "Pool ready (created or already exists)." -ForegroundColor Green
+}
+
+# Step 5: Delete existing provider if it exists (might have wrong config)
 Write-Host ""
-Write-Host "Step 5: Creating Workload Identity Provider..." -ForegroundColor Yellow
+Write-Host "Step 5: Ensuring provider is clean..." -ForegroundColor Yellow
+
+# Try to delete provider (ignore errors)
+gcloud iam workload-identity-pools providers delete $providerId `
+    --workload-identity-pool=$poolId `
+    --location=global `
+    --project=$ProjectId `
+    --quiet 2>&1 | Out-Null
+
+Start-Sleep -Seconds 2
+
+# Create Workload Identity Provider (simple, no condition)
+Write-Host "Creating Workload Identity Provider..." -ForegroundColor Yellow
 $providerName = "$poolName/providers/$providerId"
 
-# Create provider with minimal mapping - no condition
+# Create provider with minimal mapping - no condition, no extra attributes
 gcloud iam workload-identity-pools providers create-oidc $providerId `
     --workload-identity-pool=$poolId `
     --location=global `
@@ -120,15 +140,31 @@ Start-Sleep -Seconds 3
 # Get project number (needed for principal format)
 $projectNumber = (gcloud projects describe $ProjectId --format="value(projectNumber)")
 
-# Use principalSet with project number (correct format)
+# Use the correct principal format - need to use the full resource name
+# Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID
 $principal = "principalSet://iam.googleapis.com/projects/$projectNumber/locations/global/workloadIdentityPools/$poolId"
 
 Write-Host "Using principal: $principal" -ForegroundColor Gray
+Write-Host "Waiting for provider to be fully ready..." -ForegroundColor Cyan
+Start-Sleep -Seconds 3
 
+# Try to add IAM binding
+Write-Host "Adding IAM policy binding..." -ForegroundColor Cyan
 gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
     --project=$ProjectId `
     --role="roles/iam.workloadIdentityUser" `
     --member="$principal"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "WARNING: IAM binding failed. You may need to add it manually:" -ForegroundColor Yellow
+    Write-Host "  gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail \`" -ForegroundColor Gray
+    Write-Host "    --project=$ProjectId \`" -ForegroundColor Gray
+    Write-Host "    --role='roles/iam.workloadIdentityUser' \`" -ForegroundColor Gray
+    Write-Host "    --member='$principal'" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Or try using the pool resource name directly from the GCP Console." -ForegroundColor Yellow
+}
 
 Write-Host ""
 Write-Host "=== Workload Identity Federation Setup Complete ===" -ForegroundColor Green
