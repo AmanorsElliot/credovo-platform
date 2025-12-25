@@ -34,8 +34,13 @@ WORKDIR /app
 # Copy built application first (needed for copying compiled shared files)
 COPY --from=builder /app/dist ./dist
 
-# Copy shared packages (source structure)
+# Copy shared packages (source structure) - this includes shared/auth/dist from builder
 COPY --from=builder /app/shared ./shared
+
+# Verify shared/auth/dist exists (it should from the builder stage)
+RUN echo "=== Checking shared/auth structure ===" && \
+    ls -la shared/auth/ || true && \
+    ls -la shared/auth/dist/ || true
 
 # Copy compiled shared files to shared directories BEFORE npm install
 # This ensures the .js files exist when npm creates symlinks
