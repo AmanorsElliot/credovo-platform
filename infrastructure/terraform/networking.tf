@@ -172,3 +172,14 @@ resource "google_secret_manager_secret_version" "companies_house_api_key_version
   depends_on = [google_secret_manager_secret.companies_house_api_key]
 }
 
+# Wait for secret versions to be fully available
+resource "time_sleep" "wait_for_secret_versions" {
+  depends_on = [
+    google_secret_manager_secret_version.lovable_jwks_uri_version,
+    google_secret_manager_secret_version.lovable_audience_version,
+    google_secret_manager_secret_version.service_jwt_secret_version
+  ]
+  
+  create_duration = "30s"  # Wait 30 seconds for secret versions to be available
+}
+
