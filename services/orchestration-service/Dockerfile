@@ -8,6 +8,10 @@ COPY services/orchestration-service/tsconfig.json ./
 COPY shared ./shared
 
 RUN npm install
+RUN cd shared/auth && npm install || true
+
+# Build shared packages first
+RUN cd shared/auth && npm run build || true
 
 COPY services/orchestration-service/src ./src
 RUN npm run build

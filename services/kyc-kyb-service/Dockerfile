@@ -9,13 +9,17 @@ COPY services/kyc-kyb-service/tsconfig.json ./
 # Copy shared dependencies
 COPY shared ./shared
 
-# Install dependencies
+# Install dependencies for service and shared packages
 RUN npm install
+RUN cd shared/auth && npm install || true
+
+# Build shared packages first
+RUN cd shared/auth && npm run build || true
 
 # Copy source code
 COPY services/kyc-kyb-service/src ./src
 
-# Build
+# Build service
 RUN npm run build
 
 # Production image
