@@ -22,9 +22,12 @@ resource "google_pubsub_subscription" "kyc_events_subscription" {
   topic = google_pubsub_topic.kyc_events.name
 
   ack_deadline_seconds = 20
+  
+  # Message retention duration must be <= expiration policy TTL
+  message_retention_duration = "604800s"  # 7 days
 
   expiration_policy {
-    ttl = "300000.5s"
+    ttl = "604800s"  # 7 days - must be >= message_retention_duration
   }
 
   retry_policy {
@@ -37,6 +40,8 @@ resource "google_pubsub_subscription" "kyc_events_subscription" {
 resource "google_cloud_tasks_queue" "kyc_queue" {
   name     = "kyc-queue"
   location = var.region
+  
+  depends_on = [google_project_service.required_apis]
 
   rate_limits {
     max_concurrent_dispatches = 10
@@ -64,6 +69,8 @@ resource "google_secret_manager_secret" "lovable_jwks_uri" {
     environment = var.environment
     purpose     = "auth"
   }
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 resource "google_secret_manager_secret" "lovable_audience" {
@@ -77,6 +84,8 @@ resource "google_secret_manager_secret" "lovable_audience" {
     environment = var.environment
     purpose     = "auth"
   }
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 resource "google_secret_manager_secret" "service_jwt_secret" {
@@ -90,6 +99,8 @@ resource "google_secret_manager_secret" "service_jwt_secret" {
     environment = var.environment
     purpose     = "auth"
   }
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 # Example: Secret for SumSub API key
@@ -104,6 +115,8 @@ resource "google_secret_manager_secret" "sumsub_api_key" {
     environment = var.environment
     provider     = "sumsub"
   }
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 # Example: Secret for Companies House API key
@@ -118,5 +131,7 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
     environment = var.environment
     provider     = "companies-house"
   }
+  
+  depends_on = [google_project_service.required_apis]
 }
 

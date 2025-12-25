@@ -87,6 +87,8 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
       columns = 12
       tiles = [
         {
+          xPos   = 0
+          yPos   = 0
           width  = 6
           height = 4
           widget = {
@@ -103,6 +105,8 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
           }
         },
         {
+          xPos   = 6
+          yPos   = 0
           width  = 6
           height = 4
           widget = {
@@ -119,6 +123,8 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
           }
         },
         {
+          xPos   = 0
+          yPos   = 4
           width  = 6
           height = 4
           widget = {
@@ -135,6 +141,8 @@ resource "google_monitoring_dashboard" "cloud_run_dashboard" {
           }
         },
         {
+          xPos   = 6
+          yPos   = 4
           width  = 6
           height = 4
           widget = {

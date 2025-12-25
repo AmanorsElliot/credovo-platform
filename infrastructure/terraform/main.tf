@@ -111,6 +111,8 @@ resource "google_artifact_registry_repository" "docker_repo" {
   repository_id = "credovo-services"
   description   = "Docker repository for Credovo services"
   format        = "DOCKER"
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 # VPC Connector for Cloud Run
@@ -123,6 +125,8 @@ resource "google_vpc_access_connector" "cloud_run_connector" {
   min_instances = 2
   max_instances = 3
   machine_type  = "e2-micro"
+  
+  depends_on = [google_project_service.required_apis]
 }
 
 
