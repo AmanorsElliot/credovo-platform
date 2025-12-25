@@ -57,7 +57,7 @@ resource "google_secret_manager_secret" "lovable_jwks_uri" {
   secret_id = "lovable-jwks-uri"
 
   replication {
-    automatic {}
+    auto {}
   }
 
   labels = {
@@ -70,7 +70,7 @@ resource "google_secret_manager_secret" "lovable_audience" {
   secret_id = "lovable-audience"
 
   replication {
-    automatic {}
+    auto {}
   }
 
   labels = {
@@ -83,7 +83,7 @@ resource "google_secret_manager_secret" "service_jwt_secret" {
   secret_id = "service-jwt-secret"
 
   replication {
-    automatic {}
+    auto {}
   }
 
   labels = {
@@ -97,7 +97,7 @@ resource "google_secret_manager_secret" "sumsub_api_key" {
   secret_id = "sumsub-api-key"
 
   replication {
-    automatic {}
+    auto {}
   }
 
   labels = {
@@ -111,7 +111,7 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
   secret_id = "companies-house-api-key"
 
   replication {
-    automatic {}
+    auto {}
   }
 
   labels = {
