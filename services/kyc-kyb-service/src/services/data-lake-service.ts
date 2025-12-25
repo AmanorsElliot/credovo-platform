@@ -55,9 +55,11 @@ export class DataLakeService {
     }
 
     // Get the most recent file
-    const latestFile = files.sort((a, b) => 
-      b.metadata.timeCreated.localeCompare(a.metadata.timeCreated)
-    )[0];
+    const latestFile = files.sort((a, b) => {
+      const timeA = a.metadata.timeCreated || '';
+      const timeB = b.metadata.timeCreated || '';
+      return timeB.localeCompare(timeA);
+    })[0];
 
     const [content] = await latestFile.download();
     return JSON.parse(content.toString());
