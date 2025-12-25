@@ -39,3 +39,9 @@ variable "notification_channels" {
   default     = []
 }
 
+variable "github_repo" {
+  description = "GitHub repository in format owner/repo"
+  type        = string
+  default     = "AmanorsElliot/credovo-platform"
+}
+
