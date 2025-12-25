@@ -159,10 +159,14 @@ gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "WARNING: IAM binding failed. You may need to add it manually:" -ForegroundColor Yellow
-    Write-Host "  gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail \`" -ForegroundColor Gray
-    Write-Host "    --project=$ProjectId \`" -ForegroundColor Gray
-    Write-Host "    --role='roles/iam.workloadIdentityUser' \`" -ForegroundColor Gray
-    Write-Host "    --member='$principal'" -ForegroundColor Gray
+    $cmd1 = "gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail"
+    $cmd2 = "    --project=$ProjectId"
+    $cmd3 = "    --role='roles/iam.workloadIdentityUser'"
+    $cmd4 = "    --member='$principal'"
+    Write-Host "  $cmd1" -ForegroundColor Gray
+    Write-Host "  $cmd2" -ForegroundColor Gray
+    Write-Host "  $cmd3" -ForegroundColor Gray
+    Write-Host "  $cmd4" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Or try using the pool resource name directly from the GCP Console." -ForegroundColor Yellow
 }
@@ -171,7 +175,8 @@ Write-Host ""
 Write-Host "=== Workload Identity Federation Setup Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "Add these secrets to GitHub:" -ForegroundColor Cyan
-Write-Host "Go to: https://github.com/$GitHubRepo/settings/secrets/actions" -ForegroundColor Yellow
+$githubUrl = "https://github.com/$GitHubRepo/settings/secrets/actions"
+Write-Host "Go to: $githubUrl" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Repository Secrets to add:" -ForegroundColor Yellow
 Write-Host ""
@@ -187,4 +192,5 @@ Write-Host ""
 Write-Host "4. ARTIFACT_REGISTRY" -ForegroundColor White
 Write-Host "   Value: credovo-services" -ForegroundColor Gray
 Write-Host ""
-Write-Host "Note: You do NOT need GCP_SA_KEY anymore - Workload Identity Federation replaces it" -ForegroundColor Green
+$noteMsg = "Note: You do NOT need GCP_SA_KEY anymore - Workload Identity Federation replaces it"
+Write-Host $noteMsg -ForegroundColor Green
