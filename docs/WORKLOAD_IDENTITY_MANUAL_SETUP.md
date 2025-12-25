@@ -19,13 +19,15 @@ GCP is requiring an attribute condition that references provider claims, but the
    - **Issuer URL**: `https://token.actions.githubusercontent.com`
    - **Attribute mapping**:
      - `google.subject` = `assertion.sub`
-   - **Attribute condition**: **DO NOT ADD ANY CONDITION** - Leave this section completely empty
+     - `attribute.repository` = `assertion.repository` (add this mapping)
+   - **Attribute condition**: **ADD THIS CONDITION** (required by org policy):
+     ```
+     assertion.repository == "AmanorsElliot/credovo-platform"
+     ```
+     This condition ensures only your specific repository can use this provider.
 6. Click **SAVE**
 
-**Important**: If you get an error about conditions, try:
-- Refreshing the page and trying again
-- Using a different browser
-- Or contact your GCP organization admin to review the policy
+**Note**: Your organization policy requires an attribute condition. The condition above restricts access to your specific GitHub repository for security.
 
 ### Step 2: Grant IAM Permission
 
