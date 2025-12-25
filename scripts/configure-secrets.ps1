@@ -67,5 +67,6 @@ Write-Host "To verify secrets:" -ForegroundColor Cyan
 Write-Host "  gcloud secrets list" -ForegroundColor White
 Write-Host ""
 Write-Host "To view a secret value:" -ForegroundColor Cyan
-Write-Host "  gcloud secrets versions access latest --secret=SECRET_NAME" -ForegroundColor White
+$secretCmd = "gcloud secrets versions access latest --secret=SECRET_NAME"
+Write-Host "  $secretCmd" -ForegroundColor White
 
