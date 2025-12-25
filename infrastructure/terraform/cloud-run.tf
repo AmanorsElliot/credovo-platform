@@ -274,19 +274,37 @@ resource "google_cloud_run_service" "orchestration_service" {
   }
 }
 
-# IAM policy to allow unauthenticated access (or use IAP for authenticated access)
-resource "google_cloud_run_service_iam_member" "kyc_kyb_public_access" {
+# IAM policy - Services require authentication by default
+# To allow public access, uncomment and configure the resources below
+# Note: Organization policies may restrict public access (allUsers)
+#
+# resource "google_cloud_run_service_iam_member" "kyc_kyb_public_access" {
+#   service  = google_cloud_run_service.kyc_kyb_service.name
+#   location = google_cloud_run_service.kyc_kyb_service.location
+#   role     = "roles/run.invoker"
+#   member   = "allUsers"
+# }
+#
+# resource "google_cloud_run_service_iam_member" "orchestration_public_access" {
+#   service  = google_cloud_run_service.orchestration_service.name
+#   location = google_cloud_run_service.orchestration_service.location
+#   role     = "roles/run.invoker"
+#   member   = "allUsers"
+# }
+
+# Grant service account access to invoke services (for service-to-service communication)
+resource "google_cloud_run_service_iam_member" "orchestration_invoke_kyc" {
   service  = google_cloud_run_service.kyc_kyb_service.name
   location = google_cloud_run_service.kyc_kyb_service.location
   role     = "roles/run.invoker"
-  member   = "allUsers"
+  member   = "serviceAccount:${google_service_account.services["orchestration-service"].email}"
 }
 
-resource "google_cloud_run_service_iam_member" "orchestration_public_access" {
-  service  = google_cloud_run_service.orchestration_service.name
-  location = google_cloud_run_service.orchestration_service.location
+resource "google_cloud_run_service_iam_member" "orchestration_invoke_connector" {
+  service  = google_cloud_run_service.connector_service.name
+  location = google_cloud_run_service.connector_service.location
   role     = "roles/run.invoker"
-  member   = "allUsers"
+  member   = "serviceAccount:${google_service_account.services["orchestration-service"].email}"
 }
 
 
