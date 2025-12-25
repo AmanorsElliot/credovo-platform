@@ -12,8 +12,10 @@ RUN cd shared/auth && npm install || true
 
 # Build shared packages first (build from shared directory to handle cross-package imports)
 WORKDIR /app/shared
-RUN cd auth && npm run build || true
+RUN cd auth && npm run build && echo "shared/auth build successful" || (echo "shared/auth build FAILED" && exit 1)
 WORKDIR /app
+RUN echo "=== Verifying shared/auth/dist was created ===" && \
+    ls -la shared/auth/dist/ || (echo "ERROR: shared/auth/dist does not exist!" && exit 1)
 
 # Reinstall to pick up built shared packages
 RUN npm install
