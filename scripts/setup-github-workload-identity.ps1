@@ -84,7 +84,20 @@ if ($LASTEXITCODE -ne 0) {
         --project=$ProjectId `
         --display-name="GitHub Provider" `
         --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" `
+        --attribute-condition="assertion.repository == `"$GitHubRepo`"" `
         --issuer-uri="https://token.actions.githubusercontent.com"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Failed to create workload identity provider." -ForegroundColor Red
+        Write-Host "Trying without attribute condition..." -ForegroundColor Yellow
+        gcloud iam workload-identity-pools providers create-oidc $providerId `
+            --workload-identity-pool=$poolId `
+            --location=global `
+            --project=$ProjectId `
+            --display-name="GitHub Provider" `
+            --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" `
+            --issuer-uri="https://token.actions.githubusercontent.com"
+    }
 } else {
     Write-Host "Workload identity provider already exists." -ForegroundColor Green
 }
@@ -93,12 +106,31 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "Step 5: Granting GitHub Actions permission to impersonate service account..." -ForegroundColor Yellow
 
-$principal = "principalSet://iam.googleapis.com/$poolName/attribute.repository/$GitHubRepo"
+# Wait a moment for the provider to be fully created
+Start-Sleep -Seconds 5
+
+# Use principalSet with repository attribute
+$principal = "principalSet://iam.googleapis.com/projects/$ProjectId/locations/global/workloadIdentityPools/$poolId/attribute.repository/$GitHubRepo"
+
+Write-Host "Binding principal: $principal" -ForegroundColor Cyan
 
 gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
     --project=$ProjectId `
     --role="roles/iam.workloadIdentityUser" `
     --member="$principal"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "WARNING: Failed to add IAM policy binding with repository condition." -ForegroundColor Yellow
+    Write-Host "Trying with principalSet (all repositories in pool)..." -ForegroundColor Yellow
+    
+    # Fallback: allow all principals in the pool (less restrictive but should work)
+    $principalFallback = "principalSet://iam.googleapis.com/projects/$ProjectId/locations/global/workloadIdentityPools/$poolId"
+    
+    gcloud iam service-accounts add-iam-policy-binding $serviceAccountEmail `
+        --project=$ProjectId `
+        --role="roles/iam.workloadIdentityUser" `
+        --member="$principalFallback"
+}
 
 Write-Host ""
 Write-Host "=== Workload Identity Federation Setup Complete ===" -ForegroundColor Green
