@@ -1,14 +1,10 @@
 name: Deploy Services to GCP
 
+# DISABLED: This workflow is disabled in favor of deploy.yml
+# which uses Workload Identity and Cloud Build
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'services/**'
-      - '.github/workflows/deploy-services.yml'
   workflow_dispatch:
+    # Disabled - use deploy.yml instead
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
