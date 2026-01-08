@@ -7,7 +7,10 @@
       "pubsub.googleapis.com",
       "cloudtasks.googleapis.com",
       "vpcaccess.googleapis.com",
-      "artifactregistry.googleapis.com"
+      "artifactregistry.googleapis.com",
+      "run.googleapis.com",
+      "bigquery.googleapis.com",
+      "cloudbuild.googleapis.com"
     ]
   }
 }

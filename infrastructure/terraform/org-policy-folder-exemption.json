@@ -8,7 +8,8 @@
       "pubsub.googleapis.com",
       "cloudtasks.googleapis.com",
       "vpcaccess.googleapis.com",
-      "artifactregistry.googleapis.com"
+      "artifactregistry.googleapis.com",
+      "cloudbuild.googleapis.com"
     ]
   }
 }
