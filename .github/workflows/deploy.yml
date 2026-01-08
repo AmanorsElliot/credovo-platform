@@ -54,6 +54,7 @@ jobs:
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
+            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
@@ -101,6 +102,7 @@ jobs:
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
+            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
@@ -154,6 +156,7 @@ jobs:
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
+            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
