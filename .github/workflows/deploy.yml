@@ -57,8 +57,9 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           gcloud run deploy orchestration-service \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:${{ github.sha }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/orchestration-service:$SHORT_SHA \
             --region=${{ env.REGION }} \
             --platform=managed \
             --service-account=orchestration-service@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
