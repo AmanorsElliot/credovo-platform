@@ -30,21 +30,25 @@ data "google_project" "project" {
 # }
 
 # Use existing github-actions service account (already created)
-data "google_service_account" "github_actions" {
-  account_id = "github-actions"
-  project    = var.project_id
-}
+# NOTE: Commented out for initial setup - uncomment after creating the service account
+# To create: gcloud iam service-accounts create github-actions --display-name="GitHub Actions Service Account"
+#
+# data "google_service_account" "github_actions" {
+#   account_id = "github-actions"
+#   project    = var.project_id
+# }
 
 # Grant GitHub Actions permission to impersonate the service account
 # Note: The Workload Identity Pool and Provider must be created manually (see docs/WORKLOAD_IDENTITY_MANUAL_SETUP.md)
 # The provider was created with attribute condition: assertion.repository == "AmanorsElliot/credovo-platform"
 # Format: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/attribute.ATTRIBUTE_NAME/ATTRIBUTE_VALUE
 # Must include attribute path to match the provider's condition
-resource "google_service_account_iam_member" "github_actions_workload_identity" {
-  service_account_id = data.google_service_account.github_actions.name
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/github-actions-pool-v2/attribute.repository/AmanorsElliot/credovo-platform"
-  
-  # No depends_on needed - the provider exists manually and IAM binding works independently
-}
+#
+# resource "google_service_account_iam_member" "github_actions_workload_identity" {
+#   service_account_id = data.google_service_account.github_actions.name
+#   role               = "roles/iam.workloadIdentityUser"
+#   member             = "principalSet://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/github-actions-pool-v2/attribute.repository/AmanorsElliot/credovo-platform"
+#   
+#   # No depends_on needed - the provider exists manually and IAM binding works independently
+# }
 

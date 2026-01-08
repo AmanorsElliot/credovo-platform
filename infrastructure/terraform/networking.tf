@@ -62,7 +62,11 @@ resource "google_secret_manager_secret" "lovable_jwks_uri" {
   secret_id = "lovable-jwks-uri"
 
   replication {
-    auto {}
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   labels = {
@@ -77,7 +81,11 @@ resource "google_secret_manager_secret" "lovable_audience" {
   secret_id = "lovable-audience"
 
   replication {
-    auto {}
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   labels = {
@@ -92,7 +100,11 @@ resource "google_secret_manager_secret" "service_jwt_secret" {
   secret_id = "service-jwt-secret"
 
   replication {
-    auto {}
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   labels = {
@@ -103,12 +115,36 @@ resource "google_secret_manager_secret" "service_jwt_secret" {
   depends_on = [time_sleep.wait_for_apis]
 }
 
+resource "google_secret_manager_secret" "supabase_url" {
+  secret_id = "supabase-url"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    purpose     = "auth"
+    provider    = "supabase"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
 # Example: Secret for SumSub API key
 resource "google_secret_manager_secret" "sumsub_api_key" {
   secret_id = "sumsub-api-key"
 
   replication {
-    auto {}
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   labels = {
@@ -124,7 +160,11 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
   secret_id = "companies-house-api-key"
 
   replication {
-    auto {}
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
 
   labels = {
@@ -156,6 +196,13 @@ resource "google_secret_manager_secret_version" "service_jwt_secret_version" {
   secret_data = base64encode("placeholder-jwt-secret-change-me")  # Placeholder - will be updated
   
   depends_on = [google_secret_manager_secret.service_jwt_secret]
+}
+
+resource "google_secret_manager_secret_version" "supabase_url_version" {
+  secret      = google_secret_manager_secret.supabase_url.id
+  secret_data = "https://your-project.supabase.co"  # Placeholder - will be updated with actual Supabase project URL
+  
+  depends_on = [google_secret_manager_secret.supabase_url]
 }
 
 resource "google_secret_manager_secret_version" "sumsub_api_key_version" {

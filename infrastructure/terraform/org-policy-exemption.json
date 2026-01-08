@@ -1,0 +1,13 @@
+{
+  "constraint": "constraints/gcp.restrictServiceUsage",
+  "listPolicy": {
+    "allowedValues": [
+      "storage.googleapis.com",
+      "secretmanager.googleapis.com",
+      "pubsub.googleapis.com",
+      "cloudtasks.googleapis.com",
+      "vpcaccess.googleapis.com",
+      "artifactregistry.googleapis.com"
+    ]
+  }
+}

@@ -2,7 +2,7 @@
 # Run this after Terraform has created the secret placeholders
 
 param(
-    [string]$ProjectId = "credovo-platform-dev"
+    [string]$ProjectId = "credovo-eu-apps-nonprod"
 )
 
 Write-Host "=== GCP Secret Manager Configuration ===" -ForegroundColor Cyan
@@ -15,30 +15,43 @@ Write-Host "This script will help you configure secrets in GCP Secret Manager." 
 Write-Host "Some secrets will be generated automatically, others require your input." -ForegroundColor Yellow
 Write-Host ""
 
-# 1. Lovable JWKS URI
-Write-Host "1. Configuring Lovable JWKS URI..." -ForegroundColor Yellow
-$jwksUri = "https://auth.lovable.dev/.well-known/jwks.json"
-$jwksUri | gcloud secrets versions add lovable-jwks-uri --data-file=-
-Write-Host "   [OK] Lovable JWKS URI configured" -ForegroundColor Green
+# 1. Supabase URL (REQUIRED for Supabase auth)
+Write-Host "1. Configuring Supabase URL..." -ForegroundColor Yellow
+$supabaseUrl = Read-Host "Enter your Supabase Project URL (e.g., https://xxx.supabase.co)"
+if ($supabaseUrl) {
+    $supabaseUrl | gcloud secrets versions add supabase-url --data-file=-
+    Write-Host "   [OK] Supabase URL configured" -ForegroundColor Green
+} else {
+    Write-Host "   [ERROR] Supabase URL is required!" -ForegroundColor Red
+    Write-Host "   Configure later with:" -ForegroundColor Yellow
+    Write-Host "     echo -n 'https://your-project.supabase.co' | gcloud secrets versions add supabase-url --data-file=-" -ForegroundColor Gray
+}
 
-# 2. Lovable Audience
+# 2. Service JWT Secret (generate random - for fallback token exchange)
 Write-Host ""
-Write-Host "2. Configuring Lovable Audience..." -ForegroundColor Yellow
-$audience = "credovo-api"
-$audience | gcloud secrets versions add lovable-audience --data-file=-
-Write-Host "   [OK] Lovable Audience configured" -ForegroundColor Green
-
-# 3. Service JWT Secret (generate random)
-Write-Host ""
-Write-Host "3. Generating Service JWT Secret..." -ForegroundColor Yellow
-$jwtSecret = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object {[char]$_})
+Write-Host "2. Generating Service JWT Secret..." -ForegroundColor Yellow
+$jwtSecret = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 64 | ForEach-Object {[char]$_})
 $jwtSecretBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($jwtSecret))
 $jwtSecretBase64 | gcloud secrets versions add service-jwt-secret --data-file=-
 Write-Host "   [OK] Service JWT Secret generated and configured" -ForegroundColor Green
 
-# 4. SumSub API Key
+# 3. Lovable JWKS URI (optional - only if not using Supabase)
 Write-Host ""
-Write-Host "4. Configuring SumSub API Key..." -ForegroundColor Yellow
+Write-Host "3. Configuring Lovable JWKS URI (optional)..." -ForegroundColor Yellow
+$jwksUri = "https://auth.lovable.dev/.well-known/jwks.json"
+$jwksUri | gcloud secrets versions add lovable-jwks-uri --data-file=-
+Write-Host "   [OK] Lovable JWKS URI configured" -ForegroundColor Green
+
+# 4. Lovable Audience (optional - only if not using Supabase)
+Write-Host ""
+Write-Host "4. Configuring Lovable Audience (optional)..." -ForegroundColor Yellow
+$audience = "credovo-api"
+$audience | gcloud secrets versions add lovable-audience --data-file=-
+Write-Host "   [OK] Lovable Audience configured" -ForegroundColor Green
+
+# 5. SumSub API Key (optional)
+Write-Host ""
+Write-Host "5. Configuring SumSub API Key (optional)..." -ForegroundColor Yellow
 $sumsubKey = Read-Host "Enter your SumSub API Key (or press Enter to skip)"
 if ($sumsubKey) {
     $sumsubKey | gcloud secrets versions add sumsub-api-key --data-file=-
@@ -48,9 +61,9 @@ if ($sumsubKey) {
     Write-Host "     echo -n 'your-key' | gcloud secrets versions add sumsub-api-key --data-file=-" -ForegroundColor Gray
 }
 
-# 5. Companies House API Key
+# 6. Companies House API Key (optional)
 Write-Host ""
-Write-Host "5. Configuring Companies House API Key..." -ForegroundColor Yellow
+Write-Host "6. Configuring Companies House API Key (optional)..." -ForegroundColor Yellow
 $companiesHouseKey = Read-Host "Enter your Companies House API Key (or press Enter to skip)"
 if ($companiesHouseKey) {
     $companiesHouseKey | gcloud secrets versions add companies-house-api-key --data-file=-

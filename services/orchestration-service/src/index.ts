@@ -1,7 +1,8 @@
 import express from 'express';
-import { validateJwt, configureCors } from '@credovo/shared-auth';
+import { validateBackendJwt, validateSupabaseJwt, configureCors } from '@credovo/shared-auth';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { ApplicationRouter } from './routes/application';
+import { AuthRouter } from './routes/auth';
 
 const logger = createLogger('orchestration-service');
 const app = express();
@@ -17,8 +18,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/api/v1/applications', validateJwt, ApplicationRouter);
+// Auth routes (no auth required - this is where tokens are issued if using token exchange)
+app.use('/api/v1/auth', AuthRouter);
+
+// Application routes (require authentication)
+// Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
+const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL)
+  ? validateSupabaseJwt 
+  : validateBackendJwt;
+
+app.use('/api/v1/applications', authMiddleware, ApplicationRouter);
 
 // Health check
 app.get('/health', (req, res) => {

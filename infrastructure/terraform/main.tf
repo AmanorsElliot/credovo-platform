@@ -12,9 +12,16 @@ terraform {
     }
   }
 
-  backend "gcs" {
-    bucket = "credovo-terraform-state"
-    prefix = "terraform/state"
+  # GCS backend (requires bucket to exist)
+  # Uncomment when GCS bucket is available
+  # backend "gcs" {
+  #   bucket = "credovo-terraform-state"
+  #   prefix = "terraform/state"
+  # }
+  
+  # Local backend (temporary - for initial setup)
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
 

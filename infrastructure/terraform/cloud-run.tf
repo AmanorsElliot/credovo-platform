@@ -68,6 +68,21 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
           }
         }
 
+        env {
+          name = "SUPABASE_URL"
+          value_from {
+            secret_key_ref {
+              name = "supabase-url"
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
+          name = "SUPABASE_AUDIENCE"
+          value = "authenticated"
+        }
+
         ports {
           container_port = 8080
         }
@@ -80,8 +95,9 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
       annotations = {
         "autoscaling.knative.dev/minScale" = tostring(var.min_instances)
         "autoscaling.knative.dev/maxScale" = tostring(var.max_instances)
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
-        "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
+        # Temporarily disabled - VPC connector in ERROR state
+        # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
+        # "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
       }
     }
   }
@@ -149,8 +165,9 @@ resource "google_cloud_run_service" "connector_service" {
       annotations = {
         "autoscaling.knative.dev/minScale" = tostring(var.min_instances)
         "autoscaling.knative.dev/maxScale" = tostring(var.max_instances)
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
-        "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
+        # Temporarily disabled - VPC connector in ERROR state
+        # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
+        # "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
       }
     }
   }
@@ -249,8 +266,9 @@ resource "google_cloud_run_service" "orchestration_service" {
       annotations = {
         "autoscaling.knative.dev/minScale" = tostring(var.min_instances)
         "autoscaling.knative.dev/maxScale" = tostring(var.max_instances)
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
-        "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
+        # Temporarily disabled - VPC connector in ERROR state
+        # "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.cloud_run_connector.name
+        # "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
       }
     }
   }
