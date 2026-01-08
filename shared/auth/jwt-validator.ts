@@ -84,11 +84,13 @@ export function validateJwt(req: Request, res: Response, next: NextFunction) {
 
 // Supabase JWT validation using JWKS (preferred) or JWT Secret (fallback)
 // Validates JWTs issued by Supabase (when using Supabase auth through Lovable)
-// Supabase supports both RS256 (via JWKS) and HS256 (via JWT secret)
+// Supabase uses ES256 (Elliptic Curve) by default, but also supports RS256 and HS256
 const SUPABASE_JWKS_URI = process.env.SUPABASE_JWKS_URI || (process.env.SUPABASE_URL 
   ? `${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`
   : null);
 
+// Note: jwks-rsa primarily supports RSA keys, but can work with EC keys via getPublicKey()
+// For ES256, we'll fetch the JWKS and convert EC keys appropriately
 const supabaseJwksClient = SUPABASE_JWKS_URI ? jwksClient({
   jwksUri: SUPABASE_JWKS_URI,
   cache: true,
@@ -108,6 +110,7 @@ function getSupabaseKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback)
       callback(err);
       return;
     }
+    // getPublicKey() works for both RSA and EC keys
     const signingKey = key?.getPublicKey();
     callback(null, signingKey);
   });
@@ -130,14 +133,15 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
   const token = authHeader.substring(7);
   const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
-  // Try JWKS first (RS256), then fall back to JWT secret (HS256)
+  // Try JWKS first (ES256/RS256), then fall back to JWT secret (HS256)
   if (SUPABASE_JWKS_URI && supabaseJwksClient) {
-    // Method 1: Validate using JWKS (RS256) - Preferred method
+    // Method 1: Validate using JWKS (ES256 or RS256) - Preferred method
+    // Supabase uses ES256 (Elliptic Curve) by default
     jwt.verify(
       token,
       getSupabaseKey,
       {
-        algorithms: ['RS256'],
+        algorithms: ['ES256', 'RS256'], // Support both ES256 (Supabase default) and RS256
         // Supabase tokens have 'authenticated' as audience
         audience: process.env.SUPABASE_AUDIENCE || 'authenticated'
       },
