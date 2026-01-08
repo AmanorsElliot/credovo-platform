@@ -42,7 +42,13 @@ jobs:
           SERVICE_NAME="orchestration-service"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
+          # Get the Cloud Build service account
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+          CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+          
           echo "Building and pushing Docker image with Cloud Build..."
+          echo "Using Cloud Build service account: $CLOUD_BUILD_SA"
+          
           gcloud builds submit \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
@@ -136,7 +142,13 @@ jobs:
           SERVICE_NAME="connector-service"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
+          # Get the Cloud Build service account
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+          CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+          
           echo "Building and pushing Docker image with Cloud Build..."
+          echo "Using Cloud Build service account: $CLOUD_BUILD_SA"
+          
           gcloud builds submit \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
