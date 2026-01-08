@@ -39,26 +39,23 @@ jobs:
         with:
           export_default_credentials: true
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          # Use gcloud as Docker credential helper
-          # This avoids needing to manually get access tokens
-          mkdir -p $HOME/.docker
-          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
-
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image with Cloud Build
         run: |
           set -e
           SERVICE_NAME="orchestration-service"
           IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
           IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
           
-          echo "Building Docker image..."
-          docker build -f services/$SERVICE_NAME/Dockerfile -t $IMAGE_TAG -t $IMAGE_LATEST .
+          echo "Building and pushing Docker image with Cloud Build..."
+          gcloud builds submit \
+            --tag $IMAGE_TAG \
+            --tag $IMAGE_LATEST \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            .
           
-          echo "Pushing images..."
-          docker push $IMAGE_TAG
-          docker push $IMAGE_LATEST
+          echo "Images pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
@@ -93,26 +90,23 @@ jobs:
         with:
           export_default_credentials: true
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          # Use gcloud as Docker credential helper
-          # This avoids needing to manually get access tokens
-          mkdir -p $HOME/.docker
-          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
-
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image with Cloud Build
         run: |
           set -e
           SERVICE_NAME="kyc-kyb-service"
           IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
           IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
           
-          echo "Building Docker image..."
-          docker build -f services/$SERVICE_NAME/Dockerfile -t $IMAGE_TAG -t $IMAGE_LATEST .
+          echo "Building and pushing Docker image with Cloud Build..."
+          gcloud builds submit \
+            --tag $IMAGE_TAG \
+            --tag $IMAGE_LATEST \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            .
           
-          echo "Pushing images..."
-          docker push $IMAGE_TAG
-          docker push $IMAGE_LATEST
+          echo "Images pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
@@ -147,26 +141,23 @@ jobs:
         with:
           export_default_credentials: true
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          # Use gcloud as Docker credential helper
-          # This avoids needing to manually get access tokens
-          mkdir -p $HOME/.docker
-          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
-
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image with Cloud Build
         run: |
           set -e
           SERVICE_NAME="connector-service"
           IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
           IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
           
-          echo "Building Docker image..."
-          docker build -f services/$SERVICE_NAME/Dockerfile -t $IMAGE_TAG -t $IMAGE_LATEST .
+          echo "Building and pushing Docker image with Cloud Build..."
+          gcloud builds submit \
+            --tag $IMAGE_TAG \
+            --tag $IMAGE_LATEST \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            .
           
-          echo "Pushing images..."
-          docker push $IMAGE_TAG
-          docker push $IMAGE_LATEST
+          echo "Images pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
