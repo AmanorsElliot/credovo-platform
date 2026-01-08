@@ -172,10 +172,74 @@ Workload Identity Pools are created at the **project level**, but require:
 2. **Use Cloud Build Triggers**: Don't require Workload Identity
 3. **Manual deployment**: For now, deploy manually until Workload Identity is set up
 
+## Permission Summary Table
+
+### Organization Level (477641698806)
+
+| Role | Member | Notes |
+|------|--------|-------|
+| `roles/resourcemanager.organizationAdmin` | `elliot@amanors.com` | ✅ Full org admin |
+| `roles/assuredworkloads.admin` | `elliot@amanors.com` | Assured Workloads |
+| `roles/billing.creator` | `domain:amanors.com` | All domain users |
+| `roles/resourcemanager.projectCreator` | `domain:amanors.com` | All domain users |
+
+### Project Level (credovo-eu-apps-nonprod)
+
+| Role | Member | Notes |
+|------|--------|-------|
+| `roles/iam.workloadIdentityPoolAdmin` | `elliot@amanors.com` | ✅ **Just granted** |
+| `roles/iam.serviceAccountAdmin` | `credovo-platform-admins@credovo.com` | Service accounts |
+| `roles/run.admin` | `credovo-platform-admins@credovo.com` | Cloud Run |
+| `roles/artifactregistry.admin` | `credovo-platform-admins@credovo.com` | Artifact Registry |
+| `roles/secretmanager.admin` | `credovo-platform-admins@credovo.com` | Secrets |
+| `roles/storage.admin` | `credovo-platform-admins@credovo.com` | Storage |
+| `roles/bigquery.dataOwner` | `credovo-platform-admins@credovo.com` | BigQuery |
+| `roles/monitoring.admin` | `credovo-platform-admins@credovo.com` | Monitoring |
+| `roles/logging.configWriter` | `credovo-platform-admins@credovo.com` | Logging |
+| `roles/pubsub.admin` | `credovo-platform-admins@credovo.com` | Pub/Sub |
+| `roles/cloudtasks.admin` | `credovo-platform-admins@credovo.com` | Cloud Tasks |
+| `roles/vpcaccess.admin` | `credovo-platform-admins@credovo.com` | VPC Access |
+| `roles/resourcemanager.projectIamAdmin` | `credovo-platform-admins@credovo.com` | IAM Admin |
+
+## Key Findings
+
+1. **You have organization admin** (`elliot@amanors.com`)
+2. **You have been granted Workload Identity Pool Admin** role at project level
+3. **Service account keys are blocked** by org policy (`iam.disableServiceAccountKeyCreation`)
+4. **Workload Identity is the recommended path** forward
+5. **Still getting permission denied** - may need time to propagate or additional constraints
+
+## Current Status
+
+- ✅ Role `roles/iam.workloadIdentityPoolAdmin` granted to `elliot@amanors.com`
+- ❌ Still getting permission denied when creating pools
+- ⚠️ May need to wait for role propagation (can take a few minutes)
+- ⚠️ Or may need additional organization-level permissions
+
+## Troubleshooting
+
+If role propagation doesn't work:
+
+1. **Check if role is actually applied:**
+   ```powershell
+   gcloud projects get-iam-policy credovo-eu-apps-nonprod --flatten="bindings[].members" --filter="bindings.members:elliot@amanors.com" --format="table(bindings.role)"
+   ```
+
+2. **Try using service account impersonation:**
+   - Create a service account with the role
+   - Impersonate it to create the pool
+
+3. **Check for organization policies** that might block it:
+   ```powershell
+   gcloud resource-manager org-policies list --project=credovo-eu-apps-nonprod --filter="constraint:iam"
+   ```
+
+4. **Alternative: Use Cloud Build Triggers** (doesn't require Workload Identity)
+
 ## Next Steps
 
-1. Run the organization IAM check commands above
-2. Identify who has organization-level permissions
-3. Request Workload Identity setup from that person
-4. Document the setup process for future reference
+1. Wait a few minutes for role propagation
+2. Try creating the pool again
+3. If still fails, check organization policies
+4. Consider Cloud Build Triggers as alternative
 
