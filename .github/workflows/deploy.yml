@@ -38,8 +38,8 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Get access token and configure Docker
-          TOKEN=$(gcloud auth print-access-token --impersonate-service-account=${{ secrets.GCP_WIF_SERVICE_ACCOUNT }})
+          # Get access token using the authenticated service account
+          TOKEN=$(gcloud auth print-access-token)
           echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
@@ -88,8 +88,8 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Get access token and configure Docker
-          TOKEN=$(gcloud auth print-access-token --impersonate-service-account=${{ secrets.GCP_WIF_SERVICE_ACCOUNT }})
+          # Get access token using the authenticated service account
+          TOKEN=$(gcloud auth print-access-token)
           echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
@@ -138,8 +138,8 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Get access token and configure Docker
-          TOKEN=$(gcloud auth print-access-token --impersonate-service-account=${{ secrets.GCP_WIF_SERVICE_ACCOUNT }})
+          # Get access token using the authenticated service account
+          TOKEN=$(gcloud auth print-access-token)
           echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
