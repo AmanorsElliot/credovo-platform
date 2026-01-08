@@ -38,9 +38,10 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use Application Default Credentials (set up by Workload Identity)
-          TOKEN=$(gcloud auth application-default print-access-token)
-          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
+          # Use gcloud as Docker credential helper
+          # This avoids needing to manually get access tokens
+          mkdir -p $HOME/.docker
+          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
 
       - name: Build and Push Docker Image
         run: |
@@ -88,9 +89,10 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use Application Default Credentials (set up by Workload Identity)
-          TOKEN=$(gcloud auth application-default print-access-token)
-          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
+          # Use gcloud as Docker credential helper
+          # This avoids needing to manually get access tokens
+          mkdir -p $HOME/.docker
+          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
 
       - name: Build and Push Docker Image
         run: |
@@ -138,9 +140,10 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use Application Default Credentials (set up by Workload Identity)
-          TOKEN=$(gcloud auth application-default print-access-token)
-          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
+          # Use gcloud as Docker credential helper
+          # This avoids needing to manually get access tokens
+          mkdir -p $HOME/.docker
+          echo '{"credHelpers":{"'${{ env.REGION }}-docker.pkg.dev'":"gcloud"}}' > $HOME/.docker/config.json
 
       - name: Build and Push Docker Image
         run: |
