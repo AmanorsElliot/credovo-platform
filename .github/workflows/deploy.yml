@@ -43,16 +43,14 @@ jobs:
         run: |
           set -e
           SERVICE_NAME="orchestration-service"
-          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
-          IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
           echo "Building and pushing Docker image with Cloud Build..."
           gcloud builds submit \
-            --tag $IMAGE_TAG \
-            --tag $IMAGE_LATEST \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
             .
           
           echo "Images pushed successfully"
@@ -94,24 +92,23 @@ jobs:
         run: |
           set -e
           SERVICE_NAME="kyc-kyb-service"
-          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
-          IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
           echo "Building and pushing Docker image with Cloud Build..."
           gcloud builds submit \
-            --tag $IMAGE_TAG \
-            --tag $IMAGE_LATEST \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
             .
           
           echo "Images pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           gcloud run deploy kyc-kyb-service \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:${{ github.sha }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/kyc-kyb-service:$SHORT_SHA \
             --region=${{ env.REGION }} \
             --platform=managed \
             --service-account=kyc-kyb-service@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
@@ -145,24 +142,23 @@ jobs:
         run: |
           set -e
           SERVICE_NAME="connector-service"
-          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:${{ github.sha }}"
-          IMAGE_LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/$SERVICE_NAME:latest"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
           echo "Building and pushing Docker image with Cloud Build..."
           gcloud builds submit \
-            --tag $IMAGE_TAG \
-            --tag $IMAGE_LATEST \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
+            --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
             .
           
           echo "Images pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           gcloud run deploy connector-service \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:${{ github.sha }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/connector-service:$SHORT_SHA \
             --region=${{ env.REGION }} \
             --platform=managed \
             --service-account=connector-service@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
