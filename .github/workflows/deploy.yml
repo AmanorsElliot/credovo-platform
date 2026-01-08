@@ -38,12 +38,9 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use the helper script that comes with gcloud
-          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet || {
-            # Fallback: use access token from ADC
-            export TOKEN=$(gcloud auth application-default print-access-token)
-            echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
-          }
+          # Use Application Default Credentials (set up by Workload Identity)
+          TOKEN=$(gcloud auth application-default print-access-token)
+          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
@@ -91,12 +88,9 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use the helper script that comes with gcloud
-          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet || {
-            # Fallback: use access token from ADC
-            export TOKEN=$(gcloud auth application-default print-access-token)
-            echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
-          }
+          # Use Application Default Credentials (set up by Workload Identity)
+          TOKEN=$(gcloud auth application-default print-access-token)
+          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
@@ -144,12 +138,9 @@ jobs:
 
       - name: Configure Docker for Artifact Registry
         run: |
-          # Use the helper script that comes with gcloud
-          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet || {
-            # Fallback: use access token from ADC
-            export TOKEN=$(gcloud auth application-default print-access-token)
-            echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
-          }
+          # Use Application Default Credentials (set up by Workload Identity)
+          TOKEN=$(gcloud auth application-default print-access-token)
+          echo $TOKEN | docker login -u oauth2accesstoken --password-stdin ${{ env.REGION }}-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
