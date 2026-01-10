@@ -7,7 +7,8 @@ param(
     [switch]$DryRun = $false
 )
 
-$ErrorActionPreference = "Stop"
+# Don't stop on errors - we'll handle them manually
+$ErrorActionPreference = "Continue"
 
 Write-Host "=== Cancel All Cloud Build Builds ===" -ForegroundColor Cyan
 Write-Host ""
