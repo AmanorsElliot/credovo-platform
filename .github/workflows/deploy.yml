@@ -32,9 +32,21 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify Authentication
+        run: |
+          echo "=== Verifying Authentication ==="
+          gcloud auth list
+          echo ""
+          echo "=== Testing Project Access ==="
+          gcloud projects describe ${{ env.PROJECT_ID }} || exit 1
+          echo ""
+          echo "=== Testing Service Account Access ==="
+          gcloud iam service-accounts describe ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }} --project=${{ env.PROJECT_ID }} || exit 1
 
       - name: Build and Push Docker Image with Cloud Build
         run: |
@@ -42,19 +54,17 @@ jobs:
           SERVICE_NAME="orchestration-service"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
-          # Get the Cloud Build service account
-          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
-          CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+          echo "=== Authentication Info ==="
+          echo "Using service account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}"
+          echo "Project: ${{ env.PROJECT_ID }}"
+          echo ""
           
           echo "Building and pushing Docker image with Cloud Build..."
-          echo "Using Cloud Build service account: $CLOUD_BUILD_SA"
-          
           gcloud builds submit \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
-            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
@@ -86,9 +96,21 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify Authentication
+        run: |
+          echo "=== Verifying Authentication ==="
+          gcloud auth list
+          echo ""
+          echo "=== Testing Project Access ==="
+          gcloud projects describe ${{ env.PROJECT_ID }} || exit 1
+          echo ""
+          echo "=== Testing Service Account Access ==="
+          gcloud iam service-accounts describe ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }} --project=${{ env.PROJECT_ID }} || exit 1
 
       - name: Build and Push Docker Image with Cloud Build
         run: |
@@ -96,13 +118,17 @@ jobs:
           SERVICE_NAME="kyc-kyb-service"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
+          echo "=== Authentication Info ==="
+          echo "Using service account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}"
+          echo "Project: ${{ env.PROJECT_ID }}"
+          echo ""
+          
           echo "Building and pushing Docker image with Cloud Build..."
           gcloud builds submit \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
-            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
@@ -134,9 +160,21 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify Authentication
+        run: |
+          echo "=== Verifying Authentication ==="
+          gcloud auth list
+          echo ""
+          echo "=== Testing Project Access ==="
+          gcloud projects describe ${{ env.PROJECT_ID }} || exit 1
+          echo ""
+          echo "=== Testing Service Account Access ==="
+          gcloud iam service-accounts describe ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }} --project=${{ env.PROJECT_ID }} || exit 1
 
       - name: Build and Push Docker Image with Cloud Build
         run: |
@@ -144,19 +182,17 @@ jobs:
           SERVICE_NAME="connector-service"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           
-          # Get the Cloud Build service account
-          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
-          CLOUD_BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+          echo "=== Authentication Info ==="
+          echo "Using service account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}"
+          echo "Project: ${{ env.PROJECT_ID }}"
+          echo ""
           
           echo "Building and pushing Docker image with Cloud Build..."
-          echo "Using Cloud Build service account: $CLOUD_BUILD_SA"
-          
           gcloud builds submit \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --config=services/$SERVICE_NAME/cloudbuild.yaml \
             --substitutions=_REGION=${{ env.REGION }},_ARTIFACT_REGISTRY=${{ env.ARTIFACT_REGISTRY }},_SERVICE_NAME=$SERVICE_NAME,SHORT_SHA=$SHORT_SHA \
-            --service-account=$CLOUD_BUILD_SA \
             .
           
           echo "Images pushed successfully"
