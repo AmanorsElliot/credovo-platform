@@ -33,15 +33,15 @@ export class ShuftiProConnector extends BaseConnector {
 
   private async handleVerificationRequest(request: ConnectorRequest): Promise<any> {
     // Shufti Pro KYC (individual verification)
-    const apiKey = await this.getApiKey();
-    const apiSecret = await this.getApiSecret();
+    const clientId = await this.getClientId();
+    const secretKey = await this.getSecretKey();
 
-    if (!apiKey || !apiSecret) {
-      throw new Error('Shufti Pro API credentials not configured');
+    if (!clientId || !secretKey) {
+      throw new Error('Shufti Pro credentials not configured (need client_id and secret_key)');
     }
 
-    // Shufti Pro uses Basic Auth with API key and secret
-    const authHeader = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    // Shufti Pro uses Basic Auth with client_id and secret_key
+    const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
 
     // Prepare KYC request
     const kycData = {
@@ -82,14 +82,14 @@ export class ShuftiProConnector extends BaseConnector {
 
   private async handleKYBRequest(request: ConnectorRequest): Promise<any> {
     // Shufti Pro KYB (company verification)
-    const apiKey = await this.getApiKey();
-    const apiSecret = await this.getApiSecret();
+    const clientId = await this.getClientId();
+    const secretKey = await this.getSecretKey();
 
-    if (!apiKey || !apiSecret) {
-      throw new Error('Shufti Pro API credentials not configured');
+    if (!clientId || !secretKey) {
+      throw new Error('Shufti Pro credentials not configured (need client_id and secret_key)');
     }
 
-    const authHeader = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
 
     // Prepare KYB request
     const kybData = {
@@ -119,9 +119,15 @@ export class ShuftiProConnector extends BaseConnector {
     return response;
   }
 
-  private async getApiSecret(): Promise<string> {
+  private async getClientId(): Promise<string> {
     // In production, fetch from Secret Manager
-    const secretName = `${this.providerName}-api-secret`;
+    const secretName = `${this.providerName}-client-id`;
+    return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
+  }
+
+  private async getSecretKey(): Promise<string> {
+    // In production, fetch from Secret Manager
+    const secretName = `${this.providerName}-secret-key`;
     return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
   }
 }

@@ -175,6 +175,47 @@ resource "google_secret_manager_secret" "companies_house_api_key" {
   depends_on = [time_sleep.wait_for_apis]
 }
 
+# Shufti Pro credentials (primary KYC/KYB provider)
+resource "google_secret_manager_secret" "shufti_pro_client_id" {
+  secret_id = "shufti-pro-client-id"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    provider    = "shufti-pro"
+    purpose      = "kyc-kyb"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
+resource "google_secret_manager_secret" "shufti_pro_secret_key" {
+  secret_id = "shufti-pro-secret-key"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    provider    = "shufti-pro"
+    purpose      = "kyc-kyb"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
 # Create initial placeholder secret versions so Cloud Run can reference them
 # These will be updated with actual values later via the configure-secrets script
 resource "google_secret_manager_secret_version" "lovable_jwks_uri_version" {
