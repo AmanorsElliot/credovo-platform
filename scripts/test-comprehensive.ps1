@@ -119,7 +119,10 @@ try {
         -ErrorAction Stop
     
     Add-TestResult -Name "KYC Initiation" -Passed $true -Message "Status: $($kycResponse.status), Provider: $($kycResponse.provider)"
-    $kycReference = $kycResponse.result?.metadata?.reference
+    $kycReference = $null
+    if ($kycResponse.result -and $kycResponse.result.metadata -and $kycResponse.result.metadata.reference) {
+        $kycReference = $kycResponse.result.metadata.reference
+    }
 } catch {
     Add-TestResult -Name "KYC Initiation" -Passed $false -Message $_.Exception.Message
     $kycReference = $null
@@ -144,7 +147,7 @@ if ($kycReference) {
             
             if ($statusResponse.status -and $statusResponse.status -ne 'pending') {
                 Add-TestResult -Name "KYC Status Retrieved" -Passed $true -Message "Status: $($statusResponse.status)"
-                if ($statusResponse.result?.aml) {
+                if ($statusResponse.result -and $statusResponse.result.aml) {
                     Add-TestResult -Name "AML Results Included" -Passed $true -Message "AML screening completed"
                 }
                 $statusFound = $true
