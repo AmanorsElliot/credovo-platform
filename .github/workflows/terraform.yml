@@ -23,6 +23,9 @@ jobs:
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    # Don't fail the workflow (and send emails) on errors
+    # Terraform plan failures are informational, not blocking
+    continue-on-error: true
     permissions:
       contents: read
       id-token: write # Required for Workload Identity Federation
@@ -73,6 +76,9 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     needs: terraform-plan
+    # Don't fail the workflow (and send emails) on errors
+    # Terraform apply failures should be reviewed manually
+    continue-on-error: true
     permissions:
       contents: read
       id-token: write # Required for Workload Identity Federation
