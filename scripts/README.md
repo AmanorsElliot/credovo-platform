@@ -59,6 +59,12 @@ Helps set up the separate `credovo-webapp` repository for Lovable.
 .\scripts\setup-separate-frontend-repo.ps1
 ```
 
+### `copy-shared-types-to-webapp.ps1`
+Copies shared types directly to credovo-webapp (useful when npm package can't be installed).
+```powershell
+.\scripts\copy-shared-types-to-webapp.ps1
+```
+
 ## Testing Scripts
 
 ### `test-backend-connection.ps1`

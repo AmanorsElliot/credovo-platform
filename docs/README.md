@@ -24,6 +24,7 @@ This directory contains documentation for the Credovo platform.
 - **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
 - **[Lovable Separate Repo](LOVABLE_SEPARATE_REPO.md)** - ⭐ **Recommended**: Separate repository strategy (`credovo-webapp`)
 - **[Credovo Webapp Setup](CREDOVO_WEBAPP_SETUP.md)** - Complete setup guide for `credovo-webapp` repository
+- **[Lovable Private Package Setup](LOVABLE_PRIVATE_PACKAGE_SETUP.md)** - Installing private GitHub packages in Lovable
 
 ### Operations
 - **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
