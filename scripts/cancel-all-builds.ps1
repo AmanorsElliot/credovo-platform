@@ -103,12 +103,20 @@ Write-Host "Filtering for cancellable builds (QUEUED, WORKING, PENDING)..." -For
 $cancellableBuilds = @()
 $completedStatuses = @("SUCCESS", "FAILURE", "CANCELLED", "TIMEOUT", "EXPIRED")
 
+# Count statuses for debugging
+$statusCounts = @{}
+
 foreach ($build in $builds) {
     if (-not $build.id) {
         continue
     }
     
     $status = $build.status
+    if (-not $statusCounts.ContainsKey($status)) {
+        $statusCounts[$status] = 0
+    }
+    $statusCounts[$status]++
+    
     if ($status -notin $completedStatuses) {
         $cancellableBuilds += @{
             Id = $build.id
@@ -116,6 +124,14 @@ foreach ($build in $builds) {
             CreateTime = $build.createTime
         }
     }
+}
+
+Write-Host "Build status breakdown:" -ForegroundColor Gray
+foreach ($status in $statusCounts.Keys | Sort-Object) {
+    $count = $statusCounts[$status]
+    $isCancellable = $status -notin $completedStatuses
+    $marker = if ($isCancellable) { "[CANCELLABLE]" } else { "[COMPLETED]" }
+    Write-Host "  $status : $count $marker" -ForegroundColor $(if ($isCancellable) { "Yellow" } else { "Gray" })
 }
 
 if ($cancellableBuilds.Count -eq 0) {
