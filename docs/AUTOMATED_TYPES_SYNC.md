@@ -115,9 +115,16 @@ Run the script when you need to sync:
    - **Organizations**: "No access" (unless using org)
    - **Expiration**: Set as needed (90 days max for granular tokens)
    - Enable "bypass 2fa" checkbox
-   - Login: `npm login` (will open browser for OAuth authentication)
+   - **Copy the token immediately** (you won't see it again!)
    
-   **Note**: npm now uses browser-based OAuth. When you run `npm login`, press ENTER to open the browser and complete authentication there. The CLI will automatically authenticate after browser login.
+   **Use token in .npmrc** (Required for bypass 2FA):
+   - Create/edit: `C:\Users\ellio\.npmrc` (or `~/.npmrc` on Mac/Linux)
+   - Add: `//registry.npmjs.org/:_authToken=YOUR_TOKEN_HERE`
+   - Replace `YOUR_TOKEN_HERE` with your actual granular token
+   - Save the file
+   - Now you can publish without 2FA!
+   
+   **Note**: Browser OAuth login (`npm login`) doesn't use granular tokens with bypass 2FA. You must use the token directly in `.npmrc` file.
 
 2. **Publish to npm:**
    ```powershell
