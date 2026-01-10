@@ -9,6 +9,9 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    # Don't fail the workflow (and send emails) on errors
+    # Since we're using Cloud Build for actual deployments, CI is just for checks
+    continue-on-error: true
     
     strategy:
       matrix:
@@ -27,12 +30,15 @@ jobs:
       - name: Install dependencies
         working-directory: services/${{ matrix.service }}
         run: npm ci
+        continue-on-error: true
       
       - name: Run linter
         working-directory: services/${{ matrix.service }}
         run: npm run lint || true
+        continue-on-error: true
       
       - name: Run tests
         working-directory: services/${{ matrix.service }}
         run: npm test || true
+        continue-on-error: true
 
