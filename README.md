@@ -9,13 +9,13 @@ This platform is built as a microservices architecture deployed on Google Cloud 
 - **Frontend**: Lovable frontend with Lovable Cloud authentication
 - **Backend**: Cloud Run microservices
 - **Data Layer**: GCS Data Lake, BigQuery, Cloud SQL
-- **Infrastructure**: Terraform for IaC, GitHub Actions for CI/CD
+- **Infrastructure**: Terraform for IaC, Cloud Build for CI/CD
 
 ## Repository Structure
 
 ```
 credovo-platform/
-├── .github/workflows/     # CI/CD pipelines
+├── .github/workflows/     # CI/testing workflows
 ├── services/              # Microservices
 │   ├── kyc-kyb-service/
 │   ├── connector-service/
