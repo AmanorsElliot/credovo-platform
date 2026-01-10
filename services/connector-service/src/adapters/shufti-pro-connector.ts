@@ -43,7 +43,7 @@ export class ShuftiProConnector extends BaseConnector {
     // Shufti Pro uses Basic Auth with client_id and secret_key
     const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
 
-    // Prepare KYC request
+    // Prepare KYC request with AML screening
     const kycData = {
       reference: request.body?.reference || `kyc-${Date.now()}`,
       callback_url: request.body?.callback_url,
@@ -64,6 +64,17 @@ export class ShuftiProConnector extends BaseConnector {
       },
       face: {
         proof: request.body?.face?.proof || ''
+      },
+      // AML Screening (Anti-Money Laundering)
+      risk_assessment: {
+        name: {
+          first_name: request.body?.info?.firstName || request.body?.firstName,
+          last_name: request.body?.info?.lastName || request.body?.lastName,
+          middle_name: request.body?.info?.middleName
+        },
+        dob: request.body?.info?.dateOfBirth || request.body?.dateOfBirth,
+        // Optional: Enable ongoing AML monitoring
+        ongoing: request.body?.aml_ongoing || 0
       }
     };
 
@@ -91,7 +102,7 @@ export class ShuftiProConnector extends BaseConnector {
 
     const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
 
-    // Prepare KYB request
+    // Prepare KYB request with AML screening
     const kybData = {
       reference: request.body?.reference || `kyb-${Date.now()}`,
       callback_url: request.body?.callback_url,
@@ -103,6 +114,18 @@ export class ShuftiProConnector extends BaseConnector {
         registration_number: request.body?.info?.companyNumber || request.body?.companyNumber,
         jurisdiction_code: request.body?.info?.country || request.body?.country || 'GB',
         ...request.body?.business
+      },
+      // AML Screening for businesses
+      risk_assessment: {
+        name: {
+          first_name: request.body?.business?.director_first_name || '',
+          last_name: request.body?.business?.director_last_name || ''
+        },
+        dob: request.body?.business?.director_dob || '',
+        // Company AML checks
+        business_name: request.body?.info?.companyName || request.body?.companyName,
+        // Optional: Enable ongoing AML monitoring
+        ongoing: request.body?.aml_ongoing || 0
       }
     };
 

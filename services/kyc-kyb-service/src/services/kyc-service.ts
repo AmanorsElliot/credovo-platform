@@ -27,6 +27,10 @@ export class KYCService {
       // Store initial request in data lake
       await this.dataLake.storeKYCRequest(request);
 
+      // Build callback URL for webhook (Shufti Pro will call this when verification completes)
+      const orchestrationServiceUrl = process.env.ORCHESTRATION_SERVICE_URL || 'https://orchestration-service-saz24fo3sa-ew.a.run.app';
+      const callbackUrl = `${orchestrationServiceUrl}/api/v1/webhooks/shufti-pro`;
+
       // Call connector service to initiate verification with Shufti Pro (primary provider)
       const connectorRequest = {
         provider: 'shufti-pro',
@@ -34,6 +38,7 @@ export class KYCService {
         method: 'POST' as const,
         body: {
           reference: `kyc-${request.applicationId}-${Date.now()}`,
+          callback_url: callbackUrl, // Webhook URL for async results
           email: request.data.email,
           country: request.data.country || 'GB',
           language: 'EN',
@@ -47,12 +52,26 @@ export class KYCService {
             lastName: request.data.lastName,
             dateOfBirth: request.data.dateOfBirth,
             address: request.data.address
-          }
+          },
+          // Enable AML screening
+          aml_ongoing: 0 // Set to 1 for ongoing monitoring
         },
         retry: true
       };
 
+      // Store raw API request in data lake
+      await this.dataLake.storeRawAPIRequest('kyc', request.applicationId, {
+        ...connectorRequest,
+        timestamp: new Date()
+      });
+
       const connectorResponse = await this.connector.call(connectorRequest);
+
+      // Store raw API response in data lake
+      await this.dataLake.storeRawAPIResponse('kyc', request.applicationId, {
+        ...connectorResponse,
+        timestamp: new Date()
+      });
 
       if (!connectorResponse.success) {
         throw new Error(connectorResponse.error?.message || 'Connector call failed');

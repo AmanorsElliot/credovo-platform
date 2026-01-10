@@ -29,27 +29,51 @@ export class KYBService {
       // Store request in data lake
       await this.dataLake.storeKYBRequest(request);
 
-      // Use SumSub for international KYB verification
-      // SumSub handles company verification globally (200+ countries)
+      // Build callback URL for webhook (Shufti Pro will call this when verification completes)
+      const orchestrationServiceUrl = process.env.ORCHESTRATION_SERVICE_URL || 'https://orchestration-service-saz24fo3sa-ew.a.run.app';
+      const callbackUrl = `${orchestrationServiceUrl}/api/v1/webhooks/shufti-pro`;
+
+      // Use Shufti Pro for international KYB verification (240+ countries, 150+ languages)
       const connectorRequest = {
-        provider: 'sumsub',
-        endpoint: '/resources/applicants',
+        provider: 'shufti-pro',
+        endpoint: '/business',
         method: 'POST' as const,
         body: {
-          externalUserId: `company-${request.applicationId}`,
-          type: 'company', // SumSub company verification type
+          reference: `kyb-${request.applicationId}-${Date.now()}`,
+          callback_url: callbackUrl, // Webhook URL for async results
+          country: request.country || 'GB',
+          language: 'EN',
+          companyName: request.companyName,
+          companyNumber: request.companyNumber,
           info: {
             companyName: request.companyName,
             companyNumber: request.companyNumber,
-            country: request.country || 'GB', // Default to UK if not specified
-            // Additional company details if available
-            ...(request.companyName && { companyName: request.companyName })
-          }
+            country: request.country || 'GB'
+          },
+          business: {
+            name: request.companyName,
+            registration_number: request.companyNumber,
+            jurisdiction_code: request.country || 'GB'
+          },
+          // Enable AML screening for businesses
+          aml_ongoing: 0 // Set to 1 for ongoing monitoring
         },
         retry: true
       };
 
+      // Store raw API request in data lake
+      await this.dataLake.storeRawAPIRequest('kyb', request.applicationId, {
+        ...connectorRequest,
+        timestamp: new Date()
+      });
+
       const connectorResponse = await this.connector.call(connectorRequest);
+
+      // Store raw API response in data lake
+      await this.dataLake.storeRawAPIResponse('kyb', request.applicationId, {
+        ...connectorResponse,
+        timestamp: new Date()
+      });
 
       if (!connectorResponse.success) {
         const errorResponse: KYBResponse = {

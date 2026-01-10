@@ -97,5 +97,63 @@ export class DataLakeService {
 
     logger.info('Stored KYB response to data lake', { path, applicationId: response.applicationId });
   }
+
+  /**
+   * Store raw API request sent to external provider
+   */
+  async storeRawAPIRequest(type: 'kyc' | 'kyb', applicationId: string, request: any): Promise<void> {
+    const path = `${type}/api-requests/${applicationId}/${Date.now()}.json`;
+    const file = this.storage.bucket(this.bucketName).file(path);
+    
+    await file.save(JSON.stringify(request, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        applicationId,
+        type: `${type}-api-request`,
+        provider: request.provider || 'unknown'
+      }
+    });
+
+    logger.info('Stored raw API request to data lake', { path, applicationId, type });
+  }
+
+  /**
+   * Store raw API response from external provider
+   */
+  async storeRawAPIResponse(type: 'kyc' | 'kyb', applicationId: string, response: any): Promise<void> {
+    const path = `${type}/api-responses/${applicationId}/${Date.now()}.json`;
+    const file = this.storage.bucket(this.bucketName).file(path);
+    
+    await file.save(JSON.stringify(response, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        applicationId,
+        type: `${type}-api-response`,
+        provider: response.provider || 'unknown'
+      }
+    });
+
+    logger.info('Stored raw API response to data lake', { path, applicationId, type });
+  }
+
+  /**
+   * Store raw webhook data from external provider
+   */
+  async storeRawWebhook(type: 'kyc' | 'kyb', applicationId: string, webhookData: any): Promise<void> {
+    const path = `${type}/webhooks/${applicationId}/${Date.now()}.json`;
+    const file = this.storage.bucket(this.bucketName).file(path);
+    
+    await file.save(JSON.stringify(webhookData, null, 2), {
+      contentType: 'application/json',
+      metadata: {
+        applicationId,
+        type: `${type}-webhook`,
+        event: webhookData.event || webhookData.verification_result?.event || 'unknown',
+        provider: 'shufti-pro'
+      }
+    });
+
+    logger.info('Stored raw webhook to data lake', { path, applicationId, type });
+  }
 }
 

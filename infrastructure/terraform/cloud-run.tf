@@ -39,6 +39,11 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
         }
 
         env {
+          name  = "ORCHESTRATION_SERVICE_URL"
+          value = google_cloud_run_service.orchestration_service.status[0].url
+        }
+
+        env {
           name = "LOVABLE_JWKS_URI"
           value_from {
             secret_key_ref {

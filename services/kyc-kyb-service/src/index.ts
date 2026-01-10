@@ -4,6 +4,7 @@ import { createLogger } from '@credovo/shared-utils/logger';
 import { KYCRouter } from './routes/kyc';
 import { KYBRouter } from './routes/kyb';
 import { HealthRouter } from './routes/health';
+import { WebhookRouter } from './routes/webhooks';
 
 const logger = createLogger('kyc-kyb-service');
 const app = express();
@@ -23,6 +24,8 @@ app.use((req, res, next) => {
 app.use('/health', HealthRouter);
 app.use('/api/v1/kyc', validateJwt, KYCRouter);
 app.use('/api/v1/kyb', validateJwt, KYBRouter);
+// Webhook routes (no auth required - webhooks come from orchestration service)
+app.use('/api/v1/webhooks', WebhookRouter);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

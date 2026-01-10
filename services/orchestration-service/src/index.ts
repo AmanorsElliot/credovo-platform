@@ -3,6 +3,7 @@ import { validateBackendJwt, validateSupabaseJwt, configureCors } from '@credovo
 import { createLogger } from '@credovo/shared-utils/logger';
 import { ApplicationRouter } from './routes/application';
 import { AuthRouter } from './routes/auth';
+import { WebhookRouter } from './routes/webhooks';
 
 const logger = createLogger('orchestration-service');
 const app = express();
@@ -20,6 +21,9 @@ app.use((req, res, next) => {
 
 // Auth routes (no auth required - this is where tokens are issued if using token exchange)
 app.use('/api/v1/auth', AuthRouter);
+
+// Webhook routes (no auth required - webhooks come from external services)
+app.use('/api/v1/webhooks', WebhookRouter);
 
 // Application routes (require authentication)
 // Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
