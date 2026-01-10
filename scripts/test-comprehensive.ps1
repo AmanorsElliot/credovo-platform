@@ -73,6 +73,12 @@ if (-not [string]::IsNullOrEmpty($AuthToken)) {
     Add-TestResult -Name "Auth Token Provided" -Passed $true
 } else {
     Add-TestResult -Name "Auth Token Provided" -Passed $false -Message "No auth token - some tests may fail"
+    Write-Host ""
+    Write-Host "💡 Tip: Get a test token with:" -ForegroundColor Yellow
+    Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+    Write-Host ""
+    Write-Host "   Or use a Supabase JWT from your frontend" -ForegroundColor Gray
+    Write-Host ""
 }
 
 Write-Host "=== Test Suite Execution ===" -ForegroundColor Cyan
