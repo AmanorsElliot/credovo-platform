@@ -264,10 +264,6 @@ export class KYCService {
     }
 
     return checks;
-      });
-    }
-
-    return checks;
   }
 }
 
