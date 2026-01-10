@@ -48,44 +48,9 @@ cd credovo-webapp
 npm init -y
 ```
 
-## Step 3: Configure .npmrc for GitHub Packages
+## Step 3: Install Shared Types
 
-**Important**: Create `.npmrc` in `credovo-webapp` root to configure scope-specific registry:
-
-```ini
-@credovo:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-```
-
-This ensures:
-- `@amanorselliot/*` packages are fetched from GitHub Packages
-- All other packages use the default npm registry
-
-### Get GitHub Token
-
-1. Go to: https://github.com/settings/tokens
-2. Generate new token (classic)
-3. Select `read:packages` scope (and `write:packages` if you'll publish)
-4. Copy the token and replace `YOUR_GITHUB_TOKEN` in `.npmrc`
-
-### Alternative: Environment Variable
-
-Instead of storing token in `.npmrc`, you can use an environment variable:
-
-```bash
-# Windows PowerShell
-$env:NPM_TOKEN="YOUR_GITHUB_TOKEN"
-```
-
-Then in `.npmrc`:
-```ini
-@credovo:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-```
-
-## Step 4: Install Shared Types
-
-**Recommended**: Install from public npm (no registry config needed)
+**No configuration needed!** Since `@credovo/shared-types` is published to public npm:
 
 ```bash
 # Ensure you're in the credovo-webapp directory
@@ -95,16 +60,7 @@ cd credovo-webapp
 npm install @credovo/shared-types
 ```
 
-**Alternative**: If using GitHub Packages, configure `.npmrc`:
-```ini
-@credovo:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-```
-
-Then install:
-```bash
-npm install @credovo/shared-types
-```
+That's it! No `.npmrc` configuration needed.
 
 ## Step 4: Install Frontend Dependencies
 
