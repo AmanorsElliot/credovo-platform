@@ -185,27 +185,26 @@ foreach ($build in $cancellableBuilds) {
     # Try with region first (required for regional builds)
     $result = gcloud builds cancel $buildId --region=europe-west1 --project=$ProjectId --quiet 2>&1
     $cancelExitCode = $LASTEXITCODE
+    $resultStr = $result -join " "
     
     if ($cancelExitCode -ne 0) {
         # Try without region (for global builds)
         $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
         $cancelExitCode = $LASTEXITCODE
+        $resultStr = $result -join " "
     }
     
-    if ($cancelExitCode -eq 0) {
+    # Check for success - gcloud outputs "Cancelled" message even on success
+    if ($cancelExitCode -eq 0 -or $resultStr -match "Cancelled \[") {
         Write-Host " [OK]" -ForegroundColor Green
         $cancelled++
+    } elseif ($resultStr -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND") {
+        Write-Host " [SKIP - already completed or not found]" -ForegroundColor Yellow
+        $skipped++
     } else {
-        # Check if already cancelled/completed (status might have changed)
-        $resultStr = $result -join " "
-        if ($resultStr -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE") {
-            Write-Host " [SKIP - already completed]" -ForegroundColor Yellow
-            $skipped++
-        } else {
-            Write-Host " [FAIL]" -ForegroundColor Red
-            Write-Host "     Error: $resultStr" -ForegroundColor Gray
-            $failed++
-        }
+        Write-Host " [FAIL]" -ForegroundColor Red
+        Write-Host "     Error: $resultStr" -ForegroundColor Gray
+        $failed++
     }
 }
 
