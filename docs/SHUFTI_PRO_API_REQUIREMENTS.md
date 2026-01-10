@@ -182,8 +182,8 @@ All APIs use **Basic Authentication**:
 | Identity Verification (`/verify`) | ✅ Implemented | High | Core KYC functionality |
 | Business Verification (`/business`) | ✅ Implemented | High | Core KYB functionality |
 | Status Check (`/status`) | ⚠️ Partial | Medium | Used for status polling |
-| Webhook/Callback | ❌ Not implemented | High | Needed for async results |
-| AML Screening | ❌ Not implemented | Low | Future enhancement |
+| Webhook/Callback | ✅ Implemented | High | Receives async verification results |
+| AML Screening | ✅ Implemented | High | Automatically included in all verifications |
 | Face Verification | ✅ Included | Medium | Part of `/verify` |
 | Address Verification | ✅ Included | Medium | Part of `/verify` |
 
@@ -191,25 +191,29 @@ All APIs use **Basic Authentication**:
 
 ## Next Steps
 
-1. **Implement Webhook Endpoint** (High Priority)
-   - Create webhook handler in orchestration or KYC/KYB service
-   - Verify webhook signatures for security
-   - Update verification status from webhook callbacks
-   - Publish events to Pub/Sub
+1. ✅ **Webhook Endpoint** - COMPLETED
+   - Webhook handler created in orchestration service
+   - Webhook processors created in KYC/KYB service
+   - Automatic callback URL generation
+   - Events published to Pub/Sub
+   - **Action Required**: Register webhook URL in Shufti Pro back office
 
-2. **Enhance Status Check API** (Medium Priority)
+2. ✅ **AML Screening** - COMPLETED
+   - Automatically included in all KYC/KYB verifications
+   - Risk assessment with watchlist checks
+   - Results stored in verification responses
+   - Support for ongoing monitoring
+
+3. **Enhance Status Check API** (Medium Priority)
    - Complete implementation in connector
    - Add proper error handling
    - Add retry logic for status checks
 
-3. **Add AML Screening** (Low Priority)
-   - If required by compliance
-   - Can be added as additional verification step
-
 4. **Test Integration**
-   - Test KYC verification flow
-   - Test KYB verification flow
+   - Test KYC verification flow with AML
+   - Test KYB verification flow with AML
    - Test webhook callbacks
+   - Verify data lake storage
    - Verify response mapping
 
 ---
