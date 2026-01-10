@@ -117,17 +117,21 @@ function getSupabaseKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback)
 }
 
 export function validateSupabaseJwt(req: Request, res: Response, next: NextFunction) {
-  // Check Authorization header first, then X-User-Token as fallback
+  // Check X-User-Token first (for dual auth: gcloud token in Authorization, JWT in X-User-Token)
+  // Then check Authorization header as fallback
   // This allows gcloud identity tokens for IAM while using JWT for app auth
-  let authHeader = req.headers.authorization;
   let token: string | undefined;
   
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.substring(7);
-  } else if (req.headers['x-user-token']) {
-    // Fallback to X-User-Token header (used when gcloud token is in Authorization)
+  if (req.headers['x-user-token']) {
+    // Prioritize X-User-Token header (used when gcloud token is in Authorization)
     token = req.headers['x-user-token'] as string;
     logger.debug('Using X-User-Token header for JWT validation');
+  } else {
+    // Fallback to Authorization header if X-User-Token is not present
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
   }
   
   if (!token) {
@@ -232,17 +236,21 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
 // Backend-issued JWT validation (for tokens we issue ourselves)
 // This is used when Lovable doesn't provide JWTs - frontend exchanges user info for our JWT
 export function validateBackendJwt(req: Request, res: Response, next: NextFunction) {
-  // Check Authorization header first, then X-User-Token as fallback
+  // Check X-User-Token first (for dual auth: gcloud token in Authorization, JWT in X-User-Token)
+  // Then check Authorization header as fallback
   // This allows gcloud identity tokens for IAM while using JWT for app auth
-  let authHeader = req.headers.authorization;
   let token: string | undefined;
   
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.substring(7);
-  } else if (req.headers['x-user-token']) {
-    // Fallback to X-User-Token header (used when gcloud token is in Authorization)
+  if (req.headers['x-user-token']) {
+    // Prioritize X-User-Token header (used when gcloud token is in Authorization)
     token = req.headers['x-user-token'] as string;
     logger.debug('Using X-User-Token header for JWT validation');
+  } else {
+    // Fallback to Authorization header if X-User-Token is not present
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
   }
   
   if (!token) {

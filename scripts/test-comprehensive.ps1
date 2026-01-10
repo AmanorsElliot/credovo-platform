@@ -41,15 +41,15 @@ function Add-TestResult {
     
     if ($Skipped) {
         $script:TestResults.Skipped++
-        Write-Host "   ⏭️  SKIPPED: $Name" -ForegroundColor Yellow
+        Write-Host "   [SKIP] SKIPPED: $Name" -ForegroundColor Yellow
         if ($Message) { Write-Host "      $Message" -ForegroundColor Gray }
     } elseif ($Passed) {
         $script:TestResults.Passed++
-        Write-Host "   ✅ PASSED: $Name" -ForegroundColor Green
+        Write-Host "   [OK] PASSED: $Name" -ForegroundColor Green
         if ($Message) { Write-Host "      $Message" -ForegroundColor Gray }
     } else {
         $script:TestResults.Failed++
-        Write-Host "   ❌ FAILED: $Name" -ForegroundColor Red
+        Write-Host "   [FAIL] FAILED: $Name" -ForegroundColor Red
         if ($Message) { Write-Host "      $Message" -ForegroundColor Red }
     }
 }
@@ -74,7 +74,6 @@ $appHeaders = @{
 }
 
 # Try to get gcloud identity token for Cloud Run IAM authentication
-# Always try this first - it's needed for Cloud Run even if we have a JWT
 $gcloudToken = $null
 $gcloudAvailable = $false
 
@@ -91,15 +90,14 @@ try {
 
 if ($gcloudAvailable) {
     try {
-        # Check if user is authenticated
         $gcloudAuth = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>&1 | Out-String
         $gcloudAuth = $gcloudAuth.Trim()
         
         if ([string]::IsNullOrEmpty($gcloudAuth)) {
-            Write-Host "   ⚠️  gcloud is not authenticated" -ForegroundColor Yellow
+            Write-Host "   WARNING gcloud is not authenticated" -ForegroundColor Yellow
             Write-Host "      Run: gcloud auth login" -ForegroundColor Gray
         } else {
-            Write-Host "   ℹ️  gcloud authenticated as: $gcloudAuth" -ForegroundColor Gray
+            Write-Host "   INFO gcloud authenticated as: $gcloudAuth" -ForegroundColor Gray
             
             # Get identity token for the Cloud Run service URL
             $gcloudToken = gcloud auth print-identity-token --audiences=$OrchestrationUrl 2>&1 | Out-String
@@ -119,92 +117,91 @@ if ($gcloudAvailable) {
                     $appHeaders["Authorization"] = "Bearer $gcloudToken"
                     Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token"
                 } else {
-                    Write-Host "   ⚠️  Could not get gcloud identity token" -ForegroundColor Yellow
+                    Write-Host "   WARNING Could not get gcloud identity token" -ForegroundColor Yellow
                     Write-Host "      Error output: $gcloudToken" -ForegroundColor Gray
                     Write-Host "      Try: gcloud auth application-default login" -ForegroundColor Gray
                 }
             }
         }
     } catch {
-        Write-Host "   ⚠️  Error checking gcloud authentication: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "   WARNING Error checking gcloud authentication: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "   ⚠️  gcloud CLI not found or not in PATH" -ForegroundColor Yellow
+    Write-Host "   WARNING gcloud CLI not found or not in PATH" -ForegroundColor Yellow
     Write-Host "      Install: https://cloud.google.com/sdk/docs/install" -ForegroundColor Gray
 }
 
 $ErrorActionPreference = "Stop"
 
 # Use JWT token for application-level authentication
-# Put it in X-User-Token header so app can use it while gcloud token handles IAM
 if (-not [string]::IsNullOrEmpty($AuthToken)) {
     $appHeaders["X-User-Token"] = $AuthToken
     if ($gcloudToken) {
         Add-TestResult -Name "Dual Auth Setup" -Passed $true -Message "Using gcloud token for IAM + JWT in X-User-Token for app auth"
     } else {
-        # If no gcloud token, use JWT in Authorization header
         $appHeaders["Authorization"] = "Bearer $AuthToken"
         Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using JWT token in Authorization header"
     }
 } else {
-    if ($gcloudToken -and $gcloudAvailable) {
     # Try to automatically get a JWT token if gcloud is authenticated
-    Write-Host "   ℹ️  Attempting to get JWT token automatically..." -ForegroundColor Gray
-    $ErrorActionPreference = "SilentlyContinue"
-    try {
-        $tokenRequest = @{
-            userId = "test-user-$(Get-Date -Format 'yyyyMMddHHmmss')"
-            email = "test@example.com"
-            name = "Test User"
-        }
-        
-        $tokenResponse = Invoke-RestMethod `
-            -Uri "$OrchestrationUrl/api/v1/auth/token" `
-            -Method Post `
-            -Headers $headers `
-            -Body ($tokenRequest | ConvertTo-Json) `
-            -ErrorAction Stop
-        
-        if ($tokenResponse.token) {
-            $appHeaders["X-User-Token"] = $tokenResponse.token
-            Add-TestResult -Name "Auto JWT Token" -Passed $true -Message "Automatically obtained JWT token for testing"
-        }
-    } catch {
-        Write-Host "   ⚠️  Could not auto-get JWT token: $($_.Exception.Message)" -ForegroundColor Yellow
-        Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token provided and auto-fetch failed. Application endpoints may fail."
-        Write-Host ""
-        Write-Host "💡 Tip: Get a JWT token manually:" -ForegroundColor Yellow
-        Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-        Write-Host ""
-        Write-Host "   Then run:" -ForegroundColor Yellow
-        Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-        Write-Host ""
-    }
-    $ErrorActionPreference = "Stop"
-    } else {
-        # No gcloud token or gcloud not available
-    if (-not $appHeaders.ContainsKey("Authorization")) {
-        if ($gcloudToken) {
-            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
+    if ($gcloudToken -and $gcloudAvailable) {
+        Write-Host "   INFO Attempting to get JWT token automatically..." -ForegroundColor Gray
+        $ErrorActionPreference = "SilentlyContinue"
+        try {
+            $tokenRequest = @{
+                userId = "test-user-$(Get-Date -Format 'yyyyMMddHHmmss')"
+                email = "test@example.com"
+                name = "Test User"
+            }
+            
+            $tokenResponse = Invoke-RestMethod `
+                -Uri "$OrchestrationUrl/api/v1/auth/token" `
+                -Method Post `
+                -Headers $headers `
+                -Body ($tokenRequest | ConvertTo-Json) `
+                -ErrorAction Stop
+            
+            if ($tokenResponse.token) {
+                $appHeaders["X-User-Token"] = $tokenResponse.token
+                Add-TestResult -Name "Auto JWT Token" -Passed $true -Message "Automatically obtained JWT token for testing"
+            }
+        } catch {
+            Write-Host "   WARNING Could not auto-get JWT token: $($_.Exception.Message)" -ForegroundColor Yellow
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token provided and auto-fetch failed. Application endpoints may fail."
             Write-Host ""
-            Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
+            Write-Host "Tip: Get a JWT token manually:" -ForegroundColor Yellow
             Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
             Write-Host ""
             Write-Host "   Then run:" -ForegroundColor Yellow
             Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
             Write-Host ""
-        } else {
-            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
-            Write-Host ""
-            Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
-            Write-Host "   gcloud auth login" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Or run with token:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-            Write-Host ""
+        }
+        $ErrorActionPreference = "Stop"
+    } else {
+        # No gcloud token or gcloud not available
+        if (-not $appHeaders.ContainsKey("Authorization")) {
+            if ($gcloudToken) {
+                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
+                Write-Host ""
+                Write-Host "Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Then run:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+                Write-Host ""
+            } else {
+                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
+                Write-Host ""
+                Write-Host "Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
+                Write-Host "   gcloud auth login" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Or run with token:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+                Write-Host ""
+            }
         }
     }
 }
@@ -215,7 +212,6 @@ Write-Host ""
 # Test 1: Health Checks
 Write-Host "1. Health Checks" -ForegroundColor Yellow
 
-# Try with authentication first (if token provided or gcloud auth)
 $healthCheckPassed = $false
 if ($headers.ContainsKey("Authorization")) {
     try {
@@ -224,16 +220,15 @@ if ($headers.ContainsKey("Authorization")) {
         $healthCheckPassed = $true
     } catch {
         if ($_.Exception.Response.StatusCode -eq 403) {
-            Write-Host "   ⚠️  Health check failed: 403 Forbidden" -ForegroundColor Yellow
+            Write-Host "   WARNING Health check failed: 403 Forbidden" -ForegroundColor Yellow
             Write-Host "   Cloud Run IAM authentication required" -ForegroundColor Gray
             Write-Host "   Run: .\scripts\grant-user-cloud-run-access.ps1" -ForegroundColor Yellow
         } else {
-            Write-Host "   ⚠️  Health check with auth failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            Write-Host "   WARNING Health check with auth failed: $($_.Exception.Message)" -ForegroundColor Yellow
         }
     }
 }
 
-# Try without authentication (may fail if Cloud Run requires IAM auth)
 if (-not $healthCheckPassed) {
     try {
         $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -ErrorAction Stop
@@ -242,7 +237,7 @@ if (-not $healthCheckPassed) {
     } catch {
         if ($_.Exception.Response.StatusCode -eq 403) {
             Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message "403 Forbidden - Cloud Run requires IAM authentication."
-            Write-Host "   💡 Tip: Run gcloud auth login, then:" -ForegroundColor Yellow
+            Write-Host "   Tip: Run gcloud auth login, then:" -ForegroundColor Yellow
             Write-Host "   .\scripts\grant-user-cloud-run-access.ps1" -ForegroundColor White
             Write-Host "   Or manually: gcloud run services add-iam-policy-binding orchestration-service --member='user:elliot@amanors.com' --role='roles/run.invoker' --region=europe-west1" -ForegroundColor Gray
         } else {
@@ -252,7 +247,7 @@ if (-not $healthCheckPassed) {
 }
 
 if (-not $healthCheckPassed) {
-    Write-Host "   ⚠️  Health check failed - continuing with other tests" -ForegroundColor Yellow
+    Write-Host "   WARNING Health check failed - continuing with other tests" -ForegroundColor Yellow
     Write-Host "   Note: Some tests may fail if service is not accessible" -ForegroundColor Gray
 }
 
@@ -371,7 +366,6 @@ Write-Host "5. Webhook Endpoint" -ForegroundColor Yellow
 
 if (-not $SkipWebhook) {
     try {
-        # Webhook health doesn't require auth, but may need IAM auth for Cloud Run
         $webhookHeaders = if ($headers.ContainsKey("Authorization")) { $headers } else { @{} }
         $webhookHealth = Invoke-RestMethod `
             -Uri "$OrchestrationUrl/api/v1/webhooks/health" `
@@ -401,7 +395,6 @@ if (-not $SkipDataLake) {
         $kycPath = "gs://$bucketName/kyc/requests/$ApplicationId/"
         $kybPath = "gs://$bucketName/kyb/requests/$ApplicationId/"
         
-        # Check if files exist (this may take a moment for async writes)
         Start-Sleep -Seconds 3
         
         $kycFiles = gsutil ls $kycPath 2>&1
@@ -428,7 +421,6 @@ if (-not $SkipDataLake) {
 Write-Host ""
 Write-Host "7. Error Handling Tests" -ForegroundColor Yellow
 
-    # Test invalid application ID
 try {
     $invalidResponse = Invoke-RestMethod `
         -Uri "$OrchestrationUrl/api/v1/applications/invalid-id-12345/kyc/status" `
@@ -450,22 +442,24 @@ Write-Host ""
 Write-Host "=== Test Summary ===" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Total Tests: $($script:TestResults.Tests.Count)" -ForegroundColor White
-Write-Host "  ✅ Passed: $($script:TestResults.Passed)" -ForegroundColor Green
-Write-Host "  ❌ Failed: $($script:TestResults.Failed)" -ForegroundColor Red
-Write-Host "  ⏭️  Skipped: $($script:TestResults.Skipped)" -ForegroundColor Yellow
+Write-Host "  [OK] Passed: $($script:TestResults.Passed)" -ForegroundColor Green
+Write-Host "  [FAIL] Failed: $($script:TestResults.Failed)" -ForegroundColor Red
+Write-Host "  [SKIP] Skipped: $($script:TestResults.Skipped)" -ForegroundColor Yellow
 Write-Host ""
 
 $passRate = if ($script:TestResults.Tests.Count -gt 0) {
     [math]::Round(($script:TestResults.Passed / ($script:TestResults.Tests.Count - $script:TestResults.Skipped)) * 100, 1)
-} else { 0 }
+} else { 
+    0 
+}
 
 Write-Host "Pass Rate: $passRate%" -ForegroundColor $(if ($passRate -ge 80) { "Green" } elseif ($passRate -ge 50) { "Yellow" } else { "Red" })
 Write-Host ""
 
 if ($script:TestResults.Failed -eq 0) {
-    Write-Host "🎉 All tests passed!" -ForegroundColor Green
+    Write-Host "All tests passed!" -ForegroundColor Green
 } else {
-    Write-Host "⚠️  Some tests failed - review output above" -ForegroundColor Yellow
+    Write-Host "WARNING Some tests failed - review output above" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -475,4 +469,3 @@ Write-Host "  2. Verify data lake storage (may take a few minutes)" -ForegroundC
 Write-Host "  3. Check monitoring dashboards for metrics" -ForegroundColor White
 Write-Host "  4. Review test results above for any failures" -ForegroundColor White
 Write-Host ""
-
