@@ -93,32 +93,40 @@ Write-Host ""
 
 $cancelled = 0
 $failed = 0
+$skipped = 0
 
 foreach ($buildId in $buildIds) {
     if ([string]::IsNullOrEmpty($buildId)) {
         continue
     }
     
-    Write-Host "Cancelling build: $buildId..." -ForegroundColor Gray
+    Write-Host "Cancelling build: $buildId..." -ForegroundColor Gray -NoNewline
     
     # Try with region first (required for regional builds)
-    $result = gcloud builds cancel $buildId --region=$Region --project=$ProjectId --quiet 2>&1
+    # Redirect both stdout and stderr, and suppress PowerShell error handling
+    $ErrorActionPreference = "SilentlyContinue"
+    $result = (gcloud builds cancel $buildId --region=$Region --project=$ProjectId --quiet 2>&1) | Out-String
     $cancelExitCode = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
     
     if ($cancelExitCode -ne 0) {
         # Try without region (for global builds)
-        $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+        $ErrorActionPreference = "SilentlyContinue"
+        $result = (gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1) | Out-String
         $cancelExitCode = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
     }
     
-    # Check for success - gcloud outputs "Cancelled" message even on success
+    # Check for success - gcloud outputs "Cancelled" message to stderr even on success
+    # This is normal behavior, not an error
     if ($cancelExitCode -eq 0 -or $result -match "Cancelled \[") {
-        Write-Host "  [OK] Cancelled: $buildId" -ForegroundColor Green
+        Write-Host " [OK]" -ForegroundColor Green
         $cancelled++
-    } elseif ($result -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND") {
-        Write-Host "  [SKIP - already completed or not found]" -ForegroundColor Yellow
+    } elseif ($result -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND|not found") {
+        Write-Host " [SKIP - already completed or not found]" -ForegroundColor Yellow
+        $skipped++
     } else {
-        Write-Host "  [FAIL] Failed to cancel: $buildId" -ForegroundColor Red
+        Write-Host " [FAIL]" -ForegroundColor Red
         Write-Host "     Error: $result" -ForegroundColor Gray
         $failed++
     }
@@ -127,6 +135,9 @@ foreach ($buildId in $buildIds) {
 Write-Host ""
 Write-Host "=== Summary ===" -ForegroundColor Cyan
 Write-Host "  [OK] Cancelled: $cancelled" -ForegroundColor Green
+if ($skipped -gt 0) {
+    Write-Host "  [SKIP] Skipped: $skipped (already completed or not found)" -ForegroundColor Yellow
+}
 if ($failed -gt 0) {
     Write-Host "  [FAIL] Failed: $failed" -ForegroundColor Red
 }
