@@ -1,27 +1,44 @@
 # Monitoring and Observability
 
-## Cloud Monitoring
+> **Note**: For comprehensive monitoring setup, see [MONITORING_SETUP.md](MONITORING_SETUP.md)
 
-The platform includes comprehensive monitoring through Google Cloud Monitoring:
+## Overview
+
+The platform includes comprehensive monitoring through Google Cloud Monitoring with:
+- 7 alert policies for service health and errors
+- 7 custom log-based metrics for KYC/KYB events
+- Enhanced dashboard with 8 widgets
+- Email notification channels
+
+## Quick Reference
 
 ### Dashboards
 
-- **Cloud Run Services Dashboard**: Overview of all microservices
-  - Request count
-  - Request latency (p95)
-  - Error rate
+- **Credovo Cloud Run Services Dashboard**: Overview of all microservices
+  - Request count, latency (p95), error rate
   - Instance count
+  - KYC/KYB events
+  - Webhook activity
+  - AML screening metrics
 
 ### Alert Policies
 
-1. **High Error Rate**: Triggers when error rate exceeds threshold
-2. **High Latency**: Triggers when p95 latency exceeds 5 seconds
-3. **Service Unavailable**: Triggers when service instance count drops below 1
+See [MONITORING_SETUP.md](MONITORING_SETUP.md) for complete list. Key alerts:
+1. **High Error Rate**: 5xx errors > 5 in 5 minutes
+2. **High Latency**: p95 latency > 5 seconds
+3. **Service Unavailable**: Instance count < 1
+4. **Webhook Failures**: Webhook processing failures
+5. **KYC/KYB Failures**: Verification service errors
+6. **Data Lake Storage Failures**: Storage write errors
+7. **Connector Service Failures**: External API errors
 
 ### Custom Metrics
 
-- `kyc_initiated`: Tracks KYC process initiations
-- `kyc_completed`: Tracks KYC process completions
+- `kyc_initiated`, `kyc_completed`: KYC process tracking
+- `kyb_initiated`, `kyb_completed`: KYB process tracking
+- `webhook_received`, `webhook_failed`: Webhook activity
+- `aml_screening`: AML screening events
+- `data_lake_storage_failures`: Storage error tracking
 
 ## Logging
 

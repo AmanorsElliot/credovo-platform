@@ -36,10 +36,26 @@ See individual service READMEs for setup instructions.
 - **Connector Service**: Vendor integration abstraction layer
 - **Orchestration Service**: API gateway and request routing
 
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+- **[Quick Start](docs/QUICK_START.md)** - Get started quickly
+- **[Architecture](docs/architecture.md)** - System architecture overview
+- **[Service Interactions](docs/SERVICE_INTERACTIONS.md)** - How services communicate
+- **[Deployment](docs/deployment.md)** - Deployment instructions
+- **[Monitoring](docs/MONITORING_SETUP.md)** - Monitoring and alerting setup
+- **[Shufti Pro Integration](docs/SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
+
+## CI/CD
+
+This project uses **Cloud Build** for automated builds and deployments:
+- Automatic builds on push to GitHub
+- Docker image builds and pushes to Artifact Registry
+- Automatic deployment to Cloud Run
+
+See [Cloud Build Setup](docs/CLOUD_BUILD_GITHUB_SETUP.md) for details.
+
 ## License
 
 Proprietary
-
-
-# Cloud Build Integration Test - 2026-01-10 12:23:19
-# This commit will trigger Cloud Build to build and deploy all services

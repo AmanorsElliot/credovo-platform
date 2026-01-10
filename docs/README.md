@@ -17,14 +17,21 @@ This directory contains documentation for the Credovo platform.
 ### CI/CD
 - **[Cloud Build Setup](CLOUD_BUILD_GITHUB_SETUP.md)** - Automated builds and deployments
 
+### Integration
+- **[Shufti Pro API Requirements](SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
+- **[Webhook Setup](WEBHOOK_SETUP.md)** - Webhook endpoint configuration
+- **[Webhook Registration](WEBHOOK_REGISTRATION_GUIDE.md)** - Registering webhooks with Shufti Pro
+- **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
+
 ### Operations
-- **[Monitoring](monitoring.md)** - Observability and monitoring setup
+- **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
+- **[Monitoring Overview](monitoring.md)** - Monitoring concepts and log queries
 
 ## Documentation Structure
 
 ```
 docs/
-├── README.md                    # This file
+├── README.md                    # This file - documentation index
 ├── QUICK_START.md              # Quick start guide
 ├── deployment.md               # Deployment instructions
 ├── TERRAFORM_SETUP.md          # Terraform configuration
@@ -32,7 +39,14 @@ docs/
 ├── SERVICE_INTERACTIONS.md     # Service communication patterns
 ├── AUTHENTICATION.md           # Authentication setup
 ├── CLOUD_BUILD_GITHUB_SETUP.md # CI/CD setup
-└── monitoring.md               # Monitoring and observability
+├── MONITORING_SETUP.md         # Monitoring and alerting setup
+├── monitoring.md               # Monitoring concepts and queries
+├── SHUFTI_PRO_API_REQUIREMENTS.md # KYC/KYB provider integration
+├── WEBHOOK_SETUP.md            # Webhook endpoint configuration
+├── WEBHOOK_REGISTRATION_GUIDE.md # Registering webhooks
+├── CREDENTIALS.md              # Credential management
+├── NEXT_STEPS.md               # Current status and next actions
+└── MULTI_REGION_STRATEGY.md    # Multi-region deployment strategy
 ```
 
 ## Quick Links

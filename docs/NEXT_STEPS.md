@@ -24,67 +24,54 @@
 
 ## 🔄 Immediate Next Steps (Priority Order)
 
-### 1. Register Webhook URL in Shufti Pro Back Office ⚠️ **ACTION REQUIRED**
+### 1. ✅ Register Webhook URL in Shufti Pro Back Office
 
-**Status**: Not yet registered  
+**Status**: ✅ Completed  
 **Priority**: High  
 **Time**: 5 minutes
 
-**Steps**:
-1. Log in to [Shufti Pro Back Office](https://backoffice.shuftipro.com)
-2. Navigate to **Settings** → **Integration** (or **Webhooks**)
-3. Add webhook URL: `https://orchestration-service-saz24fo3sa-ew.a.run.app/api/v1/webhooks/shufti-pro`
-4. Save configuration
+**Steps Completed**:
+1. ✅ Logged in to [Shufti Pro Back Office](https://backoffice.shuftipro.com)
+2. ✅ Navigated to **Settings** → **Integration**
+3. ✅ Added domain whitelist: `orchestration-service-saz24fo3sa-ew.a.run.app`
+4. ✅ Saved configuration
 
-**Why**: Without this, Shufti Pro won't send verification results to your endpoint.
+**Note**: The full callback URL is automatically included in API requests via the `callback_url` parameter.
 
 ---
 
 ### 2. Deploy Updated Services to Cloud Run
 
-**Status**: Services deployed but may need updates  
+**Status**: Services deployed, Cloud Build configured  
 **Priority**: High  
-**Time**: 10-15 minutes
+**Time**: Automatic via Cloud Build
 
 **Current Services**:
 - ✅ `orchestration-service` - Deployed
-- ✅ `kyc-kyb-service` - Deployed  
+- ✅ `kyc-kyb-service` - Deployed (build fixed)  
 - ✅ `connector-service` - Deployed
 
-**What to Deploy**:
-- Updated code with AML screening
-- Updated code with webhook handlers
-- Updated code with enhanced data lake storage
-- New environment variables (ORCHESTRATION_SERVICE_URL)
+**Deployment Method**: Cloud Build automatically deploys on push to GitHub
 
-**How**: Cloud Build should auto-deploy on push, or manually trigger:
+**Manual Deployment** (if needed):
 ```bash
-# Check if Cloud Build triggers are set up
-gcloud builds triggers list --project=credovo-eu-apps-nonprod
-
-# Or manually deploy
 gcloud builds submit --config=services/orchestration-service/cloudbuild.yaml
 ```
 
 ---
 
-### 3. Fix Terraform Cycle Issue
+### 3. ✅ Fix Terraform Cycle Issue
 
-**Status**: Known issue  
+**Status**: ✅ Fixed  
 **Priority**: Medium  
-**Time**: 15-20 minutes
+**Time**: Completed
 
-**Problem**: 
-- `ORCHESTRATION_SERVICE_URL` in `kyc-kyb-service` references `orchestration_service.status[0].url`
-- This creates a circular dependency
+**Solution Implemented**: 
+- Removed direct reference from Terraform
+- Created `null_resource` to update URL after services are created
+- Uses `gcloud run services update` via local-exec provisioner
 
-**Solution Options**:
-1. Use Terraform output instead of direct reference
-2. Use data source to fetch service URL
-3. Make it optional and set via environment variable
-4. Use Cloud Run service discovery instead
-
-**File**: `infrastructure/terraform/cloud-run.tf` (line 42-44)
+**File**: `infrastructure/terraform/orchestration-url-update.tf`
 
 ---
 
@@ -155,7 +142,7 @@ gcloud builds submit --config=services/orchestration-service/cloudbuild.yaml
 ## 📋 Future Enhancements
 
 ### Short Term (1-2 weeks)
-- [ ] Add monitoring and alerting (Cloud Monitoring)
+- [x] Add monitoring and alerting (Cloud Monitoring) - ✅ Completed
 - [ ] Set up log aggregation and analysis
 - [ ] Create test suite for integration
 - [ ] Add retry logic for failed webhooks
@@ -179,7 +166,7 @@ gcloud builds submit --config=services/orchestration-service/cloudbuild.yaml
 
 ## 🚨 Known Issues
 
-1. **Terraform Cycle**: `ORCHESTRATION_SERVICE_URL` creates circular dependency
+1. ✅ **Terraform Cycle**: Fixed - using null_resource to update URL after creation
 2. **Webhook Signature**: Not yet implemented (security enhancement)
 3. **Status Check API**: Partial implementation needs completion
 4. **Testing**: No automated tests yet
@@ -193,29 +180,29 @@ gcloud builds submit --config=services/orchestration-service/cloudbuild.yaml
 | Infrastructure | ✅ Deployed | GCP resources created |
 | Services | ✅ Deployed | All 3 services running |
 | Shufti Pro Integration | ✅ Implemented | KYC, KYB, AML working |
-| Webhook Endpoint | ✅ Created | Needs registration in Shufti Pro |
+| Webhook Endpoint | ✅ Created | ✅ Registered in Shufti Pro |
 | Data Lake | ✅ Enhanced | All data stored |
 | Credentials | ✅ Configured | Sandbox active, prod stored |
-| Testing | ❌ Not done | Need test suite |
-| Monitoring | ⚠️ Basic | Need enhanced alerting |
+| Testing | ⚠️ Partial | Test script created, need automated suite |
+| Monitoring | ✅ Complete | Full alerting and dashboards deployed |
 
 ---
 
 ## 🎯 Recommended Action Plan
 
-**This Week**:
+**Completed**:
 1. ✅ Register webhook URL in Shufti Pro back office
 2. ✅ Deploy updated services
-3. ✅ Test KYC flow end-to-end
-4. ✅ Test KYB flow end-to-end
-5. ✅ Verify data lake storage
+3. ✅ Fix Terraform cycle issue
+4. ✅ Set up monitoring and alerting
 
-**Next Week**:
-1. Fix Terraform cycle issue
-2. Complete status check API
-3. Add webhook signature verification
-4. Create automated test suite
-5. Set up monitoring alerts
+**Next Steps**:
+1. Test KYC flow end-to-end
+2. Test KYB flow end-to-end
+3. Verify data lake storage
+4. Complete status check API
+5. Add webhook signature verification
+6. Create automated test suite
 
 ---
 
@@ -229,5 +216,5 @@ gcloud builds submit --config=services/orchestration-service/cloudbuild.yaml
 ---
 
 **Last Updated**: 2026-01-10  
-**Next Review**: After webhook registration and testing
+**Status**: Infrastructure deployed, monitoring active, ready for testing
 

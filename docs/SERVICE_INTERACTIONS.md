@@ -28,7 +28,7 @@ This document explains how the three core services (`orchestration-service`, `ky
                   ┌─────────────┐
                   │ External    │
                   │ APIs        │
-                  │ (SumSub -   │
+                  │ (Shufti -   │
                   │  Global     │
                   │  KYC/KYB)   │
                   └─────────────┘
