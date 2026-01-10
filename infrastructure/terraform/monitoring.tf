@@ -229,6 +229,8 @@ resource "google_logging_metric" "aml_screening" {
 }
 
 # Alert for webhook failures
+# Note: Uses log-based metric which may take up to 10 minutes to become available
+# Add depends_on to ensure metric exists, or apply in two steps
 resource "google_monitoring_alert_policy" "webhook_failures" {
   display_name = "Webhook Processing Failures"
   combiner     = "OR"
@@ -251,6 +253,27 @@ resource "google_monitoring_alert_policy" "webhook_failures" {
   alert_strategy {
     auto_close = "1800s"
   }
+
+  # Wait for log-based metric to be available (may take up to 10 minutes)
+  depends_on = [
+    google_logging_metric.webhook_failed,
+    time_sleep.wait_for_metrics
+  ]
+}
+
+# Wait for log-based metrics to propagate
+resource "time_sleep" "wait_for_metrics" {
+  depends_on = [
+    google_logging_metric.webhook_received,
+    google_logging_metric.webhook_failed,
+    google_logging_metric.kyc_initiated,
+    google_logging_metric.kyc_completed,
+    google_logging_metric.kyb_initiated,
+    google_logging_metric.kyb_completed,
+    google_logging_metric.aml_screening
+  ]
+
+  create_duration = "600s"  # Wait 10 minutes for metrics to propagate
 }
 
 # Alert for missing webhooks (if no webhooks received in expected time)
