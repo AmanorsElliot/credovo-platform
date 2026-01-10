@@ -13,13 +13,22 @@ Write-Host "This will publish @amanorselliot/shared-types to npmjs.com" -Foregro
 Write-Host "This makes it easier to use in Lovable (no registry config needed)" -ForegroundColor Green
 Write-Host ""
 
-$packageDir = "shared/types"
+# Get the script's directory and find repository root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptDir
+$packageDir = Join-Path $repoRoot "shared/types"
+
+# Change to repository root
+Push-Location $repoRoot
+
 if (-not (Test-Path $packageDir)) {
     Write-Host "❌ Error: $packageDir not found" -ForegroundColor Red
+    Write-Host "Expected path: $packageDir" -ForegroundColor Yellow
+    Pop-Location
     exit 1
 }
 
-# Navigate to package directory
+# Navigate to package directory (from repo root)
 Push-Location $packageDir
 
 try {
@@ -98,7 +107,8 @@ try {
         Set-Content -Path "package.json" -Value $originalPackageJson
         Write-Host "Restored package.json to original config" -ForegroundColor Gray
     }
-    Pop-Location
+    Pop-Location  # Exit package directory
+    Pop-Location  # Exit repo root (return to original directory)
 }
 
 Write-Host ""
