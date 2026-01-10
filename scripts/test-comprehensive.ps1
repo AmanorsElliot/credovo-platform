@@ -8,7 +8,8 @@ param(
     [switch]$SkipWebhook = $false,
     [switch]$SkipDataLake = $false,
     [int]$StatusCheckRetries = 5,
-    [int]$StatusCheckDelay = 5
+    [int]$StatusCheckDelay = 5,
+    [switch]$UseGcloudAuth = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -68,16 +69,43 @@ $headers = @{
     "Content-Type" = "application/json"
 }
 
-if (-not [string]::IsNullOrEmpty($AuthToken)) {
+# Try to get gcloud identity token if requested and available
+$gcloudToken = $null
+if ($UseGcloudAuth) {
+    try {
+        $gcloudToken = gcloud auth print-identity-token --impersonate-service-account="" 2>$null
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
+            $headers["Authorization"] = "Bearer $gcloudToken"
+            Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token for IAM auth"
+        } else {
+            # Try without impersonation
+            $gcloudToken = gcloud auth print-identity-token 2>$null
+            if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
+                $headers["Authorization"] = "Bearer $gcloudToken"
+                Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token"
+            }
+        }
+    } catch {
+        Write-Host "   ⚠️  Could not get gcloud identity token" -ForegroundColor Yellow
+    }
+}
+
+# Use provided JWT token if available (for application-level auth)
+if (-not [string]::IsNullOrEmpty($AuthToken) -and -not $headers.ContainsKey("Authorization")) {
     $headers["Authorization"] = "Bearer $AuthToken"
-    Add-TestResult -Name "Auth Token Provided" -Passed $true
-} else {
+    Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using provided JWT token"
+} elseif (-not [string]::IsNullOrEmpty($AuthToken)) {
+    # Add JWT token as X-User-Token for application-level auth (gcloud token handles IAM)
+    $headers["X-User-Token"] = $AuthToken
+    Add-TestResult -Name "Dual Auth Setup" -Passed $true -Message "Using gcloud token for IAM + JWT for application auth"
+} elseif (-not $headers.ContainsKey("Authorization")) {
     Add-TestResult -Name "Auth Token Provided" -Passed $false -Message "No auth token - some tests may fail"
     Write-Host ""
     Write-Host "💡 Tip: Get a test token with:" -ForegroundColor Yellow
     Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
     Write-Host ""
-    Write-Host "   Or use a Supabase JWT from your frontend" -ForegroundColor Gray
+    Write-Host "   Or use gcloud auth:" -ForegroundColor Yellow
+    Write-Host "   .\scripts\test-comprehensive.ps1 -UseGcloudAuth" -ForegroundColor White
     Write-Host ""
 }
 
@@ -87,19 +115,21 @@ Write-Host ""
 # Test 1: Health Checks
 Write-Host "1. Health Checks" -ForegroundColor Yellow
 
-# Try with authentication first (if token provided)
+# Try with authentication first (if token provided or gcloud auth)
 $healthCheckPassed = $false
-if (-not [string]::IsNullOrEmpty($AuthToken)) {
+if ($headers.ContainsKey("Authorization")) {
     try {
-        $healthHeaders = @{
-            "Authorization" = "Bearer $AuthToken"
-        }
-        $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -Headers $healthHeaders -ErrorAction Stop
+        $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -Headers $headers -ErrorAction Stop
         Add-TestResult -Name "Orchestration Service Health (Authenticated)" -Passed $true -Message "Status: $($health.status)"
         $healthCheckPassed = $true
     } catch {
-        Write-Host "   ⚠️  Health check with auth failed: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host "   Trying without auth (may fail if service requires authentication)..." -ForegroundColor Gray
+        if ($_.Exception.Response.StatusCode -eq 403) {
+            Write-Host "   ⚠️  Health check failed: 403 Forbidden" -ForegroundColor Yellow
+            Write-Host "   Cloud Run IAM authentication required" -ForegroundColor Gray
+            Write-Host "   Run: .\scripts\grant-user-cloud-run-access.ps1" -ForegroundColor Yellow
+        } else {
+            Write-Host "   ⚠️  Health check with auth failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
     }
 }
 
