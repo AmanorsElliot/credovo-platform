@@ -269,9 +269,12 @@ Write-Host "5. Webhook Endpoint" -ForegroundColor Yellow
 
 if (-not $SkipWebhook) {
     try {
+        # Webhook health doesn't require auth, but may need IAM auth for Cloud Run
+        $webhookHeaders = if ($headers.ContainsKey("Authorization")) { $headers } else { @{} }
         $webhookHealth = Invoke-RestMethod `
             -Uri "$OrchestrationUrl/api/v1/webhooks/health" `
             -Method Get `
+            -Headers $webhookHeaders `
             -ErrorAction Stop
         
         Add-TestResult -Name "Webhook Endpoint Health" -Passed $true -Message "Status: $($webhookHealth.status)"
