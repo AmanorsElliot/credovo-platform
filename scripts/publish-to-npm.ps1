@@ -12,6 +12,9 @@ Write-Host ""
 Write-Host "This will publish @amanorselliot/shared-types to npmjs.com" -ForegroundColor Yellow
 Write-Host "This makes it easier to use in Lovable (no registry config needed)" -ForegroundColor Green
 Write-Host ""
+Write-Host "Note: Granular tokens require 2FA bypass enabled" -ForegroundColor Gray
+Write-Host "      Use 'npm login' and paste token as password (not --auth-type=legacy)" -ForegroundColor Gray
+Write-Host ""
 
 # Get the script's directory and find repository root
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

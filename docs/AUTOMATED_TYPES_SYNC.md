@@ -107,6 +107,17 @@ Run the script when you need to sync:
    ```
    
    **Note**: npm requires 2FA to publish packages. You can also use a granular access token with "bypass 2fa" enabled instead.
+   
+   **Granular Token Setup** (Alternative to 2FA):
+   - Go to: https://www.npmjs.com/settings/credovo/tokens
+   - Create "Automation" token
+   - **Packages and scopes**: Set to "Read and write" or "Read and publish"
+   - **Organizations**: "No access" (unless using org)
+   - **Expiration**: Set as needed (90 days max for granular tokens)
+   - Enable "bypass 2fa" checkbox
+   - Login: `npm login` (paste token as password, leave OTP blank)
+   
+   **Note**: `--auth-type=legacy` no longer works. Use `npm login` normally and paste the granular token as the password.
 
 2. **Publish to npm:**
    ```powershell
