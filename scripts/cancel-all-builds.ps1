@@ -183,23 +183,33 @@ foreach ($build in $cancellableBuilds) {
     
     Write-Host "Cancelling build: $buildId [$currentStatus]..." -ForegroundColor Gray -NoNewline
     
+    # Suppress PowerShell error handling for this command
+    # gcloud writes to stderr even on success, which PowerShell treats as an error
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    
     # Try with region first (required for regional builds)
-    $result = gcloud builds cancel $buildId --region=europe-west1 --project=$ProjectId --quiet 2>&1
+    # Capture both stdout and stderr, but don't let PowerShell stop on errors
+    $result = gcloud builds cancel $buildId --region=europe-west1 --project=$ProjectId --quiet 2>&1 | Out-String
     $cancelExitCode = $LASTEXITCODE
-    $resultStr = $result -join " "
     
     if ($cancelExitCode -ne 0) {
         # Try without region (for global builds)
-        $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+        $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1 | Out-String
         $cancelExitCode = $LASTEXITCODE
-        $resultStr = $result -join " "
     }
     
+    # Restore error handling
+    $ErrorActionPreference = $oldErrorAction
+    
+    $resultStr = $result.Trim()
+    
     # Check for success - gcloud outputs "Cancelled" message even on success
+    # Exit code 0 or "Cancelled [" in output means success
     if ($cancelExitCode -eq 0 -or $resultStr -match "Cancelled \[") {
         Write-Host " [OK]" -ForegroundColor Green
         $cancelled++
-    } elseif ($resultStr -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND") {
+    } elseif ($resultStr -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND|not found") {
         Write-Host " [SKIP - already completed or not found]" -ForegroundColor Yellow
         $skipped++
     } else {
