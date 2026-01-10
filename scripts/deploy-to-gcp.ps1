@@ -106,8 +106,8 @@ Write-Host "=== Infrastructure deployed successfully! ===" -ForegroundColor Gree
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "1. Configure secrets in GCP Secret Manager (see docs/deployment.md)"
-Write-Host "2. Set up GitHub Actions secrets (see docs/NEXT_STEPS.md)"
-Write-Host "3. Deploy services using GitHub Actions or manually"
+Write-Host "2. Set up Cloud Build GitHub integration (see docs/CLOUD_BUILD_GITHUB_SETUP.md)"
+Write-Host "3. Deploy services using Cloud Build triggers (automatic on push)"
 Write-Host ""
 Write-Host "To view outputs:" -ForegroundColor Cyan
 Write-Host "  terraform output" -ForegroundColor White
