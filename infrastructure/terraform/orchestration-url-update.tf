@@ -15,7 +15,7 @@ resource "null_resource" "update_orchestration_url" {
 
   provisioner "local-exec" {
     interpreter = ["PowerShell", "-Command"]
-    command     = "gcloud run services update kyc-kyb-service --region=${var.region} --update-env-vars=\"ORCHESTRATION_SERVICE_URL=${google_cloud_run_service.orchestration_service.status[0].url}\" --project=${var.project_id} --quiet"
+    command     = "gcloud run services update kyc-kyb-service --region=${var.region} --update-env-vars=ORCHESTRATION_SERVICE_URL=${google_cloud_run_service.orchestration_service.status[0].url} --project=${var.project_id} --quiet"
   }
 }
 }
