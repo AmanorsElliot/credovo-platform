@@ -39,7 +39,7 @@ Sets up Cloud Build triggers for automatic deployments.
 ## Package Management
 
 ### `publish-shared-types.ps1`
-Builds and publishes `@amanorselliot/shared-types` npm package.
+Builds and publishes `@credovo/shared-types` npm package.
 ```powershell
 # Dry run
 .\scripts\publish-shared-types.ps1 -DryRun

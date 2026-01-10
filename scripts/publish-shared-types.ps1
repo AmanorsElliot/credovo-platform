@@ -1,4 +1,4 @@
-# Script to build and publish @amanorselliot/shared-types npm package
+# Script to build and publish @credovo/shared-types npm package
 # This package is used by the credovo-webapp frontend repository
 
 param(
@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== Publishing @amanorselliot/shared-types ===" -ForegroundColor Cyan
+Write-Host "=== Publishing @credovo/shared-types ===" -ForegroundColor Cyan
 Write-Host ""
 
 $packageDir = "shared/types"
@@ -98,9 +98,9 @@ try {
             Write-Host ""
             Write-Host "To install in credovo-webapp:" -ForegroundColor Cyan
             if ($Registry -eq "github") {
-                Write-Host "  npm install @amanorselliot/shared-types --registry=https://npm.pkg.github.com" -ForegroundColor White
+                Write-Host "  npm install @credovo/shared-types --registry=https://npm.pkg.github.com" -ForegroundColor White
             } else {
-                Write-Host "  npm install @amanorselliot/shared-types" -ForegroundColor White
+                Write-Host "  npm install @credovo/shared-types" -ForegroundColor White
             }
         } else {
             Write-Host "❌ Publish failed" -ForegroundColor Red

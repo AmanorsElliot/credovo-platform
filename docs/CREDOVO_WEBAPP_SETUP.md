@@ -15,7 +15,7 @@ cd credovo-webapp
 ## Prerequisites
 
 1. ✅ `credovo-webapp` repository created (local and on GitHub)
-2. ✅ `@amanorselliot/shared-types` package published
+2. ✅ `@credovo/shared-types` package published
 3. ✅ Node.js and npm installed
 
 ## Step 1: Publish Shared Types Package
@@ -53,7 +53,7 @@ npm init -y
 **Important**: Create `.npmrc` in `credovo-webapp` root to configure scope-specific registry:
 
 ```ini
-@amanorselliot:registry=https://npm.pkg.github.com
+@credovo:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
 ```
 
@@ -79,7 +79,7 @@ $env:NPM_TOKEN="YOUR_GITHUB_TOKEN"
 
 Then in `.npmrc`:
 ```ini
-@amanorselliot:registry=https://npm.pkg.github.com
+@credovo:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
 ```
 
@@ -92,18 +92,18 @@ Then in `.npmrc`:
 cd credovo-webapp
 
 # Install shared types from npm
-npm install @amanorselliot/shared-types
+npm install @credovo/shared-types
 ```
 
 **Alternative**: If using GitHub Packages, configure `.npmrc`:
 ```ini
-@amanorselliot:registry=https://npm.pkg.github.com
+@credovo:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
 ```
 
 Then install:
 ```bash
-npm install @amanorselliot/shared-types
+npm install @credovo/shared-types
 ```
 
 ## Step 5: Install Frontend Dependencies
@@ -150,7 +150,7 @@ Create `tsconfig.json` in `credovo-webapp`:
 In your frontend code:
 
 ```typescript
-import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@amanorselliot/shared-types';
+import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@credovo/shared-types';
 
 // Example usage
 const kycRequest: KYCRequest = {
@@ -257,7 +257,7 @@ credovo-webapp/
 
 ### Package Not Found
 
-If `npm install @amanorselliot/shared-types` fails:
+If `npm install @credovo/shared-types` fails:
 
 1. **Check .npmrc configuration:**
    ```bash
@@ -265,7 +265,7 @@ If `npm install @amanorselliot/shared-types` fails:
    ```
    Should contain:
    ```
-   @amanorselliot:registry=https://npm.pkg.github.com
+   @credovo:registry=https://npm.pkg.github.com
    //npm.pkg.github.com/:_authToken=YOUR_TOKEN
    ```
 
@@ -285,7 +285,7 @@ If you see integrity errors for other packages (like `@types/ws`, `@types/d3-pat
 
 **Solution**: Ensure `.npmrc` uses scope-specific registry:
 ```ini
-@amanorselliot:registry=https://npm.pkg.github.com
+@credovo:registry=https://npm.pkg.github.com
 ```
 
 **NOT**:
@@ -299,12 +299,12 @@ If TypeScript can't find types:
 
 1. **Check node_modules:**
    ```bash
-   ls node_modules/@amanorselliot/shared-types
+   ls node_modules/@credovo/shared-types
    ```
 
 2. **Verify package.json:**
    ```bash
-   cat node_modules/@amanorselliot/shared-types/package.json
+   cat node_modules/@credovo/shared-types/package.json
    ```
 
 3. **Restart TypeScript server:**

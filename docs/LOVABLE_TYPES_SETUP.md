@@ -4,7 +4,7 @@ This guide shows you how to use the Credovo shared types in your Lovable project
 
 ## Package Contents
 
-The `@amanorselliot/shared-types` package contains TypeScript type definitions for:
+The `@credovo/shared-types` package contains TypeScript type definitions for:
 
 - **Application** - Application data structure and status enum
 - **KYCRequest / KYCResponse** - KYC verification types
@@ -51,7 +51,7 @@ npm login
 In your Lovable project (`credovo-webapp`):
 
 ```bash
-npm install @amanorselliot/shared-types
+npm install @credovo/shared-types
 ```
 
 **That's it!** No registry configuration, no tokens needed.
@@ -66,7 +66,7 @@ cd ../..
 .\scripts\publish-to-npm.ps1
 
 # In credovo-webapp
-npm update @amanorselliot/shared-types
+npm update @credovo/shared-types
 ```
 
 ## Alternative: Copy Types Directly
@@ -102,7 +102,7 @@ This will:
 After copying, import from the local file:
 
 ```typescript
-// Instead of: import { KYCRequest } from '@amanorselliot/shared-types'
+// Instead of: import { KYCRequest } from '@credovo/shared-types'
 import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from './types/shared-types';
 // Or with path alias:
 import { KYCRequest, KYCResponse } from '@/types/shared-types';
@@ -306,8 +306,8 @@ interface ConnectorResponse<T = any> {
 
 **Workflow**:
 1. Publish: `.\scripts\publish-to-npm.ps1`
-2. Install: `npm install @amanorselliot/shared-types`
-3. Update: `npm update @amanorselliot/shared-types`
+2. Install: `npm install @credovo/shared-types`
+3. Update: `npm update @credovo/shared-types`
 
 **Alternative**: Copy types directly if you prefer (but requires manual syncing)
 

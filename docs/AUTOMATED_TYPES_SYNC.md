@@ -21,7 +21,7 @@ Publish the package to public npm instead of (or in addition to) GitHub Packages
 
 2. **Install in credovo-webapp:**
    ```bash
-   npm install @amanorselliot/shared-types
+   npm install @credovo/shared-types
    ```
 
 3. **Update when types change:**
@@ -32,7 +32,7 @@ Publish the package to public npm instead of (or in addition to) GitHub Packages
    .\scripts\publish-to-npm.ps1
    
    # In credovo-webapp
-   npm update @amanorselliot/shared-types
+   npm update @credovo/shared-types
    ```
 
 **Benefits:**
@@ -133,7 +133,7 @@ Run the script when you need to sync:
 
 3. **Use in credovo-webapp:**
    ```bash
-   npm install @amanorselliot/shared-types
+   npm install @credovo/shared-types
    ```
 
 4. **Update workflow (when types change):**
@@ -148,7 +148,7 @@ Run the script when you need to sync:
    .\scripts\publish-to-npm.ps1
    
    # In credovo-webapp
-   npm update @amanorselliot/shared-types
+   npm update @credovo/shared-types
    ```
 
 ### For Automation: GitHub Actions
