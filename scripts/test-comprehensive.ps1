@@ -181,28 +181,31 @@ if (-not [string]::IsNullOrEmpty($AuthToken)) {
             Write-Host ""
         }
         $ErrorActionPreference = "Stop"
-    } elseif (-not $appHeaders.ContainsKey("Authorization")) {
-        if ($gcloudToken) {
-            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
-            Write-Host ""
-            Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Then run:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-            Write-Host ""
-        } else {
-            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
-            Write-Host ""
-            Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
-            Write-Host "   gcloud auth login" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Or run with token:" -ForegroundColor Yellow
-            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-            Write-Host ""
+    } else {
+        # No gcloud token or gcloud not available
+        if (-not $appHeaders.ContainsKey("Authorization")) {
+            if ($gcloudToken) {
+                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
+                Write-Host ""
+                Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Then run:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+                Write-Host ""
+            } else {
+                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
+                Write-Host ""
+                Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
+                Write-Host "   gcloud auth login" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+                Write-Host ""
+                Write-Host "   Or run with token:" -ForegroundColor Yellow
+                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+                Write-Host ""
+            }
         }
     }
 }
