@@ -52,10 +52,28 @@ try {
     $builds = $buildsData | ConvertFrom-Json
 } catch {
     Write-Host "[ERROR] Failed to parse build data: $_" -ForegroundColor Red
+    Write-Host "Raw data: $buildsData" -ForegroundColor Gray
     exit 1
 }
 
-if (-not $builds -or $builds.Count -eq 0) {
+if (-not $builds) {
+    Write-Host "No builds found." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Debug: Raw response was empty or invalid" -ForegroundColor Gray
+    exit 0
+}
+
+# Handle both array and single object responses
+if ($builds -isnot [Array]) {
+    if ($builds.id) {
+        $builds = @($builds)
+    } else {
+        Write-Host "No builds found." -ForegroundColor Green
+        exit 0
+    }
+}
+
+if ($builds.Count -eq 0) {
     Write-Host "No builds found." -ForegroundColor Green
     exit 0
 }
