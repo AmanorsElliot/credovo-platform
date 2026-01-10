@@ -189,7 +189,10 @@ try {
         -ErrorAction Stop
     
     Add-TestResult -Name "KYB Initiation" -Passed $true -Message "Status: $($kybResponse.status)"
-    $kybReference = $kybResponse.data?.reference
+    $kybReference = $null
+    if ($kybResponse -and $kybResponse.data -and $kybResponse.data.reference) {
+        $kybReference = $kybResponse.data.reference
+    }
 } catch {
     Add-TestResult -Name "KYB Initiation" -Passed $false -Message $_.Exception.Message
     $kybReference = $null
