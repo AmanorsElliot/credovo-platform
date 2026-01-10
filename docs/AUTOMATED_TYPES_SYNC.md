@@ -91,23 +91,41 @@ Run the script when you need to sync:
 
 ## Recommended Workflow
 
-### For Development: npm Package
+### For Development: npm Package ⭐
 
-1. **Publish to npm:**
+1. **Initial Setup (one-time):**
+   ```bash
+   # Create npm account if needed
+   # https://www.npmjs.com/signup
+   
+   # Login to npm
+   npm login
+   ```
+
+2. **Publish to npm:**
    ```powershell
    .\scripts\publish-to-npm.ps1
    ```
 
-2. **Use in credovo-webapp:**
+3. **Use in credovo-webapp:**
    ```bash
    npm install @amanorselliot/shared-types
    ```
 
-3. **Update workflow:**
-   - Edit types in `credovo-platform`
-   - Bump version: `npm version patch`
-   - Publish: `.\scripts\publish-to-npm.ps1`
-   - Update in webapp: `npm update @amanorselliot/shared-types`
+4. **Update workflow (when types change):**
+   ```powershell
+   # In credovo-platform/shared/types
+   cd shared/types
+   
+   # Edit index.ts with your changes
+   # Then:
+   npm version patch  # Bumps version (1.0.0 → 1.0.1)
+   cd ../..
+   .\scripts\publish-to-npm.ps1
+   
+   # In credovo-webapp
+   npm update @amanorselliot/shared-types
+   ```
 
 ### For Automation: GitHub Actions
 

@@ -85,15 +85,26 @@ Then in `.npmrc`:
 
 ## Step 4: Install Shared Types
 
+**Recommended**: Install from public npm (no registry config needed)
+
 ```bash
 # Ensure you're in the credovo-webapp directory
 cd credovo-webapp
 
-# Install shared types (will use GitHub Packages for @amanorselliot scope)
+# Install shared types from npm
 npm install @amanorselliot/shared-types
 ```
 
-**Note**: With `.npmrc` configured, you don't need the `--registry` flag!
+**Alternative**: If using GitHub Packages, configure `.npmrc`:
+```ini
+@amanorselliot:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+```
+
+Then install:
+```bash
+npm install @amanorselliot/shared-types
+```
 
 ## Step 5: Install Frontend Dependencies
 

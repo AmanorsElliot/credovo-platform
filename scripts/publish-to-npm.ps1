@@ -57,8 +57,9 @@ try {
     Write-Host "✅ Build successful" -ForegroundColor Green
     Write-Host ""
 
-    # Update publishConfig to use npm instead of GitHub Packages
-    $packageJson = Get-Content "package.json" | ConvertFrom-Json
+    # Temporarily update publishConfig to use npm (will revert after publish)
+    $originalPackageJson = Get-Content "package.json" -Raw
+    $packageJson = $originalPackageJson | ConvertFrom-Json
     $packageJson.publishConfig = @{
         registry = "https://registry.npmjs.org"
     }
@@ -82,12 +83,21 @@ try {
             Write-Host "  npm install @amanorselliot/shared-types" -ForegroundColor White
             Write-Host ""
             Write-Host "No registry configuration needed!" -ForegroundColor Green
+            Write-Host ""
+            Write-Host "Package URL: https://www.npmjs.com/package/@amanorselliot/shared-types" -ForegroundColor Cyan
         } else {
             Write-Host "❌ Publish failed" -ForegroundColor Red
+            # Restore original package.json
+            Set-Content -Path "package.json" -Value $originalPackageJson
             exit 1
         }
     }
 } finally {
+    # Restore original package.json if we modified it
+    if ($originalPackageJson) {
+        Set-Content -Path "package.json" -Value $originalPackageJson
+        Write-Host "Restored package.json to original config" -ForegroundColor Gray
+    }
     Pop-Location
 }
 
