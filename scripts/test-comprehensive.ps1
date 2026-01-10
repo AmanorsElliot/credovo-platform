@@ -8,8 +8,7 @@ param(
     [switch]$SkipWebhook = $false,
     [switch]$SkipDataLake = $false,
     [int]$StatusCheckRetries = 5,
-    [int]$StatusCheckDelay = 5,
-    [switch]$UseGcloudAuth = $false
+    [int]$StatusCheckDelay = 5
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,28 +73,67 @@ $appHeaders = @{
     "Content-Type" = "application/json"
 }
 
-# Try to get gcloud identity token if requested and available
+# Try to get gcloud identity token for Cloud Run IAM authentication
+# Always try this first - it's needed for Cloud Run even if we have a JWT
 $gcloudToken = $null
-if ($UseGcloudAuth) {
+$gcloudAvailable = $false
+
+# Check if gcloud is available
+$ErrorActionPreference = "SilentlyContinue"
+try {
+    $gcloudVersion = gcloud --version 2>&1 | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $gcloudAvailable = $true
+    }
+} catch {
+    $gcloudAvailable = $false
+}
+
+if ($gcloudAvailable) {
     try {
-        $gcloudToken = gcloud auth print-identity-token --impersonate-service-account="" 2>$null
-        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
-            $headers["Authorization"] = "Bearer $gcloudToken"
-            $appHeaders["Authorization"] = "Bearer $gcloudToken"
-            Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token for IAM auth"
+        # Check if user is authenticated
+        $gcloudAuth = gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>&1 | Out-String
+        $gcloudAuth = $gcloudAuth.Trim()
+        
+        if ([string]::IsNullOrEmpty($gcloudAuth)) {
+            Write-Host "   ⚠️  gcloud is not authenticated" -ForegroundColor Yellow
+            Write-Host "      Run: gcloud auth login" -ForegroundColor Gray
         } else {
-            # Try without impersonation
-            $gcloudToken = gcloud auth print-identity-token 2>$null
-            if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
+            Write-Host "   ℹ️  gcloud authenticated as: $gcloudAuth" -ForegroundColor Gray
+            
+            # Get identity token for the Cloud Run service URL
+            $gcloudToken = gcloud auth print-identity-token --audiences=$OrchestrationUrl 2>&1 | Out-String
+            $gcloudToken = $gcloudToken.Trim()
+            
+            if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken) -and $gcloudToken -notmatch "ERROR") {
                 $headers["Authorization"] = "Bearer $gcloudToken"
                 $appHeaders["Authorization"] = "Bearer $gcloudToken"
-                Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token"
+                Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token for Cloud Run IAM auth"
+            } else {
+                # Try without audience (fallback)
+                $gcloudToken = gcloud auth print-identity-token 2>&1 | Out-String
+                $gcloudToken = $gcloudToken.Trim()
+                
+                if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken) -and $gcloudToken -notmatch "ERROR") {
+                    $headers["Authorization"] = "Bearer $gcloudToken"
+                    $appHeaders["Authorization"] = "Bearer $gcloudToken"
+                    Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token"
+                } else {
+                    Write-Host "   ⚠️  Could not get gcloud identity token" -ForegroundColor Yellow
+                    Write-Host "      Error output: $gcloudToken" -ForegroundColor Gray
+                    Write-Host "      Try: gcloud auth application-default login" -ForegroundColor Gray
+                }
             }
         }
     } catch {
-        Write-Host "   ⚠️  Could not get gcloud identity token" -ForegroundColor Yellow
+        Write-Host "   ⚠️  Error checking gcloud authentication: $($_.Exception.Message)" -ForegroundColor Yellow
     }
+} else {
+    Write-Host "   ⚠️  gcloud CLI not found or not in PATH" -ForegroundColor Yellow
+    Write-Host "      Install: https://cloud.google.com/sdk/docs/install" -ForegroundColor Gray
 }
+
+$ErrorActionPreference = "Stop"
 
 # Use JWT token for application-level authentication
 # Put it in X-User-Token header so app can use it while gcloud token handles IAM
@@ -108,15 +146,65 @@ if (-not [string]::IsNullOrEmpty($AuthToken)) {
         $appHeaders["Authorization"] = "Bearer $AuthToken"
         Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using JWT token in Authorization header"
     }
-} elseif (-not $appHeaders.ContainsKey("Authorization")) {
-    Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - application endpoints will fail"
-    Write-Host ""
-    Write-Host "💡 Tip: Get a test token with:" -ForegroundColor Yellow
-    Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-    Write-Host ""
-    Write-Host "   Or use gcloud auth:" -ForegroundColor Yellow
-    Write-Host "   .\scripts\test-comprehensive.ps1 -UseGcloudAuth -AuthToken 'your-jwt'" -ForegroundColor White
-    Write-Host ""
+} else {
+    # Try to automatically get a JWT token if gcloud is authenticated
+    if ($gcloudToken -and $gcloudAvailable) {
+        Write-Host "   ℹ️  Attempting to get JWT token automatically..." -ForegroundColor Gray
+        $ErrorActionPreference = "SilentlyContinue"
+        try {
+            $tokenRequest = @{
+                userId = "test-user-$(Get-Date -Format 'yyyyMMddHHmmss')"
+                email = "test@example.com"
+                name = "Test User"
+            }
+            
+            $tokenResponse = Invoke-RestMethod `
+                -Uri "$OrchestrationUrl/api/v1/auth/token" `
+                -Method Post `
+                -Headers $headers `
+                -Body ($tokenRequest | ConvertTo-Json) `
+                -ErrorAction Stop
+            
+            if ($tokenResponse.token) {
+                $appHeaders["X-User-Token"] = $tokenResponse.token
+                Add-TestResult -Name "Auto JWT Token" -Passed $true -Message "Automatically obtained JWT token for testing"
+            }
+        } catch {
+            Write-Host "   ⚠️  Could not auto-get JWT token: $($_.Exception.Message)" -ForegroundColor Yellow
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token provided and auto-fetch failed. Application endpoints may fail."
+            Write-Host ""
+            Write-Host "💡 Tip: Get a JWT token manually:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Then run:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+            Write-Host ""
+        }
+        $ErrorActionPreference = "Stop"
+    } elseif (-not $appHeaders.ContainsKey("Authorization")) {
+        if ($gcloudToken) {
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
+            Write-Host ""
+            Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Then run:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+            Write-Host ""
+        } else {
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
+            Write-Host ""
+            Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
+            Write-Host "   gcloud auth login" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Or run with token:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+            Write-Host ""
+        }
+    }
 }
 
 Write-Host "=== Test Suite Execution ===" -ForegroundColor Cyan
@@ -151,8 +239,10 @@ if (-not $healthCheckPassed) {
         $healthCheckPassed = $true
     } catch {
         if ($_.Exception.Response.StatusCode -eq 403) {
-            Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message "403 Forbidden - Cloud Run requires IAM authentication. Service may need public access enabled or use gcloud auth."
-            Write-Host "   💡 Tip: Enable public access or use: gcloud run services add-iam-policy-binding orchestration-service --member='allUsers' --role='roles/run.invoker' --region=europe-west1" -ForegroundColor Yellow
+            Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message "403 Forbidden - Cloud Run requires IAM authentication."
+            Write-Host "   💡 Tip: Run gcloud auth login, then:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\grant-user-cloud-run-access.ps1" -ForegroundColor White
+            Write-Host "   Or manually: gcloud run services add-iam-policy-binding orchestration-service --member='user:elliot@amanors.com' --role='roles/run.invoker' --region=europe-west1" -ForegroundColor Gray
         } else {
             Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message $_.Exception.Message
         }
