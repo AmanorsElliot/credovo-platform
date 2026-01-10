@@ -56,7 +56,7 @@ Credovo is built as a microservices architecture on Google Cloud Platform, desig
 ## Deployment
 
 - Infrastructure as Code: Terraform
-- CI/CD: GitHub Actions + Cloud Build
+- CI/CD: Cloud Build (automatic builds on push)
 - Container Registry: Artifact Registry
 - Runtime: Cloud Run (serverless containers)
 

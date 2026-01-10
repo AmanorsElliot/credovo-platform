@@ -57,34 +57,29 @@ This will configure:
 - SumSub API Key (you'll be prompted)
 - Companies House API Key (you'll be prompted)
 
-## Step 4: Set Up GitHub Actions
+## Step 4: Set Up Cloud Build GitHub Integration
 
-```powershell
-cd scripts
-.\setup-github-secrets.ps1
-```
+See [Cloud Build Setup Guide](CLOUD_BUILD_GITHUB_SETUP.md) for detailed instructions.
 
-This will:
-1. Create a service account for GitHub Actions
-2. Grant necessary permissions
-3. Generate a service account key
-4. Display instructions for adding GitHub secrets
-
-Then go to: https://github.com/AmanorsElliot/credovo-platform/settings/secrets/actions
-
-Add these secrets:
-- `GCP_PROJECT_ID`: `credovo-platform-dev`
-- `GCP_SA_KEY`: (JSON from the script output)
-- `ARTIFACT_REGISTRY`: `credovo-services`
+Quick setup:
+1. Go to: https://console.cloud.google.com/cloud-build/connections?project=credovo-eu-apps-nonprod
+2. Complete OAuth authorization for your GitHub repository
+3. Create Cloud Build triggers (or use the script):
+   ```powershell
+   .\scripts\setup-cloud-build-triggers.ps1
+   ```
 
 ## Step 5: Deploy Services
 
-### Option A: Using GitHub Actions (Recommended)
+### Option A: Using Cloud Build (Recommended - Automatic)
 
-1. Push to main branch or manually trigger workflow
-2. Go to: https://github.com/AmanorsElliot/credovo-platform/actions
-3. Select "Deploy Services to GCP" workflow
-4. Click "Run workflow"
+1. Push to `main` branch
+2. Cloud Build automatically:
+   - Builds Docker images
+   - Pushes to Artifact Registry
+   - Deploys to Cloud Run
+
+View builds: https://console.cloud.google.com/cloud-build/builds?project=credovo-eu-apps-nonprod
 
 ### Option B: Manual Deployment
 
@@ -123,10 +118,11 @@ curl $urls.orchestration_service_url.value/health
 gcloud auth application-default login
 ```
 
-### GitHub Actions Failures
-- Verify all secrets are set in GitHub
-- Check service account has correct permissions
-- Ensure Artifact Registry repository exists
+### Cloud Build Failures
+- Verify Cloud Build connection is authorized
+- Check Cloud Build triggers are created
+- Ensure service account has correct permissions
+- View build logs in Cloud Build console
 
 ### Service Deployment Issues
 ```powershell

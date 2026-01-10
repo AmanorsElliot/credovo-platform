@@ -100,12 +100,14 @@ The existing `cloudbuild.yaml` files should work, but we need to ensure they use
 3. Go to: https://console.cloud.google.com/cloud-build/builds?project=credovo-eu-apps-nonprod
 4. Watch the build execute automatically
 
-## Step 5: Disable GitHub Actions (Optional)
+## Step 5: Verify Deployment
 
-Once Cloud Build triggers are working, you can disable the GitHub Actions workflow:
+Once triggers are created, test the setup:
 
-1. Go to: https://github.com/AmanorsElliot/credovo-platform/settings/actions
-2. Disable workflows or keep them as backup
+1. Make a small change to any service
+2. Push to `main` branch
+3. Check Cloud Build console for automatic builds
+4. Verify services are deployed to Cloud Run
 
 ## Troubleshooting
 
