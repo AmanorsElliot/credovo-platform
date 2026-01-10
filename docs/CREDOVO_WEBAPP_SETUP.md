@@ -106,7 +106,7 @@ Then install:
 npm install @credovo/shared-types
 ```
 
-## Step 5: Install Frontend Dependencies
+## Step 4: Install Frontend Dependencies
 
 ```bash
 # Ensure you're in the credovo-webapp directory
