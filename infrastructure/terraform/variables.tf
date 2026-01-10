@@ -34,9 +34,15 @@ variable "max_instances" {
 }
 
 variable "notification_channels" {
-  description = "List of notification channel IDs for alerts"
+  description = "List of notification channel IDs for alerts (optional - will use email channel if not provided)"
   type        = list(string)
   default     = []
+}
+
+variable "alert_email_address" {
+  description = "Email address for alert notifications"
+  type        = string
+  default     = ""
 }
 
 variable "github_repo" {
