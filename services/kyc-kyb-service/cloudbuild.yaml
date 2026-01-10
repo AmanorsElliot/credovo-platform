@@ -6,27 +6,31 @@ steps:
       - -c
       - |
         echo "Cancelling outdated builds for ${_SERVICE_NAME}..."
-        # Get all ongoing builds for this service (QUEUED, WORKING, PENDING)
+        # Get current build ID from environment
+        current_build_id=$BUILD_ID
+        echo "Current build ID: $current_build_id"
+        
+        # Get all ongoing builds for this service, sorted by createTime (newest first)
+        # Exclude the current build
         ongoing_builds=$(gcloud builds list \
           --region=${_REGION} \
           --filter="status=QUEUED OR status=WORKING OR status=PENDING" \
           --filter="substitutions._SERVICE_NAME=${_SERVICE_NAME}" \
+          --filter="id!=$current_build_id" \
           --format="value(id)" \
+          --sort-by=~createTime \
           --project=${PROJECT_ID} 2>/dev/null || echo "")
         
         if [ -n "$ongoing_builds" ]; then
-          # Get current build ID (this build)
-          current_build_id=${BUILD_ID}
-          echo "Current build ID: $current_build_id"
-          
-          # Cancel all other builds (not the current one)
+          cancelled=0
           echo "$ongoing_builds" | while read build_id; do
-            if [ "$build_id" != "$current_build_id" ]; then
+            if [ -n "$build_id" ] && [ "$build_id" != "$current_build_id" ]; then
               echo "Cancelling outdated build: $build_id"
               gcloud builds cancel "$build_id" --region=${_REGION} --project=${PROJECT_ID} --quiet 2>/dev/null || true
+              cancelled=$((cancelled + 1))
             fi
           done
-          echo "Outdated builds cancelled"
+          echo "Cancelled $cancelled outdated build(s)"
         else
           echo "No outdated builds to cancel"
         fi
