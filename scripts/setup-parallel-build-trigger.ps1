@@ -39,17 +39,18 @@ $existing = gcloud builds triggers list --region=$Region --project=$ProjectId --
 
 if ($existing) {
     Write-Host "⚠️  Trigger already exists, updating..." -ForegroundColor Yellow
+    $connectionName = "credovo-platform"
     gcloud builds triggers update github `
         --name=$triggerName `
         --region=$Region `
+        --connection=$connectionName `
         --repo-name=$RepoName `
         --repo-owner=$RepoOwner `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
-        --substitutions="_REGION=$Region" `
-        --substitutions="_ARTIFACT_REGISTRY=credovo-services" `
+        --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `
         --service-account=$ServiceAccount `
-        --project=$ProjectId 2>&1 | Out-Null
+        --project=$ProjectId 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Trigger updated: $triggerName" -ForegroundColor Green
@@ -61,18 +62,22 @@ if ($existing) {
     Write-Host "Creating trigger for parallel builds..." -ForegroundColor Cyan
     
     # Create the trigger
-    # Note: substitutions format might need to be different for GitHub triggers
+    # Use comma-separated substitutions (same format as individual service triggers)
+    # Note: For GitHub triggers, we need to specify the connection name
+    $connectionName = "credovo-platform"
+    
+    Write-Host "Creating trigger with connection: $connectionName" -ForegroundColor Gray
     gcloud builds triggers create github `
         --name=$triggerName `
         --region=$Region `
+        --connection=$connectionName `
         --repo-name=$RepoName `
         --repo-owner=$RepoOwner `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
-        --substitutions="_REGION=$Region" `
-        --substitutions="_ARTIFACT_REGISTRY=credovo-services" `
+        --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `
         --service-account=$ServiceAccount `
-        --project=$ProjectId 2>&1 | Out-Null
+        --project=$ProjectId 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Trigger created: $triggerName" -ForegroundColor Green
