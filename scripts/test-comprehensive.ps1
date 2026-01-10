@@ -86,13 +86,42 @@ Write-Host ""
 
 # Test 1: Health Checks
 Write-Host "1. Health Checks" -ForegroundColor Yellow
-try {
-    $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -ErrorAction Stop
-    Add-TestResult -Name "Orchestration Service Health" -Passed $true -Message "Status: $($health.status)"
-} catch {
-    Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message $_.Exception.Message
-    Write-Host "   ⚠️  Cannot continue without healthy service" -ForegroundColor Red
-    exit 1
+
+# Try with authentication first (if token provided)
+$healthCheckPassed = $false
+if (-not [string]::IsNullOrEmpty($AuthToken)) {
+    try {
+        $healthHeaders = @{
+            "Authorization" = "Bearer $AuthToken"
+        }
+        $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -Headers $healthHeaders -ErrorAction Stop
+        Add-TestResult -Name "Orchestration Service Health (Authenticated)" -Passed $true -Message "Status: $($health.status)"
+        $healthCheckPassed = $true
+    } catch {
+        Write-Host "   ⚠️  Health check with auth failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "   Trying without auth (may fail if service requires authentication)..." -ForegroundColor Gray
+    }
+}
+
+# Try without authentication (may fail if Cloud Run requires IAM auth)
+if (-not $healthCheckPassed) {
+    try {
+        $health = Invoke-RestMethod -Uri "$OrchestrationUrl/health" -Method Get -ErrorAction Stop
+        Add-TestResult -Name "Orchestration Service Health (Public)" -Passed $true -Message "Status: $($health.status)"
+        $healthCheckPassed = $true
+    } catch {
+        if ($_.Exception.Response.StatusCode -eq 403) {
+            Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message "403 Forbidden - Cloud Run requires IAM authentication. Service may need public access enabled or use gcloud auth."
+            Write-Host "   💡 Tip: Enable public access or use: gcloud run services add-iam-policy-binding orchestration-service --member='allUsers' --role='roles/run.invoker' --region=europe-west1" -ForegroundColor Yellow
+        } else {
+            Add-TestResult -Name "Orchestration Service Health" -Passed $false -Message $_.Exception.Message
+        }
+    }
+}
+
+if (-not $healthCheckPassed) {
+    Write-Host "   ⚠️  Health check failed - continuing with other tests" -ForegroundColor Yellow
+    Write-Host "   Note: Some tests may fail if service is not accessible" -ForegroundColor Gray
 }
 
 # Test 2: KYC Initiation
