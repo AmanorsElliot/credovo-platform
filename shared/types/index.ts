@@ -80,6 +80,7 @@ export interface KYBResponse {
     verificationLevel?: string;
     checks?: any[];
     metadata?: any;
+    aml?: any; // AML screening results
   };
   timestamp: Date;
 }
