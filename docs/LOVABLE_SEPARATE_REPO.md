@@ -69,8 +69,13 @@ credovo-webapp/            (Frontend repo - Lovable)
    ```
 
 2. **Create Frontend Repository:**
+   The frontend repository is located at:
+   ```
+   C:\Users\ellio\Documents\credovo-webapp
+   ```
+   
+   If not already created on GitHub:
    ```bash
-   # Create new repo (already created: credovo-webapp)
    gh repo create credovo-webapp --public
    # Or use GitHub web UI
    ```
