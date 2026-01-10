@@ -2,7 +2,7 @@
 
 ## Why a Separate Repository?
 
-**Recommended Approach**: Keep the frontend in a completely separate repository (`credovo-frontend`) for maximum safety and simplicity.
+**Recommended Approach**: Keep the frontend in a completely separate repository (`credovo-webapp`) for maximum safety and simplicity.
 
 ### Benefits
 
@@ -51,7 +51,7 @@ credovo-platform/          (Backend repo)
 │   └── types/             → Publish as @credovo/shared-types
 └── ...
 
-credovo-frontend/          (Frontend repo - Lovable)
+credovo-webapp/            (Frontend repo - Lovable)
 ├── src/
 ├── package.json           → Uses @credovo/shared-types
 └── ...
@@ -70,8 +70,8 @@ credovo-frontend/          (Frontend repo - Lovable)
 
 2. **Create Frontend Repository:**
    ```bash
-   # Create new repo
-   gh repo create credovo-frontend --public
+   # Create new repo (already created: credovo-webapp)
+   gh repo create credovo-webapp --public
    # Or use GitHub web UI
    ```
 
@@ -190,8 +190,8 @@ gh repo create credovo-frontend --public
 
 ```bash
 # Clone the new repo
-git clone https://github.com/AmanorsElliot/credovo-frontend.git
-cd credovo-frontend
+git clone https://github.com/AmanorsElliot/credovo-webapp.git
+cd credovo-webapp
 
 # Copy frontend code from current repo
 # (or let Lovable create it fresh)
@@ -276,7 +276,7 @@ credovo-platform/              (Backend - GitHub)
 ├── docs/
 └── scripts/
 
-credovo-frontend/              (Frontend - Lovable + GitHub)
+credovo-webapp/                (Frontend - Lovable + GitHub)
 ├── src/
 │   ├── components/
 │   ├── pages/
@@ -304,13 +304,18 @@ credovo-frontend/              (Frontend - Lovable + GitHub)
 1. **Update types in `credovo-platform/shared/types/`**
 2. **Publish new version:**
    ```bash
+   cd shared/types
    npm version patch  # or minor, major
-   npm publish
+   npm publish --registry=https://npm.pkg.github.com
+   ```
+   Or use the script:
+   ```powershell
+   .\scripts\publish-shared-types.ps1
    ```
 3. **Update in frontend:**
    ```bash
-   cd credovo-frontend
-   npm update @credovo/shared-types
+   cd credovo-webapp
+   npm update @credovo/shared-types --registry=https://npm.pkg.github.com
    ```
 
 **Automation Option:**
@@ -328,8 +333,8 @@ credovo-frontend/              (Frontend - Lovable + GitHub)
 
 **Recommended Approach:**
 1. Publish `shared/types` as `@credovo/shared-types` npm package
-2. Create `credovo-frontend` repository
-3. Connect Lovable to `credovo-frontend` (entire repo is safe)
+2. Use `credovo-webapp` repository (already created)
+3. Connect Lovable to `credovo-webapp` (entire repo is safe)
 4. Install `@credovo/shared-types` in frontend
 
 **This is the safest and cleanest approach!**

@@ -2,7 +2,7 @@
 # This is the SAFEST approach for Lovable integration
 
 param(
-    [string]$FrontendRepoName = "credovo-frontend",
+    [string]$FrontendRepoName = "credovo-webapp",
     [string]$BackendRepoPath = "."
 )
 
@@ -64,8 +64,8 @@ Write-Host ""
 Write-Host "Create a new repository on GitHub:" -ForegroundColor Cyan
 Write-Host "  https://github.com/new" -ForegroundColor White
 Write-Host ""
-Write-Host "  Name: $FrontendRepoName" -ForegroundColor White
-Write-Host "  Description: Credovo Platform Frontend (Lovable)" -ForegroundColor White
+    Write-Host "  Name: $FrontendRepoName" -ForegroundColor White
+    Write-Host "  Description: Credovo Platform Web App (Lovable)" -ForegroundColor White
 Write-Host "  Visibility: Public or Private" -ForegroundColor White
 Write-Host ""
 
@@ -103,8 +103,8 @@ if (Test-Path $frontendPath) {
     Write-Host "⚠️  Found existing frontend code at: $frontendPath" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "You can copy it to the new repo:" -ForegroundColor Cyan
-    Write-Host "  # After cloning credovo-frontend" -ForegroundColor Gray
-    Write-Host "  cp -r $frontendPath/* credovo-frontend/" -ForegroundColor White
+    Write-Host "  # After cloning $FrontendRepoName" -ForegroundColor Gray
+    Write-Host "  cp -r $frontendPath/* $FrontendRepoName/" -ForegroundColor White
     Write-Host "  # Or manually copy files" -ForegroundColor Gray
     Write-Host ""
 }
@@ -141,9 +141,9 @@ Write-Host "✅ Independent versioning and deployment" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next Steps:" -ForegroundColor Cyan
 Write-Host "  1. Publish @credovo/shared-types package" -ForegroundColor White
-Write-Host "  2. Create credovo-frontend repository" -ForegroundColor White
-Write-Host "  3. Initialize and install dependencies" -ForegroundColor White
-Write-Host "  4. Connect Lovable to credovo-frontend" -ForegroundColor White
+Write-Host "  2. Initialize $FrontendRepoName repository" -ForegroundColor White
+Write-Host "  3. Install @credovo/shared-types in $FrontendRepoName" -ForegroundColor White
+Write-Host "  4. Connect Lovable to $FrontendRepoName" -ForegroundColor White
 Write-Host "  5. Update backend CORS" -ForegroundColor White
 Write-Host ""
 Write-Host "See docs/LOVABLE_SEPARATE_REPO.md for detailed instructions." -ForegroundColor Gray

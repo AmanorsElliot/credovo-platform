@@ -2,6 +2,7 @@
 # Run this after Terraform deployment
 
 param(
+    [string]$ProjectId = "credovo-eu-apps-nonprod",
     [string]$SupabaseUrl = "",
     [string]$SumsubApiKey = "",
     [string]$CompaniesHouseApiKey = ""
@@ -11,7 +12,7 @@ Write-Host "=== Configuring GCP Secret Manager Secrets ===" -ForegroundColor Cya
 Write-Host ""
 
 # Set project
-gcloud config set project credovo-eu-apps-nonprod
+gcloud config set project $ProjectId
 
 # 1. Supabase URL (REQUIRED)
 if ($SupabaseUrl) {
