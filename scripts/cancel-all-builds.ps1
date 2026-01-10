@@ -22,23 +22,28 @@ Write-Host "Finding all recent builds..." -ForegroundColor Yellow
 $buildsData = $null
 
 # Try with region (europe-west1) first
+Write-Host "Querying builds with region=europe-west1..." -ForegroundColor Gray
 $buildsData = gcloud builds list `
     --limit=$Limit `
     --region=europe-west1 `
     --format="json" `
     --project=$ProjectId 2>&1
 
-if ($LASTEXITCODE -ne 0) {
+$exitCode = $LASTEXITCODE
+
+if ($exitCode -ne 0) {
     # Try without region
-    Write-Host "Trying without region parameter..." -ForegroundColor Gray
+    Write-Host "Query with region failed, trying without region parameter..." -ForegroundColor Gray
     $buildsData = gcloud builds list `
         --limit=$Limit `
         --format="json" `
         --project=$ProjectId 2>&1
+    $exitCode = $LASTEXITCODE
 }
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Error listing builds: $buildsData" -ForegroundColor Red
+if ($exitCode -ne 0) {
+    Write-Host "[ERROR] Error listing builds (exit code: $exitCode)" -ForegroundColor Red
+    Write-Host "Error output: $buildsData" -ForegroundColor Red
     Write-Host ""
     Write-Host "Troubleshooting:" -ForegroundColor Yellow
     Write-Host "  1. Check if you have permission to list builds" -ForegroundColor White
@@ -47,19 +52,24 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Check if we got any data
+if ([string]::IsNullOrWhiteSpace($buildsData)) {
+    Write-Host "No builds found (empty response)." -ForegroundColor Green
+    exit 0
+}
+
 # Parse JSON to get builds with status
+Write-Host "Parsing build data..." -ForegroundColor Gray
 try {
     $builds = $buildsData | ConvertFrom-Json
 } catch {
     Write-Host "[ERROR] Failed to parse build data: $_" -ForegroundColor Red
-    Write-Host "Raw data: $buildsData" -ForegroundColor Gray
+    Write-Host "Raw data (first 500 chars): $($buildsData.Substring(0, [Math]::Min(500, $buildsData.Length)))" -ForegroundColor Gray
     exit 1
 }
 
 if (-not $builds) {
-    Write-Host "No builds found." -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Debug: Raw response was empty or invalid" -ForegroundColor Gray
+    Write-Host "No builds found (parsed result is null)." -ForegroundColor Green
     exit 0
 }
 
@@ -67,16 +77,19 @@ if (-not $builds) {
 if ($builds -isnot [Array]) {
     if ($builds.id) {
         $builds = @($builds)
+        Write-Host "Found 1 build (converted to array)" -ForegroundColor Gray
     } else {
-        Write-Host "No builds found." -ForegroundColor Green
+        Write-Host "No builds found (object has no id property)." -ForegroundColor Green
         exit 0
     }
 }
 
 if ($builds.Count -eq 0) {
-    Write-Host "No builds found." -ForegroundColor Green
+    Write-Host "No builds found (array is empty)." -ForegroundColor Green
     exit 0
 }
+
+Write-Host "Found $($builds.Count) build(s) total" -ForegroundColor Green
 
 if (-not $buildIds -or $buildIds.Count -eq 0) {
     Write-Host "No builds found." -ForegroundColor Green
