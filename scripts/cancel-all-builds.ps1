@@ -15,51 +15,49 @@ Write-Host "Project: $ProjectId" -ForegroundColor Gray
 Write-Host "Limit: $Limit builds" -ForegroundColor Gray
 Write-Host ""
 
-# Get all recent builds (not just QUEUED/WORKING)
+# Get all recent builds with their statuses
 # Try with region first, then without if that fails
 Write-Host "Finding all recent builds..." -ForegroundColor Yellow
 
-$allBuilds = $null
-$buildIds = $null
+$buildsData = $null
 
 # Try with region (europe-west1) first
-$allBuilds = gcloud builds list `
+$buildsData = gcloud builds list `
     --limit=$Limit `
     --region=europe-west1 `
-    --format="table(id,status,createTime,source.repoSource.branchName)" `
+    --format="json" `
     --project=$ProjectId 2>&1
 
-if ($LASTEXITCODE -ne 0 -or -not $allBuilds) {
+if ($LASTEXITCODE -ne 0 -or -not $buildsData) {
     # Try without region
     Write-Host "Trying without region parameter..." -ForegroundColor Gray
-    $allBuilds = gcloud builds list `
+    $buildsData = gcloud builds list `
         --limit=$Limit `
-        --format="table(id,status,createTime,source.repoSource.branchName)" `
+        --format="json" `
         --project=$ProjectId 2>&1
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Error listing builds: $allBuilds" -ForegroundColor Red
+    Write-Host "[ERROR] Error listing builds: $buildsData" -ForegroundColor Red
     Write-Host ""
     Write-Host "Troubleshooting:" -ForegroundColor Yellow
     Write-Host "  1. Check if you have permission to list builds" -ForegroundColor White
     Write-Host "  2. Verify the project ID is correct: $ProjectId" -ForegroundColor White
-    Write-Host "  3. Try manually: gcloud builds list --project=$ProjectId" -ForegroundColor White
+    Write-Host "  3. Try manually: gcloud builds list --region=europe-west1 --project=$ProjectId" -ForegroundColor White
     exit 1
 }
 
-# Get all build IDs (with same region logic)
-$buildIds = gcloud builds list `
-    --limit=$Limit `
-    --region=europe-west1 `
-    --format="value(id)" `
-    --project=$ProjectId 2>&1
+# Parse JSON to get builds with status
+try {
+    $builds = $buildsData | ConvertFrom-Json
+} catch {
+    Write-Host "[ERROR] Failed to parse build data: $_" -ForegroundColor Red
+    exit 1
+}
 
-if ($LASTEXITCODE -ne 0 -or -not $buildIds) {
-    $buildIds = gcloud builds list `
-        --limit=$Limit `
-        --format="value(id)" `
-        --project=$ProjectId 2>&1
+if (-not $builds -or $builds.Count -eq 0) {
+    Write-Host "No builds found." -ForegroundColor Green
+    exit 0
 }
 
 if (-not $buildIds -or $buildIds.Count -eq 0) {
@@ -69,18 +67,22 @@ if (-not $buildIds -or $buildIds.Count -eq 0) {
 
 # Filter out completed/failed builds (only cancel active ones)
 Write-Host ""
-Write-Host "Filtering for cancellable builds (not SUCCESS, FAILURE, CANCELLED, TIMEOUT)..." -ForegroundColor Yellow
+Write-Host "Filtering for cancellable builds (QUEUED, WORKING, PENDING)..." -ForegroundColor Yellow
 
 $cancellableBuilds = @()
-foreach ($buildId in $buildIds) {
-    if ([string]::IsNullOrEmpty($buildId)) {
+$completedStatuses = @("SUCCESS", "FAILURE", "CANCELLED", "TIMEOUT", "EXPIRED")
+
+foreach ($build in $builds) {
+    if (-not $build.id) {
         continue
     }
     
-    $status = gcloud builds describe $buildId --format="value(status)" --project=$ProjectId 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        if ($status -notin @("SUCCESS", "FAILURE", "CANCELLED", "TIMEOUT", "EXPIRED")) {
-            $cancellableBuilds += $buildId
+    $status = $build.status
+    if ($status -notin $completedStatuses) {
+        $cancellableBuilds += @{
+            Id = $build.id
+            Status = $status
+            CreateTime = $build.createTime
         }
     }
 }
@@ -98,7 +100,8 @@ Write-Host ""
 # Show first 10 as preview
 $previewCount = [Math]::Min(10, $cancellableBuilds.Count)
 for ($i = 0; $i -lt $previewCount; $i++) {
-    Write-Host "  - $($cancellableBuilds[$i])" -ForegroundColor Gray
+    $build = $cancellableBuilds[$i]
+    Write-Host "  - $($build.Id) [$($build.Status)]" -ForegroundColor Gray
 }
 if ($cancellableBuilds.Count -gt 10) {
     Write-Host "  ... and $($cancellableBuilds.Count - 10) more" -ForegroundColor Gray
@@ -131,8 +134,11 @@ $cancelled = 0
 $failed = 0
 $skipped = 0
 
-foreach ($buildId in $cancellableBuilds) {
-    Write-Host "Cancelling build: $buildId..." -ForegroundColor Gray -NoNewline
+foreach ($build in $cancellableBuilds) {
+    $buildId = $build.Id
+    $currentStatus = $build.Status
+    
+    Write-Host "Cancelling build: $buildId [$currentStatus]..." -ForegroundColor Gray -NoNewline
     
     $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
     
@@ -140,14 +146,14 @@ foreach ($buildId in $cancellableBuilds) {
         Write-Host " [OK]" -ForegroundColor Green
         $cancelled++
     } else {
-        # Check if already cancelled/completed
-        $status = gcloud builds describe $buildId --format="value(status)" --project=$ProjectId 2>&1
-        if ($status -in @("CANCELLED", "SUCCESS", "FAILURE", "TIMEOUT", "EXPIRED")) {
-            Write-Host " [SKIP - already $status]" -ForegroundColor Yellow
+        # Check if already cancelled/completed (status might have changed)
+        $resultStr = $result -join " "
+        if ($resultStr -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE") {
+            Write-Host " [SKIP - already completed]" -ForegroundColor Yellow
             $skipped++
         } else {
             Write-Host " [FAIL]" -ForegroundColor Red
-            Write-Host "     Error: $result" -ForegroundColor Gray
+            Write-Host "     Error: $resultStr" -ForegroundColor Gray
             $failed++
         }
     }
