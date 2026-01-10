@@ -22,6 +22,7 @@ This directory contains documentation for the Credovo platform.
 - **[Webhook Setup](WEBHOOK_SETUP.md)** - Webhook endpoint configuration
 - **[Webhook Registration](WEBHOOK_REGISTRATION_GUIDE.md)** - Registering webhooks with Shufti Pro
 - **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
+- **[Lovable GitHub Safety](LOVABLE_GITHUB_SAFETY.md)** - Safely connecting Lovable to GitHub
 
 ### Operations
 - **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
