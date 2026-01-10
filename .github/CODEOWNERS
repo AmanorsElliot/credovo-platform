@@ -1,0 +1,29 @@
+# Code Owners for Credovo Platform
+# This file defines who must approve changes to specific directories
+
+# Backend services - require team review
+/services/ @AmanorsElliot
+
+# Infrastructure - require team review
+/infrastructure/ @AmanorsElliot
+
+# Shared libraries - require team review
+/shared/ @AmanorsElliot
+
+# Documentation - require team review
+/docs/ @AmanorsElliot
+
+# CI/CD workflows - require team review
+/.github/workflows/ @AmanorsElliot
+
+# Scripts - require team review
+/scripts/ @AmanorsElliot
+
+# Frontend - can be managed by Lovable (no required review)
+/frontend/ 
+
+# Root configuration files - require team review
+/README.md @AmanorsElliot
+/.gitignore @AmanorsElliot
+/package.json @AmanorsElliot
+
