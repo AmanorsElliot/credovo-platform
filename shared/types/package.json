@@ -1,7 +1,30 @@
 {
   "name": "@credovo/shared-types",
   "version": "1.0.0",
-  "main": "index.js",
-  "types": "index.d.ts"
+  "description": "Shared TypeScript types for Credovo platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmanorsElliot/credovo-platform.git"
+  },
+  "keywords": [
+    "credovo",
+    "types",
+    "typescript"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
 }
 
