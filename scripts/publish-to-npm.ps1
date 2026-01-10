@@ -39,8 +39,10 @@ try {
         Write-Host ""
         Write-Host "To publish to npm, you need to:" -ForegroundColor Cyan
         Write-Host "  1. Create account at: https://www.npmjs.com/signup" -ForegroundColor White
-        Write-Host "  2. Login: npm login" -ForegroundColor White
-        Write-Host "  3. Run this script again" -ForegroundColor White
+        Write-Host "  2. Enable 2FA: https://www.npmjs.com/settings/$npmWhoami/two-factor/auth" -ForegroundColor White
+        Write-Host "     (npm requires 2FA to publish packages)" -ForegroundColor Yellow
+        Write-Host "  3. Login: npm login (will prompt for 2FA code)" -ForegroundColor White
+        Write-Host "  4. Run this script again" -ForegroundColor White
         Write-Host ""
         exit 1
     }

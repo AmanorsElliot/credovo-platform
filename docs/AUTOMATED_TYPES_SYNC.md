@@ -98,9 +98,15 @@ Run the script when you need to sync:
    # Create npm account if needed
    # https://www.npmjs.com/signup
    
-   # Login to npm
+   # Enable 2FA (required for publishing)
+   # Go to: https://www.npmjs.com/settings/YOUR_USERNAME/two-factor/auth
+   # Enable 2FA using TOTP app (Google Authenticator, Authy, etc.)
+   
+   # Login to npm (will prompt for 2FA code)
    npm login
    ```
+   
+   **Note**: npm requires 2FA to publish packages. You can also use a granular access token with "bypass 2fa" enabled instead.
 
 2. **Publish to npm:**
    ```powershell
