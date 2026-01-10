@@ -4,7 +4,7 @@ This guide will help you quickly deploy the Credovo platform to GCP.
 
 ## Prerequisites
 
-- ✅ GCP Project: `credovo-platform-dev` (already set up)
+- ✅ GCP Project: `credovo-eu-apps-nonprod` (already set up)
 - ✅ Terraform state bucket: `gs://credovo-terraform-state` (already exists)
 - ✅ GitHub repository: `AmanorsElliot/credovo-platform` (already connected)
 - ⚠️ GCP Authentication: Need to authenticate for Terraform
@@ -16,7 +16,7 @@ This guide will help you quickly deploy the Credovo platform to GCP.
 gcloud auth application-default login
 
 # Verify project is set
-gcloud config set project credovo-platform-dev
+gcloud config set project credovo-eu-apps-nonprod
 ```
 
 ## Step 2: Deploy Infrastructure with Terraform
@@ -47,7 +47,7 @@ This will create:
 
 ```powershell
 cd scripts
-.\configure-secrets.ps1
+.\configure-secrets-now.ps1
 ```
 
 This will configure:

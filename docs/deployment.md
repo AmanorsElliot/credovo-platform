@@ -68,7 +68,7 @@ terraform apply
 
 ```powershell
 cd scripts
-.\configure-secrets.ps1
+.\configure-secrets-now.ps1
 ```
 
 ### Option 2: Manual Configuration (Linux/Mac)

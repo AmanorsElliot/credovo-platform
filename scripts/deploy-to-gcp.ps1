@@ -2,7 +2,7 @@
 # Run this script after setting up GitHub secrets
 
 param(
-    [string]$ProjectId = "credovo-platform-dev",
+    [string]$ProjectId = "credovo-eu-apps-nonprod",
     [string]$Region = "europe-west1"
 )
 
@@ -36,8 +36,8 @@ Write-Host "Step 3: Verifying Terraform state bucket..." -ForegroundColor Yellow
 $bucketExists = gsutil ls -b "gs://credovo-terraform-state" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Creating Terraform state bucket..." -ForegroundColor Yellow
-    gsutil mb -p $ProjectId -l $Region "gs://credovo-terraform-state"
-    gsutil versioning set on "gs://credovo-terraform-state"
+    gsutil mb -p $ProjectId -l $Region "gs://$bucketName"
+    gsutil versioning set on "gs://$bucketName"
     Write-Host "Terraform state bucket created." -ForegroundColor Green
 } else {
     Write-Host "Terraform state bucket exists." -ForegroundColor Green
@@ -66,7 +66,7 @@ $repoRoot = Split-Path -Parent $scriptPath
 $terraformDir = Join-Path $repoRoot "infrastructure\terraform"
 Set-Location $terraformDir
 
-& $terraformCmd.Source init
+& $terraformCmd.Source init -backend-config="bucket=$bucketName" -backend-config="prefix=terraform/state"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Terraform initialization failed." -ForegroundColor Red
