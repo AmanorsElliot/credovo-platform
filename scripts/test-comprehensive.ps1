@@ -64,8 +64,13 @@ Write-Host "  Status Check Retries: $StatusCheckRetries" -ForegroundColor Gray
 Write-Host "  Status Check Delay: $StatusCheckDelay seconds" -ForegroundColor Gray
 Write-Host ""
 
-# Setup headers
+# Setup headers for health checks (IAM auth only)
 $headers = @{
+    "Content-Type" = "application/json"
+}
+
+# Setup headers for application endpoints (IAM + JWT auth)
+$appHeaders = @{
     "Content-Type" = "application/json"
 }
 
@@ -76,12 +81,14 @@ if ($UseGcloudAuth) {
         $gcloudToken = gcloud auth print-identity-token --impersonate-service-account="" 2>$null
         if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
             $headers["Authorization"] = "Bearer $gcloudToken"
+            $appHeaders["Authorization"] = "Bearer $gcloudToken"
             Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token for IAM auth"
         } else {
             # Try without impersonation
             $gcloudToken = gcloud auth print-identity-token 2>$null
             if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken)) {
                 $headers["Authorization"] = "Bearer $gcloudToken"
+                $appHeaders["Authorization"] = "Bearer $gcloudToken"
                 Add-TestResult -Name "GCloud Identity Token" -Passed $true -Message "Using gcloud identity token"
             }
         }
@@ -90,22 +97,25 @@ if ($UseGcloudAuth) {
     }
 }
 
-# Use provided JWT token if available (for application-level auth)
-if (-not [string]::IsNullOrEmpty($AuthToken) -and -not $headers.ContainsKey("Authorization")) {
-    $headers["Authorization"] = "Bearer $AuthToken"
-    Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using provided JWT token"
-} elseif (-not [string]::IsNullOrEmpty($AuthToken)) {
-    # Add JWT token as X-User-Token for application-level auth (gcloud token handles IAM)
-    $headers["X-User-Token"] = $AuthToken
-    Add-TestResult -Name "Dual Auth Setup" -Passed $true -Message "Using gcloud token for IAM + JWT for application auth"
-} elseif (-not $headers.ContainsKey("Authorization")) {
-    Add-TestResult -Name "Auth Token Provided" -Passed $false -Message "No auth token - some tests may fail"
+# Use JWT token for application-level authentication
+# Put it in X-User-Token header so app can use it while gcloud token handles IAM
+if (-not [string]::IsNullOrEmpty($AuthToken)) {
+    $appHeaders["X-User-Token"] = $AuthToken
+    if ($gcloudToken) {
+        Add-TestResult -Name "Dual Auth Setup" -Passed $true -Message "Using gcloud token for IAM + JWT in X-User-Token for app auth"
+    } else {
+        # If no gcloud token, use JWT in Authorization header
+        $appHeaders["Authorization"] = "Bearer $AuthToken"
+        Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using JWT token in Authorization header"
+    }
+} elseif (-not $appHeaders.ContainsKey("Authorization")) {
+    Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - application endpoints will fail"
     Write-Host ""
     Write-Host "💡 Tip: Get a test token with:" -ForegroundColor Yellow
     Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
     Write-Host ""
     Write-Host "   Or use gcloud auth:" -ForegroundColor Yellow
-    Write-Host "   .\scripts\test-comprehensive.ps1 -UseGcloudAuth" -ForegroundColor White
+    Write-Host "   .\scripts\test-comprehensive.ps1 -UseGcloudAuth -AuthToken 'your-jwt'" -ForegroundColor White
     Write-Host ""
 }
 
