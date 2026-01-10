@@ -39,7 +39,7 @@ export class KYCService {
         body: {
           reference: `kyc-${request.applicationId}-${Date.now()}`,
           callback_url: callbackUrl, // Webhook URL for async results
-          email: request.data.email,
+          email: request.data.email || '',
           country: request.data.country || 'GB',
           language: 'EN',
           verification_mode: 'any',
@@ -86,13 +86,14 @@ export class KYCService {
 
       const response: KYCResponse = {
         applicationId: request.applicationId,
-        status: isApproved ? 'approved' : 
-                verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
+        status: (isApproved ? 'approved' : 
+                verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected') as 'pending' | 'approved' | 'rejected' | 'requires_review',
         provider: 'shufti-pro',
         result: {
           score: isApproved ? 100 : 0,
           checks: this.mapShuftiProChecks(connectorResponse),
-          metadata: connectorResponse
+          metadata: connectorResponse,
+          aml: connectorResponse.risk_assessment || connectorResponse.verification_result?.risk_assessment
         },
         timestamp: new Date()
       };
@@ -165,8 +166,8 @@ export class KYCService {
           
           const response: KYCResponse = {
             applicationId,
-            status: isApproved ? 'approved' : 
-                    verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
+            status: (isApproved ? 'approved' : 
+                    verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected') as 'pending' | 'approved' | 'rejected' | 'requires_review',
             provider: 'shufti-pro',
             result: {
               score: isApproved ? 100 : 0,
@@ -192,20 +193,6 @@ export class KYCService {
     } catch (error: any) {
       logger.error('Failed to get KYC status', error);
       throw error;
-    }
-  }
-
-  private mapSumSubStatus(data: any): 'pending' | 'approved' | 'rejected' | 'requires_review' {
-    const status = data?.reviewResult?.reviewStatus;
-    switch (status) {
-      case 'approved':
-        return 'approved';
-      case 'rejected':
-        return 'rejected';
-      case 'pending':
-        return 'pending';
-      default:
-        return 'requires_review';
     }
   }
 

@@ -4,6 +4,7 @@ import { KYCService } from '../services/kyc-service';
 import { KYBService } from '../services/kyb-service';
 import { DataLakeService } from '../services/data-lake-service';
 import { PubSubService } from '../services/pubsub-service';
+import { KYCResponse, KYBResponse } from '@credovo/shared-types';
 
 const logger = createLogger('webhook-handler');
 export const WebhookRouter = Router();
@@ -48,10 +49,10 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
     const isPending = event === 'verification.pending' || event === 'pending';
 
     // Update KYC response in data lake
-    const kycResponse = {
+    const kycResponse: KYCResponse = {
       applicationId,
-      status: isApproved ? 'approved' : 
-              isPending ? 'pending' : 'rejected',
+      status: (isApproved ? 'approved' : 
+              isPending ? 'pending' : 'rejected') as 'pending' | 'approved' | 'rejected' | 'requires_review',
       provider: 'shufti-pro',
       result: {
         score: isApproved ? 100 : 0,
@@ -122,11 +123,11 @@ WebhookRouter.post('/shufti-pro-kyb', async (req: Request, res: Response) => {
     const isPending = event === 'verification.pending' || event === 'pending';
 
     // Update KYB response in data lake
-    const kybResponse = {
+    const kybResponse: KYBResponse = {
       applicationId,
       companyNumber: webhookData.business?.registration_number || '',
-      status: isVerified ? 'verified' : 
-              isPending ? 'pending' : 'not_found',
+      status: (isVerified ? 'verified' : 
+              isPending ? 'pending' : 'not_found') as 'verified' | 'pending' | 'not_found' | 'error',
       data: {
         companyName: webhookData.business?.name,
         status: event || 'unknown',

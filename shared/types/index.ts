@@ -25,6 +25,8 @@ export interface KYCRequest {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: string;
+    email?: string;
+    country?: string;
     address?: Address;
     companyNumber?: string;
     companyName?: string;
@@ -47,6 +49,7 @@ export interface KYCResponse {
     score?: number;
     checks?: CheckResult[];
     metadata?: Record<string, any>;
+    aml?: any; // AML screening results
   };
   timestamp: Date;
 }
@@ -98,6 +101,12 @@ export interface ConnectorResponse<T = any> {
     message: string;
     details?: any;
   };
+  // Shufti Pro specific fields (optional, as they may not be present for all providers)
+  event?: string;
+  status?: string;
+  verification_result?: any;
+  reference?: string;
+  risk_assessment?: any;
   metadata?: {
     provider: string;
     latency: number;
