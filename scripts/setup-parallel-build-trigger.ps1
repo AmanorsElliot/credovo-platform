@@ -46,7 +46,8 @@ if ($existing) {
         --repo-owner=$RepoOwner `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
-        --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `
+        --substitutions="_REGION=$Region" `
+        --substitutions="_ARTIFACT_REGISTRY=credovo-services" `
         --service-account=$ServiceAccount `
         --project=$ProjectId 2>&1 | Out-Null
     
@@ -60,6 +61,7 @@ if ($existing) {
     Write-Host "Creating trigger for parallel builds..." -ForegroundColor Cyan
     
     # Create the trigger
+    # Note: substitutions format might need to be different for GitHub triggers
     gcloud builds triggers create github `
         --name=$triggerName `
         --region=$Region `
@@ -67,7 +69,8 @@ if ($existing) {
         --repo-owner=$RepoOwner `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
-        --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `
+        --substitutions="_REGION=$Region" `
+        --substitutions="_ARTIFACT_REGISTRY=credovo-services" `
         --service-account=$ServiceAccount `
         --project=$ProjectId 2>&1 | Out-Null
     
