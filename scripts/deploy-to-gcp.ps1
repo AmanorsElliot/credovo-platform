@@ -33,7 +33,8 @@ gcloud auth application-default login
 # Step 3: Verify Terraform state bucket
 Write-Host ""
 Write-Host "Step 3: Verifying Terraform state bucket..." -ForegroundColor Yellow
-$bucketExists = gsutil ls -b "gs://credovo-terraform-state" 2>&1
+$bucketName = "$ProjectId-tfstate"
+$bucketExists = gsutil ls -b "gs://$bucketName" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Creating Terraform state bucket..." -ForegroundColor Yellow
     gsutil mb -p $ProjectId -l $Region "gs://$bucketName"
