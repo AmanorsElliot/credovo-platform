@@ -153,6 +153,27 @@ resource "google_cloud_run_service" "connector_service" {
           }
         }
 
+        # Shufti Pro credentials (primary KYC/KYB provider)
+        env {
+          name = "SHUFTI_PRO_CLIENT_ID"
+          value_from {
+            secret_key_ref {
+              name = "shufti-pro-client-id"
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
+          name = "SHUFTI_PRO_SECRET_KEY"
+          value_from {
+            secret_key_ref {
+              name = "shufti-pro-secret-key"
+              key  = "latest"
+            }
+          }
+        }
+
         ports {
           container_port = 8080
         }
