@@ -295,17 +295,35 @@ export function validateBackendJwt(req: Request, res: Response, next: NextFuncti
 
 // Service-to-service JWT validation
 // For inter-service communication using GCP service accounts
+// Supports dual authentication: Cloud Run IAM token in Authorization + app token in X-Service-Token
 export function validateServiceJwt(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  // Check X-Service-Token first (application-level service token)
+  // Cloud Run IAM token in Authorization is handled by Cloud Run itself
+  let token: string | undefined;
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (req.headers['x-service-token']) {
+    // Prioritize X-Service-Token header (application-level service token)
+    token = req.headers['x-service-token'] as string;
+    logger.debug('Using X-Service-Token header for service JWT validation');
+  } else {
+    // Fallback to Authorization header if X-Service-Token is not present
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
+  
+  if (!token) {
+    // If no token at all, check if Cloud Run IAM already authenticated
+    // (Cloud Run handles IAM authentication before the request reaches us)
+    // In this case, we can allow the request if it's from an authenticated service
+    logger.debug('No service token found, but Cloud Run IAM may have authenticated');
+    // For now, require a token - we can relax this later if needed
     return res.status(401).json({
       error: 'Unauthorized',
       message: 'Missing service token'
     });
   }
-
-  const token = authHeader.substring(7);
   
   // In production, this would validate against GCP service account tokens
   // For now, we'll use a shared secret for service-to-service auth

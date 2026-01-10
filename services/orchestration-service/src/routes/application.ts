@@ -8,7 +8,32 @@ export const ApplicationRouter = Router();
 
 const KYC_SERVICE_URL = process.env.KYC_SERVICE_URL || 'http://kyc-kyb-service:8080';
 
-// Helper function to create a service-to-service JWT token
+// Helper function to get Cloud Run identity token for service-to-service calls
+// Uses the Metadata Server available in Cloud Run
+async function getIdentityToken(audience: string): Promise<string> {
+  try {
+    const metadataServerTokenUrl = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
+    const response = await axios.get(metadataServerTokenUrl, {
+      params: {
+        audience: audience,
+        format: 'full'
+      },
+      headers: {
+        'Metadata-Flavor': 'Google'
+      },
+      timeout: 5000
+    });
+    return response.data;
+  } catch (error: any) {
+    logger.warn('Failed to get identity token from Metadata Server, falling back to service token', {
+      error: error.message
+    });
+    // Fallback to service JWT token if Metadata Server is not available (e.g., local development)
+    return createServiceToken();
+  }
+}
+
+// Helper function to create a service-to-service JWT token (fallback)
 function createServiceToken(): string {
   const serviceSecret = process.env.SERVICE_JWT_SECRET;
   if (!serviceSecret) {
@@ -30,6 +55,9 @@ ApplicationRouter.post('/:applicationId/kyc/initiate', async (req: Request, res:
   try {
     const { applicationId } = req.params;
     
+    // Get Cloud Run identity token for IAM authentication
+    const identityToken = await getIdentityToken(KYC_SERVICE_URL);
+    // Also create application-level service token
     const serviceToken = createServiceToken();
     
     const response = await axios.post(
@@ -41,7 +69,8 @@ ApplicationRouter.post('/:applicationId/kyc/initiate', async (req: Request, res:
       },
       {
         headers: {
-          'Authorization': `Bearer ${serviceToken}`
+          'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
+          'X-Service-Token': serviceToken // Application-level service token
         }
       }
     );
@@ -60,13 +89,17 @@ ApplicationRouter.get('/:applicationId/kyc/status', async (req: Request, res: Re
   try {
     const { applicationId } = req.params;
     
+    // Get Cloud Run identity token for IAM authentication
+    const identityToken = await getIdentityToken(KYC_SERVICE_URL);
+    // Also create application-level service token
     const serviceToken = createServiceToken();
     
     const response = await axios.get(
       `${KYC_SERVICE_URL}/api/v1/kyc/status/${applicationId}`,
       {
         headers: {
-          'Authorization': `Bearer ${serviceToken}`
+          'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
+          'X-Service-Token': serviceToken // Application-level service token
         }
       }
     );
