@@ -16,23 +16,51 @@ Write-Host "Limit: $Limit builds" -ForegroundColor Gray
 Write-Host ""
 
 # Get all recent builds (not just QUEUED/WORKING)
+# Try with region first, then without if that fails
 Write-Host "Finding all recent builds..." -ForegroundColor Yellow
 
+$allBuilds = $null
+$buildIds = $null
+
+# Try with region (europe-west1) first
 $allBuilds = gcloud builds list `
     --limit=$Limit `
+    --region=europe-west1 `
     --format="table(id,status,createTime,source.repoSource.branchName)" `
     --project=$ProjectId 2>&1
 
+if ($LASTEXITCODE -ne 0 -or -not $allBuilds) {
+    # Try without region
+    Write-Host "Trying without region parameter..." -ForegroundColor Gray
+    $allBuilds = gcloud builds list `
+        --limit=$Limit `
+        --format="table(id,status,createTime,source.repoSource.branchName)" `
+        --project=$ProjectId 2>&1
+}
+
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Error listing builds: $allBuilds" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Troubleshooting:" -ForegroundColor Yellow
+    Write-Host "  1. Check if you have permission to list builds" -ForegroundColor White
+    Write-Host "  2. Verify the project ID is correct: $ProjectId" -ForegroundColor White
+    Write-Host "  3. Try manually: gcloud builds list --project=$ProjectId" -ForegroundColor White
     exit 1
 }
 
-# Get all build IDs
+# Get all build IDs (with same region logic)
 $buildIds = gcloud builds list `
     --limit=$Limit `
+    --region=europe-west1 `
     --format="value(id)" `
     --project=$ProjectId 2>&1
+
+if ($LASTEXITCODE -ne 0 -or -not $buildIds) {
+    $buildIds = gcloud builds list `
+        --limit=$Limit `
+        --format="value(id)" `
+        --project=$ProjectId 2>&1
+}
 
 if (-not $buildIds -or $buildIds.Count -eq 0) {
     Write-Host "No builds found." -ForegroundColor Green
