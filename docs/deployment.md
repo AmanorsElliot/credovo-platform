@@ -97,18 +97,30 @@ echo -n "your-companies-house-api-key" | \
 
 **Note**: If secrets don't exist yet, Terraform will create them. Use `gcloud secrets versions add` to add values to existing secrets.
 
-## Step 5: Build and Deploy Services
+## Step 5: Set Up CI/CD with Cloud Build
 
-### Using GitHub Actions
+The platform uses **Cloud Build GitHub Integration** for automatic deployments.
 
-1. Add GitHub secrets:
-   - `GCP_PROJECT_ID`
-   - `GCP_SA_KEY` (service account key JSON)
-   - `ARTIFACT_REGISTRY`
+### Option 1: Cloud Build (Recommended - Current Setup)
 
-2. Push to main/develop branch to trigger deployment
+1. **Connect GitHub Repository**:
+   - Go to: https://console.cloud.google.com/cloud-build/connections?project=credovo-eu-apps-nonprod
+   - Complete OAuth authorization for your GitHub repository
 
-### Manual Deployment
+2. **Create Cloud Build Triggers**:
+   - Go to: https://console.cloud.google.com/cloud-build/triggers?project=credovo-eu-apps-nonprod
+   - Create triggers for each service (or use the script):
+   ```powershell
+   .\scripts\setup-cloud-build-triggers.ps1
+   ```
+
+3. **Automatic Deployment**:
+   - Push to `main` branch triggers automatic builds
+   - Services are built, pushed to Artifact Registry, and deployed to Cloud Run
+
+See [Cloud Build Setup Guide](CLOUD_BUILD_GITHUB_SETUP.md) for detailed instructions.
+
+### Option 2: Manual Deployment
 
 ```bash
 # Build and push connector service

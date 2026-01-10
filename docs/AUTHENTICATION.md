@@ -2,13 +2,88 @@
 
 ## Overview
 
-Since Lovable Cloud doesn't provide JWT tokens directly, we've implemented a **token exchange** pattern where:
+The Credovo platform supports **Supabase authentication** (recommended) and **token exchange** (legacy) patterns.
 
-1. Frontend authenticates users with Lovable Cloud (gets user info)
-2. Frontend exchanges user info for a backend-issued JWT token
-3. Frontend uses that JWT for all subsequent API requests
+### Supabase Authentication (Recommended)
 
-## Authentication Flow
+The platform uses Supabase for authentication, which provides JWT tokens that can be validated directly on the backend. This is simpler and more secure than token exchange.
+
+### Token Exchange (Legacy)
+
+For compatibility, the platform also supports a token exchange pattern where the frontend exchanges user info for a backend-issued JWT token.
+
+## Supabase Authentication (Recommended)
+
+### Architecture
+
+```
+┌─────────┐         ┌──────────┐         ┌─────────────────┐
+│ Frontend│         │ Supabase │         │ Backend API     │
+└────┬────┘         └────┬─────┘         └────────┬────────┘
+     │                   │                        │
+     │ 1. User Login     │                        │
+     ├──────────────────>│                        │
+     │                   │                        │
+     │ 2. Supabase JWT   │                        │
+     │<──────────────────┤                        │
+     │                   │                        │
+     │ 3. API Request    │                        │
+     │    with JWT       │                        │
+     ├───────────────────────────────────────────>│
+     │    Authorization: Bearer <supabase-token> │
+     │                   │                        │
+     │                   │ 4. Validate JWT       │
+     │                   │    (using JWKS)       │
+     │                   │                        │
+     │ 5. API Response   │                        │
+     │<───────────────────────────────────────────┤
+```
+
+### Setup
+
+1. **Get Supabase Project URL**:
+   - Go to Supabase Dashboard → Settings → API
+   - Copy your Project URL (e.g., `https://xxx.supabase.co`)
+
+2. **Configure Backend Secret**:
+   ```powershell
+   echo -n "https://your-project.supabase.co" | gcloud secrets versions add supabase-url --data-file=-
+   ```
+
+3. **Frontend Implementation**:
+   ```typescript
+   import { createClient } from '@supabase/supabase-js';
+   
+   const supabase = createClient(
+     process.env.REACT_APP_SUPABASE_URL!,
+     process.env.REACT_APP_SUPABASE_ANON_KEY!
+   );
+   
+   // After sign in, get token
+   const { data: { session } } = await supabase.auth.signInWithPassword({
+     email: 'user@example.com',
+     password: 'password'
+   });
+   
+   const token = session?.access_token;
+   
+   // Use token for API requests
+   fetch(`${API_URL}/api/v1/applications/123/kyc/initiate`, {
+     headers: {
+       'Authorization': `Bearer ${token}`
+     }
+   });
+   ```
+
+### Token Validation
+
+- **Algorithm**: RS256 (via JWKS) or ES256
+- **JWKS Endpoint**: `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`
+- **Audience**: `authenticated` (default)
+
+## Token Exchange Pattern (Legacy)
+
+### Authentication Flow
 
 ```
 ┌─────────┐         ┌──────────────┐         ┌─────────────────┐
