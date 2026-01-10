@@ -16,21 +16,64 @@ The `@amanorselliot/shared-types` package contains TypeScript type definitions f
 
 **Total**: ~115 lines of pure TypeScript type definitions (no runtime code)
 
-## Recommended Approach: Copy Types Directly ⭐
+## Recommended Approach: Publish to Public npm ⭐
 
-Since the package contains only TypeScript types (no runtime code), the cleanest approach is to copy them directly into your Lovable project.
+**Best Solution**: Publish to public npm (npmjs.com) for automatic updates and version management.
 
-### Why Copy Instead of npm Package?
+### Why Public npm Instead of GitHub Packages?
 
-✅ **No registry configuration needed** - Works immediately in Lovable  
-✅ **No authentication required** - No GitHub tokens needed  
-✅ **Types visible in codebase** - Easy to see and modify  
-✅ **No build-time dependencies** - Faster builds  
-✅ **Simpler for type-only packages** - Common pattern for shared types
+✅ **No authentication needed** - Works in Lovable without tokens  
+✅ **No registry configuration** - Standard npm workflow  
+✅ **Version management** - Semantic versioning  
+✅ **Easy updates** - `npm update` command  
+✅ **Works everywhere** - Lovable, CI/CD, local dev
 
-### Setup Steps
+### Alternative: Copy Types Directly
 
-#### Option A: Use Helper Script (Recommended)
+If you prefer not to use npm, you can copy types directly (but requires manual syncing).
+
+## Setup: Public npm Package (Recommended)
+
+### Step 1: Publish to npm
+
+From `credovo-platform`:
+
+```powershell
+# Login to npm (one-time)
+npm login
+
+# Publish
+.\scripts\publish-to-npm.ps1
+```
+
+### Step 2: Install in Lovable
+
+In your Lovable project (`credovo-webapp`):
+
+```bash
+npm install @amanorselliot/shared-types
+```
+
+**That's it!** No registry configuration, no tokens needed.
+
+### Step 3: Update When Types Change
+
+```powershell
+# In credovo-platform
+cd shared/types
+npm version patch  # Bumps version
+cd ../..
+.\scripts\publish-to-npm.ps1
+
+# In credovo-webapp
+npm update @amanorselliot/shared-types
+```
+
+## Alternative: Copy Types Directly
+
+If you prefer not to use npm:
+
+#### Option A: Use Helper Script
 
 ```powershell
 # From credovo-platform directory
@@ -117,33 +160,17 @@ When types change in `credovo-platform`:
    - Copy `shared/types/index.ts` → `credovo-webapp/src/types/shared-types.ts`
    - Commit changes to `credovo-webapp`
 
-## Alternative: Try npm Installation
+## Why Not GitHub Packages?
 
-If you prefer to use the npm package (even though copying is simpler):
+Even though the package is public on GitHub Packages, Lovable's build system:
+- ❌ Doesn't support configuring npm authentication tokens
+- ❌ May not be able to access GitHub Packages registry
+- ❌ Requires `.npmrc` configuration that may not work in Lovable
 
-### Step 1: Configure .npmrc
-
-Create `.npmrc` in `credovo-webapp`:
-
-```ini
-@amanorselliot:registry=https://npm.pkg.github.com
-```
-
-**Note**: For public packages, you typically don't need an auth token, but Lovable's build environment might still have issues.
-
-### Step 2: Install
-
-```bash
-npm install @amanorselliot/shared-types
-```
-
-### Step 3: Use
-
-```typescript
-import { KYCRequest, KYCResponse } from '@amanorselliot/shared-types';
-```
-
-**Warning**: This may fail in Lovable's build environment if it can't access GitHub Packages registry.
+**Solution**: Publish to public npm (npmjs.com) instead, which:
+- ✅ Works in Lovable without any configuration
+- ✅ Standard npm workflow
+- ✅ No authentication needed
 
 ## Type Definitions Reference
 
@@ -268,19 +295,21 @@ interface ConnectorResponse<T = any> {
 
 ## Summary
 
-**Recommended**: Copy types directly to `src/types/shared-types.ts`
+**Recommended**: Publish to public npm and install normally ⭐
 
 **Why**: 
-- ✅ Works immediately in Lovable
-- ✅ No registry configuration
-- ✅ No authentication needed
-- ✅ Types visible in codebase
-- ✅ Common pattern for type-only packages
+- ✅ Works in Lovable without any configuration
+- ✅ No authentication or registry setup needed
+- ✅ Version management with semantic versioning
+- ✅ Easy updates with `npm update`
+- ✅ Standard npm workflow
 
-**When to use npm package**:
-- If you need version management
-- If types include runtime code (not the case here)
-- If you want automatic updates (but you'll still need to sync manually)
+**Workflow**:
+1. Publish: `.\scripts\publish-to-npm.ps1`
+2. Install: `npm install @amanorselliot/shared-types`
+3. Update: `npm update @amanorselliot/shared-types`
 
-For a type-only package like this, copying is the simplest and most reliable approach!
+**Alternative**: Copy types directly if you prefer (but requires manual syncing)
+
+For automatic updates and version management, npm is the best solution!
 
