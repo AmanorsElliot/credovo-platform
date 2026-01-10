@@ -2,12 +2,13 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '-f'
+      - 'services/${_SERVICE_NAME}/Dockerfile'
       - '-t'
       - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${SHORT_SHA}'
       - '-t'
       - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:latest'
       - '.'
-    dir: 'services/${_SERVICE_NAME}'
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
