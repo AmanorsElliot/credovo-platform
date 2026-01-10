@@ -115,9 +115,9 @@ Run the script when you need to sync:
    - **Organizations**: "No access" (unless using org)
    - **Expiration**: Set as needed (90 days max for granular tokens)
    - Enable "bypass 2fa" checkbox
-   - Login: `npm login` (paste token as password, leave OTP blank)
+   - Login: `npm login` (will open browser for OAuth authentication)
    
-   **Note**: `--auth-type=legacy` no longer works. Use `npm login` normally and paste the granular token as the password.
+   **Note**: npm now uses browser-based OAuth. When you run `npm login`, press ENTER to open the browser and complete authentication there. The CLI will automatically authenticate after browser login.
 
 2. **Publish to npm:**
    ```powershell
