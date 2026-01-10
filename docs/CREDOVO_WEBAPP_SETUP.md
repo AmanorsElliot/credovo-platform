@@ -46,30 +46,56 @@ cd credovo-webapp
 
 # Initialize npm if not already done
 npm init -y
-
-# Install shared types from GitHub Packages
-npm install @amanorselliot/shared-types --registry=https://npm.pkg.github.com
-
-# Or if published to npm:
-# npm install @amanorselliot/shared-types
 ```
 
-### Configure .npmrc for GitHub Packages
+## Step 3: Configure .npmrc for GitHub Packages
 
-If using GitHub Packages, create `.npmrc` in `credovo-webapp`:
+**Important**: Create `.npmrc` in `credovo-webapp` root to configure scope-specific registry:
 
-```
-@credovo:registry=https://npm.pkg.github.com
+```ini
+@amanorselliot:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
 ```
 
-To get a GitHub token:
+This ensures:
+- `@amanorselliot/*` packages are fetched from GitHub Packages
+- All other packages use the default npm registry
+
+### Get GitHub Token
+
 1. Go to: https://github.com/settings/tokens
 2. Generate new token (classic)
-3. Select `read:packages` scope
-4. Use token in `.npmrc` or set as environment variable
+3. Select `read:packages` scope (and `write:packages` if you'll publish)
+4. Copy the token and replace `YOUR_GITHUB_TOKEN` in `.npmrc`
 
-## Step 3: Install Frontend Dependencies
+### Alternative: Environment Variable
+
+Instead of storing token in `.npmrc`, you can use an environment variable:
+
+```bash
+# Windows PowerShell
+$env:NPM_TOKEN="YOUR_GITHUB_TOKEN"
+```
+
+Then in `.npmrc`:
+```ini
+@amanorselliot:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+```
+
+## Step 4: Install Shared Types
+
+```bash
+# Ensure you're in the credovo-webapp directory
+cd credovo-webapp
+
+# Install shared types (will use GitHub Packages for @amanorselliot scope)
+npm install @amanorselliot/shared-types
+```
+
+**Note**: With `.npmrc` configured, you don't need the `--registry` flag!
+
+## Step 5: Install Frontend Dependencies
 
 ```bash
 # Ensure you're in the credovo-webapp directory
@@ -84,7 +110,7 @@ npm install --save-dev typescript @types/node
 npm install --save-dev vite @vitejs/plugin-react  # or your preferred build tool
 ```
 
-## Step 4: Configure TypeScript
+## Step 6: Configure TypeScript
 
 Create `tsconfig.json` in `credovo-webapp`:
 
@@ -108,7 +134,7 @@ Create `tsconfig.json` in `credovo-webapp`:
 }
 ```
 
-## Step 5: Use Shared Types
+## Step 7: Use Shared Types
 
 In your frontend code:
 
@@ -134,7 +160,7 @@ const kycRequest: KYCRequest = {
 };
 ```
 
-## Step 6: Configure Environment Variables
+## Step 8: Configure Environment Variables
 
 Create `.env` or `.env.local` in `credovo-webapp`:
 
@@ -149,7 +175,7 @@ VITE_API_URL=https://orchestration-service-saz24fo3sa-ew.a.run.app
 VITE_LOVABLE_AUTH_URL=https://auth.lovable.dev
 ```
 
-## Step 7: Connect to Lovable
+## Step 9: Connect to Lovable
 
 1. **In Lovable:**
    - Go to Settings → GitHub Integration
@@ -162,7 +188,7 @@ VITE_LOVABLE_AUTH_URL=https://auth.lovable.dev
    - Verify it syncs to GitHub
    - Check that only frontend files are modified
 
-## Step 8: Update Backend CORS
+## Step 10: Update Backend CORS
 
 Update `orchestration-service` to allow requests from Lovable:
 
@@ -197,7 +223,7 @@ When types change in `credovo-platform`:
 3. **Update in frontend:**
    ```bash
    cd credovo-webapp
-   npm update @amanorselliot/shared-types --registry=https://npm.pkg.github.com
+   npm update @amanorselliot/shared-types
    ```
 
 ## Project Structure
@@ -222,30 +248,51 @@ credovo-webapp/
 
 If `npm install @amanorselliot/shared-types` fails:
 
-1. **Check GitHub Packages access:**
+1. **Check .npmrc configuration:**
+   ```bash
+   cat .npmrc
+   ```
+   Should contain:
+   ```
+   @amanorselliot:registry=https://npm.pkg.github.com
+   //npm.pkg.github.com/:_authToken=YOUR_TOKEN
+   ```
+
+2. **Check GitHub Packages access:**
    - Ensure you have access to the `credovo-platform` repository
    - Verify GitHub token has `read:packages` scope
 
-2. **Check .npmrc:**
-   - Ensure `.npmrc` is in `credovo-webapp` root
-   - Verify token is correct
+3. **Verify token:**
+   - Check token hasn't expired
+   - Regenerate if needed
 
-3. **Try public npm:**
-   ```powershell
-   npm install @amanorselliot/shared-types
-   ```
+### Integrity Errors
+
+If you see integrity errors for other packages (like `@types/ws`, `@types/d3-path`):
+
+**Problem**: npm is trying to use GitHub Packages for ALL packages.
+
+**Solution**: Ensure `.npmrc` uses scope-specific registry:
+```ini
+@amanorselliot:registry=https://npm.pkg.github.com
+```
+
+**NOT**:
+```ini
+registry=https://npm.pkg.github.com  # ❌ This makes ALL packages use GitHub Packages
+```
 
 ### Type Errors
 
 If TypeScript can't find types:
 
 1. **Check node_modules:**
-   ```powershell
+   ```bash
    ls node_modules/@amanorselliot/shared-types
    ```
 
 2. **Verify package.json:**
-   ```powershell
+   ```bash
    cat node_modules/@amanorselliot/shared-types/package.json
    ```
 
@@ -277,4 +324,3 @@ If Lovable isn't syncing:
 - [Lovable Separate Repo Guide](LOVABLE_SEPARATE_REPO.md) - Detailed separate repo strategy
 - [Service Interactions](SERVICE_INTERACTIONS.md) - How backend services work
 - [Authentication Guide](AUTHENTICATION.md) - Auth setup
-
