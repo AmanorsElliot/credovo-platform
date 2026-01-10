@@ -19,7 +19,7 @@ resource "google_monitoring_alert_policy" "high_error_rate" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -46,7 +46,7 @@ resource "google_monitoring_alert_policy" "high_latency" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -72,7 +72,7 @@ resource "google_monitoring_alert_policy" "service_unavailable" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -246,7 +246,7 @@ resource "google_monitoring_alert_policy" "webhook_failures" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -269,7 +269,7 @@ resource "google_monitoring_alert_policy" "missing_webhooks" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "3600s"
@@ -297,7 +297,7 @@ resource "google_monitoring_alert_policy" "kyc_kyb_failures" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -323,7 +323,7 @@ resource "google_monitoring_alert_policy" "data_lake_storage_failures" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
@@ -348,7 +348,7 @@ resource "google_monitoring_alert_policy" "connector_service_failures" {
     }
   }
 
-  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : [google_monitoring_notification_channel.email.id]
+  notification_channels = length(var.notification_channels) > 0 ? var.notification_channels : (var.alert_email_address != "" ? [google_monitoring_notification_channel.email.id] : [])
 
   alert_strategy {
     auto_close = "1800s"
