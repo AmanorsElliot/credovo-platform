@@ -1,36 +1,51 @@
 steps:
   # Cancel any previous builds for this service to prioritize the latest
+  # BUT keep builds with the same commit SHA (they're part of the same deployment)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - -c
       - |
         echo "Cancelling outdated builds for ${_SERVICE_NAME}..."
-        # Get current build ID from environment
+        # Get current build ID and commit SHA from environment
         current_build_id=$BUILD_ID
+        current_commit_sha=${SHORT_SHA}
         echo "Current build ID: $current_build_id"
+        echo "Current commit SHA: $current_commit_sha"
         
-        # Get all ongoing builds for this service, sorted by createTime (newest first)
-        # Exclude the current build
-        ongoing_builds=$(gcloud builds list \
+        # Get all ongoing builds for this service as JSON to check commit SHA
+        ongoing_builds_json=$(gcloud builds list \
           --region=${_REGION} \
           --filter="status=QUEUED OR status=WORKING OR status=PENDING" \
           --filter="substitutions._SERVICE_NAME=${_SERVICE_NAME}" \
           --filter="id!=$current_build_id" \
-          --format="value(id)" \
+          --format="json" \
           --sort-by=~createTime \
-          --project=${PROJECT_ID} 2>/dev/null || echo "")
+          --project=${PROJECT_ID} 2>/dev/null || echo "[]")
         
-        if [ -n "$ongoing_builds" ]; then
+        if [ "$ongoing_builds_json" != "[]" ] && [ -n "$ongoing_builds_json" ]; then
           cancelled=0
-          echo "$ongoing_builds" | while read build_id; do
+          kept=0
+          
+          # Use jq to parse JSON and filter by commit SHA
+          # Only cancel builds with different commit SHA
+          echo "$ongoing_builds_json" | jq -r ".[] | select(.substitutions.SHORT_SHA != \"$current_commit_sha\") | .id" | while read build_id; do
             if [ -n "$build_id" ] && [ "$build_id" != "$current_build_id" ]; then
-              echo "Cancelling outdated build: $build_id"
+              echo "Cancelling outdated build (different commit): $build_id"
               gcloud builds cancel "$build_id" --region=${_REGION} --project=${PROJECT_ID} --quiet 2>/dev/null || true
               cancelled=$((cancelled + 1))
             fi
           done
-          echo "Cancelled $cancelled outdated build(s)"
+          
+          # Count builds kept (same commit)
+          kept=$(echo "$ongoing_builds_json" | jq -r "[.[] | select(.substitutions.SHORT_SHA == \"$current_commit_sha\")] | length" 2>/dev/null || echo "0")
+          
+          if [ "$cancelled" -gt 0 ]; then
+            echo "Cancelled $cancelled outdated build(s) (different commits)"
+          fi
+          if [ "$kept" -gt 0 ]; then
+            echo "Kept $kept build(s) with same commit SHA (part of same deployment)"
+          fi
         else
           echo "No outdated builds to cancel"
         fi
