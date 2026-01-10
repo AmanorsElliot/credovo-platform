@@ -83,7 +83,7 @@ steps:
       - 'managed'
       - '--service-account'
       - 'orchestration-service@${PROJECT_ID}.iam.gserviceaccount.com'
-      - '--set-env-vars'
+      - '--update-env-vars'
       - 'KYC_SERVICE_URL=https://kyc-kyb-service-saz24fo3sa-ew.a.run.app,CONNECTOR_SERVICE_URL=https://connector-service-saz24fo3sa-ew.a.run.app'
       - '--allow-unauthenticated'
       - '--project'
