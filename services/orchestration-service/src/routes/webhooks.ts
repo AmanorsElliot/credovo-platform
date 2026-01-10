@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
 import { createLogger } from '@credovo/shared-utils/logger';
 import crypto from 'crypto';
 
@@ -7,6 +8,24 @@ const logger = createLogger('webhook-handler');
 export const WebhookRouter = Router();
 
 const KYC_SERVICE_URL = process.env.KYC_SERVICE_URL || 'http://kyc-kyb-service:8080';
+
+// Helper function to create a service-to-service JWT token
+function createServiceToken(): string {
+  const serviceSecret = process.env.SERVICE_JWT_SECRET;
+  if (!serviceSecret) {
+    throw new Error('SERVICE_JWT_SECRET not configured');
+  }
+  
+  return jwt.sign(
+    {
+      service: 'orchestration-service',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 300 // 5 minutes
+    },
+    serviceSecret,
+    { algorithm: 'HS256' }
+  );
+}
 
 /**
  * Shufti Pro Webhook Endpoint
@@ -69,6 +88,8 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
     const isKYB = reference?.startsWith('kyb-') || webhookData.business;
     const isKYC = reference?.startsWith('kyc-') || webhookData.document;
 
+    const serviceToken = createServiceToken();
+    
     if (isKYC) {
       // Forward to KYC service for processing
       await axios.post(
@@ -76,7 +97,7 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
         webhookData,
         {
           headers: {
-            'Authorization': `Bearer ${process.env.SERVICE_JWT_SECRET}`,
+            'Authorization': `Bearer ${serviceToken}`,
             'Content-Type': 'application/json'
           }
         }
@@ -88,7 +109,7 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
         webhookData,
         {
           headers: {
-            'Authorization': `Bearer ${process.env.SERVICE_JWT_SECRET}`,
+            'Authorization': `Bearer ${serviceToken}`,
             'Content-Type': 'application/json'
           }
         }

@@ -1,5 +1,5 @@
 import express from 'express';
-import { validateJwt, configureCors } from '@credovo/shared-auth';
+import { validateServiceJwt, configureCors } from '@credovo/shared-auth';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { KYCRouter } from './routes/kyc';
 import { KYBRouter } from './routes/kyb';
@@ -22,8 +22,9 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/health', HealthRouter);
-app.use('/api/v1/kyc', validateJwt, KYCRouter);
-app.use('/api/v1/kyb', validateJwt, KYBRouter);
+// Use validateServiceJwt for service-to-service authentication
+app.use('/api/v1/kyc', validateServiceJwt, KYCRouter);
+app.use('/api/v1/kyb', validateServiceJwt, KYBRouter);
 // Webhook routes (no auth required - webhooks come from orchestration service)
 app.use('/api/v1/webhooks', WebhookRouter);
 
