@@ -117,9 +117,20 @@ function getSupabaseKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback)
 }
 
 export function validateSupabaseJwt(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  // Check Authorization header first, then X-User-Token as fallback
+  // This allows gcloud identity tokens for IAM while using JWT for app auth
+  let authHeader = req.headers.authorization;
+  let token: string | undefined;
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (req.headers['x-user-token']) {
+    // Fallback to X-User-Token header (used when gcloud token is in Authorization)
+    token = req.headers['x-user-token'] as string;
+    logger.debug('Using X-User-Token header for JWT validation');
+  }
+  
+  if (!token) {
     logger.warn('Missing or invalid authorization header', {
       path: req.path,
       ip: req.ip
@@ -129,8 +140,6 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
       message: 'Missing or invalid authorization token'
     });
   }
-
-  const token = authHeader.substring(7);
   const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
   // Try JWKS first (ES256/RS256), then fall back to JWT secret (HS256)
@@ -223,9 +232,20 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
 // Backend-issued JWT validation (for tokens we issue ourselves)
 // This is used when Lovable doesn't provide JWTs - frontend exchanges user info for our JWT
 export function validateBackendJwt(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  // Check Authorization header first, then X-User-Token as fallback
+  // This allows gcloud identity tokens for IAM while using JWT for app auth
+  let authHeader = req.headers.authorization;
+  let token: string | undefined;
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (req.headers['x-user-token']) {
+    // Fallback to X-User-Token header (used when gcloud token is in Authorization)
+    token = req.headers['x-user-token'] as string;
+    logger.debug('Using X-User-Token header for JWT validation');
+  }
+  
+  if (!token) {
     logger.warn('Missing or invalid authorization header', {
       path: req.path,
       ip: req.ip
@@ -235,8 +255,6 @@ export function validateBackendJwt(req: Request, res: Response, next: NextFuncti
       message: 'Missing or invalid authorization token'
     });
   }
-
-  const token = authHeader.substring(7);
   const serviceSecret = process.env.SERVICE_JWT_SECRET;
   
   if (!serviceSecret) {
