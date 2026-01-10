@@ -30,6 +30,38 @@ if ($UseSupabase -and -not [string]::IsNullOrEmpty($SupabaseToken)) {
 Write-Host "Getting backend-issued token via token exchange..." -ForegroundColor Yellow
 Write-Host ""
 
+# Setup headers with gcloud authentication for Cloud Run IAM
+$headers = @{
+    "Content-Type" = "application/json"
+}
+
+# Try to get gcloud identity token for Cloud Run IAM authentication
+$ErrorActionPreference = "SilentlyContinue"
+try {
+    $gcloudToken = gcloud auth print-identity-token --audiences=$OrchestrationUrl 2>&1 | Out-String
+    $gcloudToken = $gcloudToken.Trim()
+    
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken) -and $gcloudToken -notmatch "ERROR") {
+        $headers["Authorization"] = "Bearer $gcloudToken"
+        Write-Host "Using gcloud identity token for Cloud Run IAM authentication" -ForegroundColor Gray
+    } else {
+        # Try without audience (fallback)
+        $gcloudToken = gcloud auth print-identity-token 2>&1 | Out-String
+        $gcloudToken = $gcloudToken.Trim()
+        
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($gcloudToken) -and $gcloudToken -notmatch "ERROR") {
+            $headers["Authorization"] = "Bearer $gcloudToken"
+            Write-Host "Using gcloud identity token for Cloud Run IAM authentication" -ForegroundColor Gray
+        } else {
+            Write-Host "WARNING: Could not get gcloud token. Request may fail with 403." -ForegroundColor Yellow
+            Write-Host "Run: gcloud auth login" -ForegroundColor Gray
+        }
+    }
+} catch {
+    Write-Host "WARNING: Error getting gcloud token: $($_.Exception.Message)" -ForegroundColor Yellow
+}
+$ErrorActionPreference = "Stop"
+
 $tokenRequest = @{
     userId = $UserId
     email = $Email
@@ -40,7 +72,7 @@ try {
     $response = Invoke-RestMethod `
         -Uri "$OrchestrationUrl/api/v1/auth/token" `
         -Method Post `
-        -Headers @{ "Content-Type" = "application/json" } `
+        -Headers $headers `
         -Body ($tokenRequest | ConvertTo-Json) `
         -ErrorAction Stop
 
