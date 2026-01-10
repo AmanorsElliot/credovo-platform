@@ -179,7 +179,7 @@ try {
     $kycResponse = Invoke-RestMethod `
         -Uri "$OrchestrationUrl/api/v1/applications/$ApplicationId/kyc/initiate" `
         -Method Post `
-        -Headers $headers `
+        -Headers $appHeaders `
         -Body ($kycRequest | ConvertTo-Json -Depth 10) `
         -ErrorAction Stop
     
@@ -207,7 +207,7 @@ if ($kycReference) {
             $statusResponse = Invoke-RestMethod `
                 -Uri "$OrchestrationUrl/api/v1/applications/$ApplicationId/kyc/status" `
                 -Method Get `
-                -Headers $headers `
+                -Headers $appHeaders `
                 -ErrorAction Stop
             
             if ($statusResponse.status -and $statusResponse.status -ne 'pending') {
@@ -249,7 +249,7 @@ try {
     $kybResponse = Invoke-RestMethod `
         -Uri "$OrchestrationUrl/api/v1/applications/$ApplicationId/kyb/verify" `
         -Method Post `
-        -Headers $headers `
+        -Headers $appHeaders `
         -Body ($kybRequest | ConvertTo-Json -Depth 10) `
         -ErrorAction Stop
     
@@ -323,12 +323,12 @@ if (-not $SkipDataLake) {
 Write-Host ""
 Write-Host "7. Error Handling Tests" -ForegroundColor Yellow
 
-# Test invalid application ID
+    # Test invalid application ID
 try {
     $invalidResponse = Invoke-RestMethod `
         -Uri "$OrchestrationUrl/api/v1/applications/invalid-id-12345/kyc/status" `
         -Method Get `
-        -Headers $headers `
+        -Headers $appHeaders `
         -ErrorAction Stop
     
     Add-TestResult -Name "Invalid Application ID Handling" -Passed $false -Message "Should return 404 for invalid ID"
