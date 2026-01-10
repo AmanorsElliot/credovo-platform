@@ -261,16 +261,17 @@ resource "google_secret_manager_secret_version" "companies_house_api_key_version
 }
 
 # Shufti Pro secret versions with actual credentials
+# Using sandbox credentials for dev/nonprod environment
 resource "google_secret_manager_secret_version" "shufti_pro_client_id_version" {
   secret      = google_secret_manager_secret.shufti_pro_client_id.id
-  secret_data = "2OhMXk1rS9eqbsLSdHom5tUpWSAISVAT0RJC3TByNpsxhcakYn1768066741"
+  secret_data = "c29799b84a29a8cc335af9fdbcf150e198a8babc3175c42d699751763bbce442"
   
   depends_on = [google_secret_manager_secret.shufti_pro_client_id]
 }
 
 resource "google_secret_manager_secret_version" "shufti_pro_secret_key_version" {
   secret      = google_secret_manager_secret.shufti_pro_secret_key.id
-  secret_data = "lm0PbtEjvHsLsD2doeoMsXlgDxRLBDAB"
+  secret_data = "fQC91wjAO5OweifiRohmyqEFvKVN6wzh"
   
   depends_on = [google_secret_manager_secret.shufti_pro_secret_key]
 }
