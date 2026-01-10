@@ -135,9 +135,6 @@ substitutions:
 options:
   machineType: 'E2_HIGHCPU_8'
   logging: CLOUD_LOGGING_ONLY
-  # Enable concurrent execution
-  pool:
-    name: 'projects/credovo-eu-apps-nonprod/locations/europe-west1/workerPools/default'
 
 timeout: '1800s'
 
