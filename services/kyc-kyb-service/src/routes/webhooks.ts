@@ -3,6 +3,7 @@ import { createLogger } from '@credovo/shared-utils/logger';
 import { KYCService } from '../services/kyc-service';
 import { KYBService } from '../services/kyb-service';
 import { DataLakeService } from '../services/data-lake-service';
+import { PubSubService } from '../services/pubsub-service';
 
 const logger = createLogger('webhook-handler');
 export const WebhookRouter = Router();
@@ -139,7 +140,6 @@ WebhookRouter.post('/shufti-pro-kyb', async (req: Request, res: Response) => {
     await dataLake.storeKYBResponse(kybResponse);
 
     // Publish event to Pub/Sub
-    const { PubSubService } = await import('../services/pubsub-service');
     const pubsubService = new PubSubService();
     await pubsubService.publishKYBEvent({
       applicationId,
