@@ -23,6 +23,7 @@ This directory contains documentation for the Credovo platform.
 - **[Webhook Registration](WEBHOOK_REGISTRATION_GUIDE.md)** - Registering webhooks with Shufti Pro
 - **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
 - **[Lovable Separate Repo](LOVABLE_SEPARATE_REPO.md)** - ⭐ **Recommended**: Separate repository strategy (`credovo-webapp`)
+- **[Credovo Webapp Setup](CREDOVO_WEBAPP_SETUP.md)** - Complete setup guide for `credovo-webapp` repository
 
 ### Operations
 - **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
