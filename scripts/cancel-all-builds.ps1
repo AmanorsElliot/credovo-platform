@@ -28,7 +28,7 @@ $buildsData = gcloud builds list `
     --format="json" `
     --project=$ProjectId 2>&1
 
-if ($LASTEXITCODE -ne 0 -or -not $buildsData) {
+if ($LASTEXITCODE -ne 0) {
     # Try without region
     Write-Host "Trying without region parameter..." -ForegroundColor Gray
     $buildsData = gcloud builds list `
