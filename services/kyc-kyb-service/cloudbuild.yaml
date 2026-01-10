@@ -27,6 +27,11 @@ steps:
       - '${_REGION}'
       - '--platform'
       - 'managed'
+      - '--service-account'
+      - '${_SERVICE_NAME}@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
 
 substitutions:
   _REGION: 'europe-west1'
