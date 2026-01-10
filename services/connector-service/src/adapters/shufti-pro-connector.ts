@@ -248,12 +248,6 @@ export class ShuftiProConnector extends BaseConnector {
     }
   }
 
-  private async getClientId(): Promise<string> {
-    // In production, fetch from Secret Manager
-    const secretName = `${this.providerName}-client-id`;
-    return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
-  }
-
   private async getSecretKey(): Promise<string> {
     // In production, fetch from Secret Manager
     const secretName = `${this.providerName}-secret-key`;
