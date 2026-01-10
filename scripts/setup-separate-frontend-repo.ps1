@@ -81,7 +81,7 @@ Write-Host "Step 4: Initialize Frontend Repository" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Run these commands:" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  # Clone the new repo" -ForegroundColor Gray
+Write-Host "  # Clone the repository" -ForegroundColor Gray
 Write-Host "  git clone https://github.com/AmanorsElliot/$FrontendRepoName.git" -ForegroundColor White
 Write-Host "  cd $FrontendRepoName" -ForegroundColor White
 Write-Host ""

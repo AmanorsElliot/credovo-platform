@@ -69,15 +69,12 @@ credovo-webapp/            (Frontend repo - Lovable)
    ```
 
 2. **Create Frontend Repository:**
-   The frontend repository is located at:
-   ```
-   C:\Users\ellio\Documents\credovo-webapp
-   ```
+   **GitHub Repository**: `https://github.com/AmanorsElliot/credovo-webapp`
    
-   If not already created on GitHub:
+   Clone the repository:
    ```bash
-   gh repo create credovo-webapp --public
-   # Or use GitHub web UI
+   git clone https://github.com/AmanorsElliot/credovo-webapp.git
+   cd credovo-webapp
    ```
 
 3. **Connect Lovable:**
@@ -194,7 +191,7 @@ gh repo create credovo-frontend --public
 ### Step 3: Initialize Frontend Repository
 
 ```bash
-# Clone the new repo
+# Clone the repository
 git clone https://github.com/AmanorsElliot/credovo-webapp.git
 cd credovo-webapp
 
@@ -307,16 +304,26 @@ credovo-webapp/                (Frontend - Lovable + GitHub)
 **When API changes:**
 
 1. **Update types in `credovo-platform/shared/types/`**
+   ```bash
+   cd credovo-platform
+   # Edit shared/types/index.ts
+   ```
+
 2. **Publish new version:**
    ```bash
-   cd shared/types
+   cd credovo-platform
+   .\scripts\publish-shared-types.ps1
+   # Or on Linux/Mac:
+   # bash scripts/publish-shared-types.sh
+   ```
+   
+   Or manually:
+   ```bash
+   cd credovo-platform/shared/types
    npm version patch  # or minor, major
    npm publish --registry=https://npm.pkg.github.com
    ```
-   Or use the script:
-   ```powershell
-   .\scripts\publish-shared-types.ps1
-   ```
+
 3. **Update in frontend:**
    ```bash
    cd credovo-webapp

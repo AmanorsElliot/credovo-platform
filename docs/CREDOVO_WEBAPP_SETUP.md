@@ -2,11 +2,14 @@
 
 This guide helps you set up the `credovo-webapp` repository with the shared types package and connect it to Lovable.
 
-## Repository Location
+## Repository
 
-The frontend repository is located at:
-```
-C:\Users\ellio\Documents\credovo-webapp
+**GitHub Repository**: `https://github.com/AmanorsElliot/credovo-webapp`
+
+Clone the repository:
+```bash
+git clone https://github.com/AmanorsElliot/credovo-webapp.git
+cd credovo-webapp
 ```
 
 ## Prerequisites
@@ -19,9 +22,15 @@ C:\Users\ellio\Documents\credovo-webapp
 
 From the `credovo-platform` repository:
 
-```powershell
-cd C:\Users\ellio\Documents\credovo-platform
+```bash
+# Clone if you haven't already
+git clone https://github.com/AmanorsElliot/credovo-platform.git
+cd credovo-platform
+
+# Publish the package
 .\scripts\publish-shared-types.ps1
+# Or on Linux/Mac:
+# bash scripts/publish-shared-types.sh
 ```
 
 This will:
@@ -30,8 +39,10 @@ This will:
 
 ## Step 2: Initialize credovo-webapp
 
-```powershell
-cd C:\Users\ellio\Documents\credovo-webapp
+```bash
+# Clone the repository if you haven't already
+git clone https://github.com/AmanorsElliot/credovo-webapp.git
+cd credovo-webapp
 
 # Initialize npm if not already done
 npm init -y
@@ -60,8 +71,9 @@ To get a GitHub token:
 
 ## Step 3: Install Frontend Dependencies
 
-```powershell
-cd C:\Users\ellio\Documents\credovo-webapp
+```bash
+# Ensure you're in the credovo-webapp directory
+cd credovo-webapp
 
 # Install React and other frontend dependencies
 npm install react react-dom
@@ -169,20 +181,22 @@ const allowedOrigins = [
 When types change in `credovo-platform`:
 
 1. **Update types in backend:**
-   ```powershell
-   cd C:\Users\ellio\Documents\credovo-platform
+   ```bash
+   cd credovo-platform
    # Edit shared/types/index.ts
    ```
 
 2. **Publish new version:**
-   ```powershell
-   cd C:\Users\ellio\Documents\credovo-platform
+   ```bash
+   cd credovo-platform
    .\scripts\publish-shared-types.ps1
+   # Or on Linux/Mac:
+   # bash scripts/publish-shared-types.sh
    ```
 
 3. **Update in frontend:**
-   ```powershell
-   cd C:\Users\ellio\Documents\credovo-webapp
+   ```bash
+   cd credovo-webapp
    npm update @credovo/shared-types --registry=https://npm.pkg.github.com
    ```
 
