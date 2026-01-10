@@ -20,18 +20,32 @@ export class KYBService {
   async verifyCompany(request: KYBRequest): Promise<KYBResponse> {
     logger.info('Verifying company', {
       applicationId: request.applicationId,
-      companyNumber: request.companyNumber
+      companyNumber: request.companyNumber,
+      companyName: request.companyName,
+      country: request.country
     });
 
     try {
       // Store request in data lake
       await this.dataLake.storeKYBRequest(request);
 
-      // Call Companies House API via connector service
+      // Use SumSub for international KYB verification
+      // SumSub handles company verification globally (200+ countries)
       const connectorRequest = {
-        provider: 'companies-house',
-        endpoint: `/company/${request.companyNumber}`,
-        method: 'GET' as const,
+        provider: 'sumsub',
+        endpoint: '/resources/applicants',
+        method: 'POST' as const,
+        body: {
+          externalUserId: `company-${request.applicationId}`,
+          type: 'company', // SumSub company verification type
+          info: {
+            companyName: request.companyName,
+            companyNumber: request.companyNumber,
+            country: request.country || 'GB', // Default to UK if not specified
+            // Additional company details if available
+            ...(request.companyName && { companyName: request.companyName })
+          }
+        },
         retry: true
       };
 
@@ -51,22 +65,29 @@ export class KYBService {
 
       const companyData = connectorResponse.data;
 
+      // Map SumSub response to our KYBResponse format
       const response: KYBResponse = {
         applicationId: request.applicationId,
         companyNumber: request.companyNumber,
-        status: companyData ? 'verified' : 'not_found',
+        status: companyData?.reviewResult?.reviewStatus === 'approved' ? 'verified' : 
+                companyData?.reviewResult?.reviewStatus === 'pending' ? 'pending' : 'not_found',
         data: companyData ? {
-          companyName: companyData.company_name,
-          status: companyData.company_status,
-          incorporationDate: companyData.date_of_creation,
-          address: companyData.registered_office_address ? {
-            line1: companyData.registered_office_address.address_line_1,
-            line2: companyData.registered_office_address.address_line_2,
-            city: companyData.registered_office_address.locality,
-            postcode: companyData.registered_office_address.postal_code,
-            country: companyData.registered_office_address.country || 'GB'
+          companyName: companyData.info?.companyName || request.companyName,
+          status: companyData.reviewResult?.reviewStatus || 'unknown',
+          incorporationDate: companyData.info?.incorporationDate,
+          address: companyData.info?.address ? {
+            line1: companyData.info.address.line1,
+            line2: companyData.info.address.line2,
+            city: companyData.info.address.city,
+            postcode: companyData.info.address.postcode,
+            country: companyData.info.address.country || request.country || 'GB'
           } : undefined,
-          officers: companyData.officers
+          // SumSub provides beneficial owners and directors
+          officers: companyData.info?.beneficialOwners || companyData.info?.directors,
+          // Additional SumSub verification data
+          verificationLevel: companyData.reviewResult?.reviewStatus,
+          checks: companyData.reviewResult?.checks,
+          metadata: companyData
         } : undefined,
         timestamp: new Date()
       };

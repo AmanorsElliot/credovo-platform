@@ -28,9 +28,9 @@ This document explains how the three core services (`orchestration-service`, `ky
                   ┌─────────────┐
                   │ External    │
                   │ APIs        │
-                  │ (SumSub,    │
-                  │  Companies  │
-                  │  House)     │
+                  │ (SumSub -   │
+                  │  Global     │
+                  │  KYC/KYB)   │
                   └─────────────┘
 ```
 
@@ -67,7 +67,7 @@ This document explains how the three core services (`orchestration-service`, `ky
 **Role**: Abstraction layer for external vendor APIs
 - **Purpose**: Provides a unified interface to external providers
 - **Responsibilities**:
-  - Manages connections to external APIs (SumSub, Companies House)
+  - Manages connections to external APIs (SumSub for global KYC/KYB)
   - Implements circuit breaker pattern (prevents cascading failures)
   - Rate limiting (prevents API quota exhaustion)
   - Retry logic with exponential backoff

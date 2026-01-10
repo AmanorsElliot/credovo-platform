@@ -61,18 +61,22 @@ export interface KYBRequest {
   applicationId: string;
   companyNumber: string;
   companyName?: string;
+  country?: string; // ISO country code (e.g., 'GB', 'US', 'DE') for international support
 }
 
 export interface KYBResponse {
   applicationId: string;
   companyNumber: string;
-  status: 'verified' | 'not_found' | 'error';
+  status: 'verified' | 'pending' | 'not_found' | 'error';
   data?: {
     companyName: string;
     status: string;
     incorporationDate?: string;
     address?: Address;
     officers?: any[];
+    verificationLevel?: string;
+    checks?: any[];
+    metadata?: any;
   };
   timestamp: Date;
 }

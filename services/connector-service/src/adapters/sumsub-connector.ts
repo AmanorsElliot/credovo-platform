@@ -18,6 +18,11 @@ export class SumSubConnector extends BaseConnector {
       return this.handleApplicantRequest(request);
     }
 
+    // Handle company verification endpoints
+    if (request.endpoint.startsWith('/resources/applicants') && request.body?.type === 'company') {
+      return this.handleCompanyVerification(request);
+    }
+
     return this.makeRequest(
       request.method,
       request.endpoint,
@@ -27,8 +32,12 @@ export class SumSubConnector extends BaseConnector {
   }
 
   private async handleApplicantRequest(request: ConnectorRequest): Promise<any> {
-    // SumSub applicant creation/verification logic
+    // SumSub applicant creation/verification logic (for individuals)
     if (request.method === 'POST') {
+      // Check if it's a company verification
+      if (request.body?.type === 'company') {
+        return this.handleCompanyVerification(request);
+      }
       return this.createApplicant(request.body);
     } else if (request.method === 'GET') {
       return this.getApplicantStatus(request.endpoint);
@@ -40,6 +49,39 @@ export class SumSubConnector extends BaseConnector {
       request.headers,
       request.body
     );
+  }
+
+  private async handleCompanyVerification(request: ConnectorRequest): Promise<any> {
+    // SumSub KYB (company verification) logic
+    // SumSub uses the same applicants endpoint for both KYC and KYB
+    // The difference is in the body.type field ('company' for KYB)
+    const apiKey = await this.getApiKey();
+    const appToken = process.env.SUMSUB_APP_TOKEN || '';
+
+    // Prepare company verification request
+    const companyData = {
+      externalUserId: request.body.externalUserId,
+      type: 'company', // Indicates this is a company verification
+      info: {
+        companyName: request.body.info?.companyName,
+        companyNumber: request.body.info?.companyNumber,
+        country: request.body.info?.country || 'GB',
+        ...request.body.info
+      }
+    };
+
+    const response = await this.makeRequest(
+      'POST',
+      '/resources/applicants',
+      {
+        'X-App-Token': appToken,
+        'X-App-Access-Sig': this.generateSignature(companyData, apiKey),
+        'Content-Type': 'application/json'
+      },
+      companyData
+    );
+
+    return response;
   }
 
   private async createApplicant(data: any): Promise<any> {
