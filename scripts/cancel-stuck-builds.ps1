@@ -13,11 +13,14 @@ Write-Host ""
 Write-Host "Project: $ProjectId" -ForegroundColor Gray
 Write-Host ""
 
-# Find all builds in QUEUED or WORKING status
+# Find all builds in QUEUED, WORKING, or PENDING status
+# Note: Console may show "scheduled" but API uses different status names
 Write-Host "Finding scheduled/queued builds..." -ForegroundColor Yellow
+Write-Host "(Checking QUEUED, WORKING, and PENDING statuses)" -ForegroundColor Gray
+Write-Host ""
 
 $builds = gcloud builds list `
-    --filter="status=QUEUED OR status=WORKING" `
+    --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
     --format="table(id,status,createTime,source.repoSource.branchName)" `
     --project=$ProjectId 2>&1
 
@@ -28,7 +31,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # Parse build IDs
 $buildIds = gcloud builds list `
-    --filter="status=QUEUED OR status=WORKING" `
+    --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
     --format="value(id)" `
     --project=$ProjectId 2>&1
 
