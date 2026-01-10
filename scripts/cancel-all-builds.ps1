@@ -3,7 +3,7 @@
 
 param(
     [string]$ProjectId = "credovo-eu-apps-nonprod",
-    [int]$Limit = 100,
+    [int]$Limit = 500,
     [switch]$DryRun = $false
 )
 
