@@ -1,0 +1,143 @@
+# Build all services in parallel
+steps:
+  # Build orchestration-service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-orchestration'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/orchestration-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/orchestration-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/orchestration-service:latest'
+      - '.'
+    waitFor: ['-']
+
+  # Build kyc-kyb-service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-kyc-kyb'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/kyc-kyb-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/kyc-kyb-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/kyc-kyb-service:latest'
+      - '.'
+    waitFor: ['-']
+
+  # Build connector-service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-connector'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/connector-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/connector-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/connector-service:latest'
+      - '.'
+    waitFor: ['-']
+
+  # Push all images in parallel (after builds complete)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-orchestration'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/orchestration-service'
+    waitFor: ['build-orchestration']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-kyc-kyb'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/kyc-kyb-service'
+    waitFor: ['build-kyc-kyb']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-connector'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/connector-service'
+    waitFor: ['build-connector']
+
+  # Deploy all services in parallel (after pushes complete)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-orchestration'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'orchestration-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/orchestration-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'orchestration-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-orchestration']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-kyc-kyb'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'kyc-kyb-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/kyc-kyb-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'kyc-kyb-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-kyc-kyb']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-connector'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'connector-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/connector-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'connector-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-connector']
+
+substitutions:
+  _REGION: 'europe-west1'
+  _ARTIFACT_REGISTRY: 'credovo-services'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  # Enable concurrent execution
+  pool:
+    name: 'projects/credovo-eu-apps-nonprod/locations/europe-west1/workerPools/default'
+
+timeout: '1800s'
+
