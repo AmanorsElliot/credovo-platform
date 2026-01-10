@@ -345,7 +345,7 @@ resource "google_monitoring_alert_policy" "data_lake_storage_failures" {
   conditions {
     display_name = "Storage write failures"
     condition_threshold {
-      filter          = "resource.type=\"cloud_run_revision\" AND textPayload=~\"Failed to store.*data lake\" AND severity=\"ERROR\""
+      filter          = "resource.type=\"cloud_run_revision\" AND metric.type=\"logging.googleapis.com/user/data_lake_storage_failures\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = 2  # Alert if more than 2 storage failures in 5 minutes
@@ -362,6 +362,11 @@ resource "google_monitoring_alert_policy" "data_lake_storage_failures" {
   alert_strategy {
     auto_close = "1800s"
   }
+
+  depends_on = [
+    google_logging_metric.data_lake_storage_failures,
+    time_sleep.wait_for_metrics
+  ]
 }
 
 # Alert for connector service failures
