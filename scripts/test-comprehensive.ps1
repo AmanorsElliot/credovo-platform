@@ -147,65 +147,64 @@ if (-not [string]::IsNullOrEmpty($AuthToken)) {
         Add-TestResult -Name "JWT Token Provided" -Passed $true -Message "Using JWT token in Authorization header"
     }
 } else {
-    # Try to automatically get a JWT token if gcloud is authenticated
     if ($gcloudToken -and $gcloudAvailable) {
-        Write-Host "   ℹ️  Attempting to get JWT token automatically..." -ForegroundColor Gray
-        $ErrorActionPreference = "SilentlyContinue"
-        try {
-            $tokenRequest = @{
-                userId = "test-user-$(Get-Date -Format 'yyyyMMddHHmmss')"
-                email = "test@example.com"
-                name = "Test User"
-            }
-            
-            $tokenResponse = Invoke-RestMethod `
-                -Uri "$OrchestrationUrl/api/v1/auth/token" `
-                -Method Post `
-                -Headers $headers `
-                -Body ($tokenRequest | ConvertTo-Json) `
-                -ErrorAction Stop
-            
-            if ($tokenResponse.token) {
-                $appHeaders["X-User-Token"] = $tokenResponse.token
-                Add-TestResult -Name "Auto JWT Token" -Passed $true -Message "Automatically obtained JWT token for testing"
-            }
-        } catch {
-            Write-Host "   ⚠️  Could not auto-get JWT token: $($_.Exception.Message)" -ForegroundColor Yellow
-            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token provided and auto-fetch failed. Application endpoints may fail."
+    # Try to automatically get a JWT token if gcloud is authenticated
+    Write-Host "   ℹ️  Attempting to get JWT token automatically..." -ForegroundColor Gray
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        $tokenRequest = @{
+            userId = "test-user-$(Get-Date -Format 'yyyyMMddHHmmss')"
+            email = "test@example.com"
+            name = "Test User"
+        }
+        
+        $tokenResponse = Invoke-RestMethod `
+            -Uri "$OrchestrationUrl/api/v1/auth/token" `
+            -Method Post `
+            -Headers $headers `
+            -Body ($tokenRequest | ConvertTo-Json) `
+            -ErrorAction Stop
+        
+        if ($tokenResponse.token) {
+            $appHeaders["X-User-Token"] = $tokenResponse.token
+            Add-TestResult -Name "Auto JWT Token" -Passed $true -Message "Automatically obtained JWT token for testing"
+        }
+    } catch {
+        Write-Host "   ⚠️  Could not auto-get JWT token: $($_.Exception.Message)" -ForegroundColor Yellow
+        Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token provided and auto-fetch failed. Application endpoints may fail."
+        Write-Host ""
+        Write-Host "💡 Tip: Get a JWT token manually:" -ForegroundColor Yellow
+        Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+        Write-Host ""
+        Write-Host "   Then run:" -ForegroundColor Yellow
+        Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+        Write-Host ""
+    }
+    $ErrorActionPreference = "Stop"
+    } else {
+        # No gcloud token or gcloud not available
+    if (-not $appHeaders.ContainsKey("Authorization")) {
+        if ($gcloudToken) {
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
             Write-Host ""
-            Write-Host "💡 Tip: Get a JWT token manually:" -ForegroundColor Yellow
+            Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
             Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
             Write-Host ""
             Write-Host "   Then run:" -ForegroundColor Yellow
             Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
             Write-Host ""
-        }
-        $ErrorActionPreference = "Stop"
-    } else {
-        # No gcloud token or gcloud not available
-        if (-not $appHeaders.ContainsKey("Authorization")) {
-            if ($gcloudToken) {
-                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token - using gcloud token for IAM only. Application endpoints may fail without JWT."
-                Write-Host ""
-                Write-Host "💡 Tip: Get a JWT token for application-level auth:" -ForegroundColor Yellow
-                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-                Write-Host ""
-                Write-Host "   Then run:" -ForegroundColor Yellow
-                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-                Write-Host ""
-            } else {
-                Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
-                Write-Host ""
-                Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
-                Write-Host "   gcloud auth login" -ForegroundColor White
-                Write-Host ""
-                Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
-                Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
-                Write-Host ""
-                Write-Host "   Or run with token:" -ForegroundColor Yellow
-                Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
-                Write-Host ""
-            }
+        } else {
+            Add-TestResult -Name "JWT Token Provided" -Passed $false -Message "No JWT token and no gcloud auth - application endpoints will fail"
+            Write-Host ""
+            Write-Host "💡 Tip: Authenticate with gcloud first:" -ForegroundColor Yellow
+            Write-Host "   gcloud auth login" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Then get a JWT token:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\get-test-token.ps1" -ForegroundColor White
+            Write-Host ""
+            Write-Host "   Or run with token:" -ForegroundColor Yellow
+            Write-Host "   .\scripts\test-comprehensive.ps1 -AuthToken 'your-jwt-token'" -ForegroundColor White
+            Write-Host ""
         }
     }
 }
