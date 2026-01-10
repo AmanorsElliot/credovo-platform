@@ -38,10 +38,9 @@ resource "google_cloud_run_service" "kyc_kyb_service" {
           value = google_bigquery_dataset.credovo_analytics.dataset_id
         }
 
-        env {
-          name  = "ORCHESTRATION_SERVICE_URL"
-          value = google_cloud_run_service.orchestration_service.status[0].url
-        }
+        # ORCHESTRATION_SERVICE_URL is set via null_resource after services are created
+        # to avoid circular dependency. The code has a fallback default value.
+        # See: infrastructure/terraform/orchestration-url-update.tf
 
         env {
           name = "LOVABLE_JWKS_URI"
