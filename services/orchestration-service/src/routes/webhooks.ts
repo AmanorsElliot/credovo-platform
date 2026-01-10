@@ -51,24 +51,6 @@ function createServiceToken(): string {
   );
 }
 
-// Helper function to create a service-to-service JWT token
-function createServiceToken(): string {
-  const serviceSecret = process.env.SERVICE_JWT_SECRET;
-  if (!serviceSecret) {
-    throw new Error('SERVICE_JWT_SECRET not configured');
-  }
-  
-  return jwt.sign(
-    {
-      service: 'orchestration-service',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 300 // 5 minutes
-    },
-    serviceSecret,
-    { algorithm: 'HS256' }
-  );
-}
-
 /**
  * Shufti Pro Webhook Endpoint
  * 
