@@ -22,7 +22,7 @@ $builds = gcloud builds list `
     --project=$ProjectId 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Error listing builds: $builds" -ForegroundColor Red
+    Write-Host "[ERROR] Error listing builds: $builds" -ForegroundColor Red
     exit 1
 }
 
@@ -33,7 +33,7 @@ $buildIds = gcloud builds list `
     --project=$ProjectId 2>&1
 
 if (-not $buildIds -or $buildIds.Count -eq 0) {
-    Write-Host "✅ No scheduled or queued builds found." -ForegroundColor Green
+    Write-Host "No scheduled or queued builds found." -ForegroundColor Green
     Write-Host ""
     Write-Host "All builds are either completed or failed." -ForegroundColor Gray
     exit 0
@@ -46,7 +46,7 @@ Write-Host $builds -ForegroundColor Gray
 Write-Host ""
 
 if ($DryRun) {
-    Write-Host "🔍 DRY RUN MODE - No builds will be cancelled" -ForegroundColor Yellow
+    Write-Host "DRY RUN MODE - No builds will be cancelled" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "To actually cancel these builds, run:" -ForegroundColor Cyan
     Write-Host "  .\scripts\cancel-stuck-builds.ps1" -ForegroundColor White
@@ -54,7 +54,7 @@ if ($DryRun) {
 }
 
 # Confirm cancellation
-Write-Host "⚠️  This will cancel $($buildIds.Count) build(s)." -ForegroundColor Yellow
+Write-Host "WARNING: This will cancel $($buildIds.Count) build(s)." -ForegroundColor Yellow
 $confirm = Read-Host "Continue? (y/N)"
 
 if ($confirm -ne "y" -and $confirm -ne "Y") {
@@ -79,10 +79,10 @@ foreach ($buildId in $buildIds) {
     $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "  ✅ Cancelled: $buildId" -ForegroundColor Green
+        Write-Host "  [OK] Cancelled: $buildId" -ForegroundColor Green
         $cancelled++
     } else {
-        Write-Host "  ❌ Failed to cancel: $buildId" -ForegroundColor Red
+        Write-Host "  [FAIL] Failed to cancel: $buildId" -ForegroundColor Red
         Write-Host "     Error: $result" -ForegroundColor Gray
         $failed++
     }
@@ -90,18 +90,18 @@ foreach ($buildId in $buildIds) {
 
 Write-Host ""
 Write-Host "=== Summary ===" -ForegroundColor Cyan
-Write-Host "  ✅ Cancelled: $cancelled" -ForegroundColor Green
+Write-Host "  [OK] Cancelled: $cancelled" -ForegroundColor Green
 if ($failed -gt 0) {
-    Write-Host "  ❌ Failed: $failed" -ForegroundColor Red
+    Write-Host "  [FAIL] Failed: $failed" -ForegroundColor Red
 }
 Write-Host ""
 
 if ($cancelled -gt 0) {
-    Write-Host "✅ Done! Builds have been cancelled." -ForegroundColor Green
+    Write-Host "Done! Builds have been cancelled." -ForegroundColor Green
     Write-Host ""
     Write-Host "New builds will trigger automatically on the next push." -ForegroundColor Gray
 } else {
-    Write-Host "⚠️  No builds were cancelled." -ForegroundColor Yellow
+    Write-Host "No builds were cancelled." -ForegroundColor Yellow
 }
 
 Write-Host ""
