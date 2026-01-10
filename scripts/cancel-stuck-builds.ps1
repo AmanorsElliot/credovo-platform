@@ -3,6 +3,7 @@
 
 param(
     [string]$ProjectId = "credovo-eu-apps-nonprod",
+    [string]$Region = "europe-west1",
     [switch]$DryRun = $false
 )
 
@@ -19,21 +20,42 @@ Write-Host "Finding scheduled/queued builds..." -ForegroundColor Yellow
 Write-Host "(Checking QUEUED, WORKING, and PENDING statuses)" -ForegroundColor Gray
 Write-Host ""
 
+# Try with region first (required for regional builds)
+Write-Host "Querying builds with region=$Region..." -ForegroundColor Gray
 $builds = gcloud builds list `
+    --region=$Region `
     --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
-    --format="table(id,status,createTime,source.repoSource.branchName)" `
+    --format="table(id,status,createTime,substitutions._SERVICE_NAME)" `
     --project=$ProjectId 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    # Try without region as fallback
+    Write-Host "Trying without region parameter..." -ForegroundColor Gray
+    $builds = gcloud builds list `
+        --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
+        --format="table(id,status,createTime,substitutions._SERVICE_NAME)" `
+        --project=$ProjectId 2>&1
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Error listing builds: $builds" -ForegroundColor Red
     exit 1
 }
 
-# Parse build IDs
+# Parse build IDs (try with region first)
 $buildIds = gcloud builds list `
+    --region=$Region `
     --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
     --format="value(id)" `
     --project=$ProjectId 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    # Try without region as fallback
+    $buildIds = gcloud builds list `
+        --filter="status=QUEUED OR status=WORKING OR status=PENDING" `
+        --format="value(id)" `
+        --project=$ProjectId 2>&1
+}
 
 if (-not $buildIds -or $buildIds.Count -eq 0) {
     Write-Host "No scheduled or queued builds found." -ForegroundColor Green
@@ -79,11 +101,22 @@ foreach ($buildId in $buildIds) {
     
     Write-Host "Cancelling build: $buildId..." -ForegroundColor Gray
     
-    $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+    # Try with region first (required for regional builds)
+    $result = gcloud builds cancel $buildId --region=$Region --project=$ProjectId --quiet 2>&1
+    $cancelExitCode = $LASTEXITCODE
     
-    if ($LASTEXITCODE -eq 0) {
+    if ($cancelExitCode -ne 0) {
+        # Try without region (for global builds)
+        $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+        $cancelExitCode = $LASTEXITCODE
+    }
+    
+    # Check for success - gcloud outputs "Cancelled" message even on success
+    if ($cancelExitCode -eq 0 -or $result -match "Cancelled \[") {
         Write-Host "  [OK] Cancelled: $buildId" -ForegroundColor Green
         $cancelled++
+    } elseif ($result -match "already.*CANCELLED|already.*SUCCESS|already.*FAILURE|NOT_FOUND") {
+        Write-Host "  [SKIP - already completed or not found]" -ForegroundColor Yellow
     } else {
         Write-Host "  [FAIL] Failed to cancel: $buildId" -ForegroundColor Red
         Write-Host "     Error: $result" -ForegroundColor Gray
