@@ -137,38 +137,58 @@ export class KYCService {
       }
 
       // If not found, check with provider (Shufti Pro)
+      // Need to get the reference from the initial request
+      // For now, construct reference from applicationId (format: kyc-{applicationId}-{timestamp})
+      // In production, we should store the reference when initiating KYC
+      const reference = `kyc-${applicationId}`;
+      
       const connectorRequest = {
         provider: 'shufti-pro',
-        endpoint: `/status/${applicationId}`,
-        method: 'GET' as const,
-        retry: false
+        endpoint: `/status/${reference}`,
+        method: 'POST' as const,
+        body: {
+          reference: reference
+        },
+        retry: true  // Enable retry for status checks
       };
 
-      const connectorResponse = await this.connector.call(connectorRequest);
+      try {
+        const connectorResponse = await this.connector.call(connectorRequest);
 
-      if (connectorResponse.success || connectorResponse.reference) {
-        const verificationStatus = connectorResponse.event || connectorResponse.status;
-        const isApproved = verificationStatus === 'verification.accepted' || 
-                          verificationStatus === 'approved';
-        
-        const response: KYCResponse = {
-          applicationId,
-          status: isApproved ? 'approved' : 
-                  verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
-          provider: 'shufti-pro',
-          result: {
-            score: isApproved ? 100 : 0,
-            checks: this.mapShuftiProChecks(connectorResponse),
-            metadata: connectorResponse
-          },
-          timestamp: new Date()
-        };
+        if (connectorResponse.success && connectorResponse.reference) {
+          const verificationResult = connectorResponse.verification_result || connectorResponse;
+          const verificationStatus = connectorResponse.event || 
+                                    verificationResult.event || 
+                                    connectorResponse.status;
+          const isApproved = verificationStatus === 'verification.accepted' || 
+                            verificationStatus === 'approved';
+          
+          const response: KYCResponse = {
+            applicationId,
+            status: isApproved ? 'approved' : 
+                    verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
+            provider: 'shufti-pro',
+            result: {
+              score: isApproved ? 100 : 0,
+              checks: this.mapShuftiProChecks(verificationResult),
+              metadata: connectorResponse,
+              aml: verificationResult.risk_assessment || connectorResponse.risk_assessment
+            },
+            timestamp: new Date()
+          };
 
-        await this.dataLake.storeKYCResponse(response);
-        return response;
+          await this.dataLake.storeKYCResponse(response);
+          return response;
+        }
+
+        // If status check failed, return null (application not found)
+        logger.warn('Status check returned no data', { applicationId, reference, response: connectorResponse });
+        return null;
+      } catch (error: any) {
+        logger.error('Status check failed', error, { applicationId, reference });
+        // Don't throw - return null to indicate not found
+        return null;
       }
-
-      return null;
     } catch (error: any) {
       logger.error('Failed to get KYC status', error);
       throw error;

@@ -8,7 +8,8 @@ export class ShuftiProConnector extends BaseConnector {
   getFeatures(): ConnectorFeatures {
     return {
       kyc: true,
-      kyb: true
+      kyb: true,
+      aml: true
     };
   }
 
@@ -19,8 +20,13 @@ export class ShuftiProConnector extends BaseConnector {
     }
 
     // Handle KYB (company verification) endpoints
-    if (request.endpoint.startsWith('/business') || request.body?.reference) {
+    if (request.endpoint.startsWith('/business')) {
       return this.handleKYBRequest(request);
+    }
+
+    // Handle status check endpoints
+    if (request.endpoint.startsWith('/status')) {
+      return this.handleStatusRequest(request);
     }
 
     return this.makeRequest(
@@ -140,6 +146,106 @@ export class ShuftiProConnector extends BaseConnector {
     );
 
     return response;
+  }
+
+  private async getClientId(): Promise<string> {
+    // In production, fetch from Secret Manager
+    const secretName = `${this.providerName}-client-id`;
+    return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
+  }
+
+  private async handleStatusRequest(request: ConnectorRequest): Promise<any> {
+    // Shufti Pro Status Check API
+    const clientId = await this.getClientId();
+    const secretKey = await this.getSecretKey();
+
+    if (!clientId || !secretKey) {
+      throw new Error('Shufti Pro credentials not configured (need client_id and secret_key)');
+    }
+
+    const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
+
+    // Extract reference from endpoint (e.g., /status/kyc-123456 or /status?reference=kyc-123456)
+    let reference = request.body?.reference;
+    if (!reference && request.endpoint) {
+      // Extract from path: /status/kyc-123456 or /status/kyb-123456
+      const pathParts = request.endpoint.split('/');
+      reference = pathParts[pathParts.length - 1];
+    }
+
+    if (!reference) {
+      throw new Error('Reference is required for status check');
+    }
+
+    // Shufti Pro status check uses POST with reference in body
+    const statusData = {
+      reference: reference
+    };
+
+    try {
+      const response = await this.makeRequest(
+        'POST',
+        '/status',
+        {
+          'Authorization': `Basic ${authHeader}`,
+          'Content-Type': 'application/json'
+        },
+        statusData
+      );
+
+      return {
+        success: true,
+        reference: reference,
+        ...response
+      };
+    } catch (error: any) {
+      // Retry logic for status checks (up to 3 retries with exponential backoff)
+      const maxRetries = request.retry !== false ? 3 : 0;
+      let retries = 0;
+      let lastError = error;
+
+      while (retries < maxRetries) {
+        retries++;
+        const delay = Math.pow(2, retries) * 1000; // Exponential backoff: 2s, 4s, 8s
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        try {
+          const retryResponse = await this.makeRequest(
+            'POST',
+            '/status',
+            {
+              'Authorization': `Basic ${authHeader}`,
+              'Content-Type': 'application/json'
+            },
+            statusData
+          );
+
+          return {
+            success: true,
+            reference: reference,
+            retries: retries,
+            ...retryResponse
+          };
+        } catch (retryError: any) {
+          lastError = retryError;
+          if (retries === maxRetries) {
+            break;
+          }
+        }
+      }
+
+      // If all retries failed, return error response
+      return {
+        success: false,
+        reference: reference,
+        error: {
+          message: lastError.message || 'Status check failed after retries',
+          code: lastError.response?.status || 500,
+          retries: retries
+        }
+      };
+    }
   }
 
   private async getClientId(): Promise<string> {
