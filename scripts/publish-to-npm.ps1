@@ -1,4 +1,4 @@
-# Script to publish @amanorselliot/shared-types to public npm
+# Script to publish @credovo/shared-types to public npm
 # This makes it easier to use in Lovable without registry configuration
 
 param(
@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "=== Publishing to Public npm ===" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "This will publish @amanorselliot/shared-types to npmjs.com" -ForegroundColor Yellow
+Write-Host "This will publish @credovo/shared-types to npmjs.com" -ForegroundColor Yellow
 Write-Host "This makes it easier to use in Lovable (no registry config needed)" -ForegroundColor Green
 Write-Host ""
 Write-Host "Note: Granular tokens require 2FA bypass enabled" -ForegroundColor Gray
@@ -94,11 +94,11 @@ try {
             Write-Host "✅ Package published to npm successfully!" -ForegroundColor Green
             Write-Host ""
             Write-Host "To install in credovo-webapp:" -ForegroundColor Cyan
-            Write-Host "  npm install @amanorselliot/shared-types" -ForegroundColor White
+            Write-Host "  npm install @credovo/shared-types" -ForegroundColor White
             Write-Host ""
             Write-Host "No registry configuration needed!" -ForegroundColor Green
             Write-Host ""
-            Write-Host "Package URL: https://www.npmjs.com/package/@amanorselliot/shared-types" -ForegroundColor Cyan
+            Write-Host "Package URL: https://www.npmjs.com/package/@credovo/shared-types" -ForegroundColor Cyan
         } else {
             Write-Host "❌ Publish failed" -ForegroundColor Red
             # Restore original package.json

@@ -1,4 +1,4 @@
-# @amanorselliot/shared-types
+# @credovo/shared-types
 
 Shared TypeScript types for the Credovo platform, used by both backend services and the frontend webapp.
 
@@ -7,19 +7,19 @@ Shared TypeScript types for the Credovo platform, used by both backend services 
 ### From GitHub Packages
 
 ```bash
-npm install @amanorselliot/shared-types --registry=https://npm.pkg.github.com
+npm install @credovo/shared-types --registry=https://npm.pkg.github.com
 ```
 
 ### From npm (if published publicly)
 
 ```bash
-npm install @amanorselliot/shared-types
+npm install @credovo/shared-types
 ```
 
 ## Usage
 
 ```typescript
-import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@amanorselliot/shared-types';
+import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@credovo/shared-types';
 
 const kycRequest: KYCRequest = {
   applicationId: 'app-123',
