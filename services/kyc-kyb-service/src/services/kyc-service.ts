@@ -244,19 +244,7 @@ export class KYCService {
   }
 
   // Keep SumSub mapping methods for backward compatibility/fallback
-  private mapSumSubStatus(data: any): 'pending' | 'approved' | 'rejected' | 'requires_review' {
-    const status = data?.reviewResult?.reviewStatus;
-    switch (status) {
-      case 'approved':
-        return 'approved';
-      case 'rejected':
-        return 'rejected';
-      case 'pending':
-        return 'pending';
-      default:
-        return 'requires_review';
-    }
-  }
+  // Note: mapSumSubStatus was removed as duplicate - use mapShuftiProStatus if needed
 
   private mapSumSubChecks(data: any): any[] {
     // Map SumSub response to our check format (kept for fallback)
