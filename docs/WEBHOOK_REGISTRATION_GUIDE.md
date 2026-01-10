@@ -21,14 +21,36 @@
 - Look for **"Webhook URL"** or **"Callback URL"** field
 - This is different from "Redirect URL" (which is for user redirects)
 
-### 4. Enter Your Webhook URL
+### 4. Enter Your Domain (for Whitelist)
+**Important**: Shufti Pro's domain field only accepts the domain name, NOT the full URL.
+
+**Enter only the domain** (no `https://`, no `http://`, no path):
 ```
-https://orchestration-service-saz24fo3sa-ew.a.run.app/api/v1/webhooks/shufti-pro
+orchestration-service-saz24fo3sa-ew.a.run.app
 ```
+
+**Note**: The full callback URL (including path) is specified in each API request via the `callback_url` parameter, which our code already does automatically.
 
 ### 5. Save Configuration
 - Click **Save** or **Update**
 - Shufti Pro may test the endpoint (expect a test POST request)
+
+## How It Works
+
+**Domain Whitelist** (what you're setting now):
+- Security feature that allows callbacks from your domain
+- Enter only the domain: `orchestration-service-saz24fo3sa-ew.a.run.app`
+- No `https://`, no `http://`, no path
+
+**Full Callback URL** (already in our code):
+- Specified in each API request via `callback_url` parameter
+- Our code automatically includes: `https://orchestration-service-saz24fo3sa-ew.a.run.app/api/v1/webhooks/shufti-pro`
+- Shufti Pro uses this URL to send webhooks
+
+**Flow**:
+1. Domain whitelist validates the domain is allowed
+2. `callback_url` in API request tells Shufti Pro where to send webhooks
+3. Shufti Pro sends POST requests to the full callback URL
 
 ## What Happens Next
 
