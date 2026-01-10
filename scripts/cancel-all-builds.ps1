@@ -182,9 +182,17 @@ foreach ($build in $cancellableBuilds) {
     
     Write-Host "Cancelling build: $buildId [$currentStatus]..." -ForegroundColor Gray -NoNewline
     
-    $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+    # Try with region first (required for regional builds)
+    $result = gcloud builds cancel $buildId --region=europe-west1 --project=$ProjectId --quiet 2>&1
+    $cancelExitCode = $LASTEXITCODE
     
-    if ($LASTEXITCODE -eq 0) {
+    if ($cancelExitCode -ne 0) {
+        # Try without region (for global builds)
+        $result = gcloud builds cancel $buildId --project=$ProjectId --quiet 2>&1
+        $cancelExitCode = $LASTEXITCODE
+    }
+    
+    if ($cancelExitCode -eq 0) {
         Write-Host " [OK]" -ForegroundColor Green
         $cancelled++
     } else {
