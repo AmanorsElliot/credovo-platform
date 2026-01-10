@@ -50,11 +50,22 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 ## CI/CD
 
 This project uses **Cloud Build** for automated builds and deployments:
+- Parallel builds for all services (faster deployment)
 - Automatic builds on push to GitHub
 - Docker image builds and pushes to Artifact Registry
 - Automatic deployment to Cloud Run
 
 See [Cloud Build Setup](docs/CLOUD_BUILD_GITHUB_SETUP.md) for details.
+
+## Testing
+
+Comprehensive end-to-end testing is available:
+- KYC/KYB verification flows
+- Webhook processing
+- Data lake storage
+- Status checks and error handling
+
+See [Testing Guide](docs/TESTING_GUIDE.md) for instructions.
 
 ## License
 

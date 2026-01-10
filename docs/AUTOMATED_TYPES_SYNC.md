@@ -16,7 +16,7 @@ Publish the package to public npm instead of (or in addition to) GitHub Packages
 
 1. **Publish to npm:**
    ```powershell
-   .\scripts\publish-to-npm.ps1
+   .\scripts\publish-shared-types.ps1 -Registry npm
    ```
 
 2. **Install in credovo-webapp:**
@@ -29,7 +29,7 @@ Publish the package to public npm instead of (or in addition to) GitHub Packages
    # In credovo-platform
    # Edit shared/types/index.ts
    npm version patch  # or minor, major
-   .\scripts\publish-to-npm.ps1
+   .\scripts\publish-shared-types.ps1 -Registry npm
    
    # In credovo-webapp
    npm update @credovo/shared-types
@@ -128,7 +128,7 @@ Run the script when you need to sync:
 
 2. **Publish to npm:**
    ```powershell
-   .\scripts\publish-to-npm.ps1
+   .\scripts\publish-shared-types.ps1 -Registry npm
    ```
 
 3. **Use in credovo-webapp:**
@@ -145,7 +145,7 @@ Run the script when you need to sync:
    # Then:
    npm version patch  # Bumps version (1.0.0 → 1.0.1)
    cd ../..
-   .\scripts\publish-to-npm.ps1
+   .\scripts\publish-shared-types.ps1 -Registry npm
    
    # In credovo-webapp
    npm update @credovo/shared-types

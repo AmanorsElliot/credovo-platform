@@ -25,8 +25,10 @@ This guide explains how to test the Credovo platform end-to-end, including KYC/K
 
 ### Run Basic Integration Test
 
+The comprehensive test suite (`test-comprehensive.ps1`) includes all integration tests. For basic testing, use:
+
 ```powershell
-.\scripts\test-kyc-kyb-integration.ps1
+.\scripts\test-comprehensive.ps1 -SkipWebhook -SkipDataLake
 ```
 
 ## Test Coverage

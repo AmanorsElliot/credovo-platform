@@ -16,6 +16,7 @@ This directory contains documentation for the Credovo platform.
 
 ### CI/CD
 - **[Cloud Build Setup](CLOUD_BUILD_GITHUB_SETUP.md)** - Automated builds and deployments
+- **[Cloud Build Troubleshooting](CLOUD_BUILD_TROUBLESHOOTING.md)** - Common build issues and solutions
 
 ### Integration
 - **[Shufti Pro API Requirements](SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
@@ -26,6 +27,10 @@ This directory contains documentation for the Credovo platform.
 - **[Credovo Webapp Setup](CREDOVO_WEBAPP_SETUP.md)** - Complete setup guide for `credovo-webapp` repository
 - **[Automated Types Sync](AUTOMATED_TYPES_SYNC.md)** - Keeping shared types in sync between repos
 - **[Lovable Types Setup](LOVABLE_TYPES_SETUP.md)** - Setting up shared types in Lovable
+
+### Testing
+- **[Testing Guide](TESTING_GUIDE.md)** - End-to-end testing instructions
+- **[Test Auth Token](TEST_AUTH_TOKEN.md)** - How to get authentication tokens for testing
 
 ### Operations
 - **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
@@ -49,6 +54,9 @@ docs/
 ├── WEBHOOK_SETUP.md            # Webhook endpoint configuration
 ├── WEBHOOK_REGISTRATION_GUIDE.md # Registering webhooks
 ├── CREDENTIALS.md              # Credential management
+├── TESTING_GUIDE.md            # End-to-end testing guide
+├── TEST_AUTH_TOKEN.md           # Authentication tokens for testing
+├── CLOUD_BUILD_TROUBLESHOOTING.md # Build troubleshooting
 ├── NEXT_STEPS.md               # Current status and next actions
 └── MULTI_REGION_STRATEGY.md    # Multi-region deployment strategy
 ```

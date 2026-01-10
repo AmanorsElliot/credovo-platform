@@ -7,8 +7,11 @@ param(
     [string]$RepoOwner = "AmanorsElliot",
     [string]$RepoName = "credovo-platform",
     [string]$BranchPattern = "^main$",
-    [string]$ServiceAccount = "github-actions@credovo-eu-apps-nonprod.iam.gserviceaccount.com"
+    [string]$ServiceAccountEmail = "github-actions@credovo-eu-apps-nonprod.iam.gserviceaccount.com"
 )
+
+# Construct full service account resource name
+$ServiceAccount = "projects/$ProjectId/serviceAccounts/$ServiceAccountEmail"
 
 $ErrorActionPreference = "Stop"
 
@@ -37,15 +40,15 @@ $triggerName = "deploy-all-services-parallel"
 # Check if trigger already exists
 $existing = gcloud builds triggers list --region=$Region --project=$ProjectId --filter="name:$triggerName" --format="value(name)" 2>&1
 
+# Construct the full repository path (2nd gen format with connection)
+$repositoryPath = "projects/$ProjectId/locations/$Region/connections/credovo-platform/repositories/$RepoOwner-$RepoName"
+
 if ($existing) {
     Write-Host "⚠️  Trigger already exists, updating..." -ForegroundColor Yellow
-    $connectionName = "credovo-platform"
-    gcloud builds triggers update github `
+    gcloud alpha builds triggers update github `
         --name=$triggerName `
         --region=$Region `
-        --connection=$connectionName `
-        --repo-name=$RepoName `
-        --repo-owner=$RepoOwner `
+        --repository=$repositoryPath `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
         --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `
@@ -61,18 +64,13 @@ if ($existing) {
 } else {
     Write-Host "Creating trigger for parallel builds..." -ForegroundColor Cyan
     
-    # Create the trigger
-    # Use comma-separated substitutions (same format as individual service triggers)
-    # Note: For GitHub triggers, we need to specify the connection name
-    $connectionName = "credovo-platform"
-    
-    Write-Host "Creating trigger with connection: $connectionName" -ForegroundColor Gray
-    gcloud builds triggers create github `
+    # Create the trigger using gcloud alpha (required for 2nd gen repositories)
+    # Note: Using alpha version because stable version has limitations with 2nd gen repos
+    Write-Host "Creating trigger with repository: $repositoryPath" -ForegroundColor Gray
+    gcloud alpha builds triggers create github `
         --name=$triggerName `
         --region=$Region `
-        --connection=$connectionName `
-        --repo-name=$RepoName `
-        --repo-owner=$RepoOwner `
+        --repository=$repositoryPath `
         --branch-pattern=$BranchPattern `
         --build-config="cloudbuild.yaml" `
         --substitutions="_REGION=$Region,_ARTIFACT_REGISTRY=credovo-services" `

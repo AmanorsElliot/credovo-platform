@@ -64,9 +64,9 @@ See [Cloud Build Setup Guide](CLOUD_BUILD_GITHUB_SETUP.md) for detailed instruct
 Quick setup:
 1. Go to: https://console.cloud.google.com/cloud-build/connections?project=credovo-eu-apps-nonprod
 2. Complete OAuth authorization for your GitHub repository
-3. Create Cloud Build triggers (or use the script):
+3. Create Cloud Build trigger (parallel build for all services):
    ```powershell
-   .\scripts\setup-cloud-build-triggers.ps1
+   .\scripts\setup-parallel-build-trigger.ps1
    ```
 
 ## Step 5: Deploy Services

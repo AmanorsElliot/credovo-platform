@@ -120,7 +120,7 @@ gcloud builds triggers delete deploy-orchestration-service \
   --project=credovo-eu-apps-nonprod
 
 # Then recreate using setup script
-.\scripts\setup-cloud-build-triggers.ps1
+.\scripts\setup-parallel-build-trigger.ps1
 ```
 
 ## Common Error Messages

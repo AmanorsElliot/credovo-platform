@@ -111,7 +111,7 @@ The platform uses **Cloud Build GitHub Integration** for automatic deployments.
    - Go to: https://console.cloud.google.com/cloud-build/triggers?project=credovo-eu-apps-nonprod
    - Create triggers for each service (or use the script):
    ```powershell
-   .\scripts\setup-cloud-build-triggers.ps1
+   .\scripts\setup-parallel-build-trigger.ps1
    ```
 
 3. **Automatic Deployment**:

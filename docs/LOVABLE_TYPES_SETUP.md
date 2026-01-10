@@ -43,7 +43,7 @@ From `credovo-platform`:
 npm login
 
 # Publish
-.\scripts\publish-to-npm.ps1
+.\scripts\publish-shared-types.ps1 -Registry npm
 ```
 
 ### Step 2: Install in Lovable
@@ -63,7 +63,7 @@ npm install @credovo/shared-types
 cd shared/types
 npm version patch  # Bumps version
 cd ../..
-.\scripts\publish-to-npm.ps1
+.\scripts\publish-shared-types.ps1 -Registry npm
 
 # In credovo-webapp
 npm update @credovo/shared-types
@@ -305,7 +305,7 @@ interface ConnectorResponse<T = any> {
 - ✅ Standard npm workflow
 
 **Workflow**:
-1. Publish: `.\scripts\publish-to-npm.ps1`
+1. Publish: `.\scripts\publish-shared-types.ps1 -Registry npm`
 2. Install: `npm install @credovo/shared-types`
 3. Update: `npm update @credovo/shared-types`
 
