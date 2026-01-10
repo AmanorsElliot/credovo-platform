@@ -15,7 +15,7 @@ cd credovo-webapp
 ## Prerequisites
 
 1. ✅ `credovo-webapp` repository created (local and on GitHub)
-2. ✅ `@credovo/shared-types` package published
+2. ✅ `@amanorselliot/shared-types` package published
 3. ✅ Node.js and npm installed
 
 ## Step 1: Publish Shared Types Package
@@ -48,10 +48,10 @@ cd credovo-webapp
 npm init -y
 
 # Install shared types from GitHub Packages
-npm install @credovo/shared-types --registry=https://npm.pkg.github.com
+npm install @amanorselliot/shared-types --registry=https://npm.pkg.github.com
 
 # Or if published to npm:
-# npm install @credovo/shared-types
+# npm install @amanorselliot/shared-types
 ```
 
 ### Configure .npmrc for GitHub Packages
@@ -113,7 +113,7 @@ Create `tsconfig.json` in `credovo-webapp`:
 In your frontend code:
 
 ```typescript
-import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@credovo/shared-types';
+import { KYCRequest, KYCResponse, KYBRequest, KYBResponse } from '@amanorselliot/shared-types';
 
 // Example usage
 const kycRequest: KYCRequest = {
@@ -197,7 +197,7 @@ When types change in `credovo-platform`:
 3. **Update in frontend:**
    ```bash
    cd credovo-webapp
-   npm update @credovo/shared-types --registry=https://npm.pkg.github.com
+   npm update @amanorselliot/shared-types --registry=https://npm.pkg.github.com
    ```
 
 ## Project Structure
@@ -220,7 +220,7 @@ credovo-webapp/
 
 ### Package Not Found
 
-If `npm install @credovo/shared-types` fails:
+If `npm install @amanorselliot/shared-types` fails:
 
 1. **Check GitHub Packages access:**
    - Ensure you have access to the `credovo-platform` repository
@@ -232,7 +232,7 @@ If `npm install @credovo/shared-types` fails:
 
 3. **Try public npm:**
    ```powershell
-   npm install @credovo/shared-types
+   npm install @amanorselliot/shared-types
    ```
 
 ### Type Errors
@@ -241,12 +241,12 @@ If TypeScript can't find types:
 
 1. **Check node_modules:**
    ```powershell
-   ls node_modules/@credovo/shared-types
+   ls node_modules/@amanorselliot/shared-types
    ```
 
 2. **Verify package.json:**
    ```powershell
-   cat node_modules/@credovo/shared-types/package.json
+   cat node_modules/@amanorselliot/shared-types/package.json
    ```
 
 3. **Restart TypeScript server:**

@@ -1,5 +1,5 @@
 {
-  "name": "@credovo/shared-types",
+  "name": "@amanorselliot/shared-types",
   "version": "1.0.0",
   "description": "Shared TypeScript types for Credovo platform",
   "main": "dist/index.js",
@@ -25,6 +25,8 @@
     "typescript"
   ],
   "author": "",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
 }
-

@@ -29,7 +29,7 @@
 ### Trade-offs
 
 ⚠️ **Shared Types**
-- Need to publish `@credovo/shared-types` as an npm package
+- Need to publish `@amanorselliot/shared-types` as an npm package
 - Or use a monorepo tool (Nx, Turborepo, etc.)
 - Or duplicate types (not recommended)
 
@@ -48,12 +48,12 @@ credovo-platform/          (Backend repo)
 ├── services/
 ├── infrastructure/
 ├── shared/
-│   └── types/             → Publish as @credovo/shared-types
+│   └── types/             → Publish as @amanorselliot/shared-types
 └── ...
 
 credovo-webapp/            (Frontend repo - Lovable)
 ├── src/
-├── package.json           → Uses @credovo/shared-types
+├── package.json           → Uses @amanorselliot/shared-types
 └── ...
 ```
 
@@ -84,7 +84,7 @@ credovo-webapp/            (Frontend repo - Lovable)
 4. **Install Shared Types:**
    ```bash
    # In credovo-frontend
-   npm install @credovo/shared-types
+   npm install @amanorselliot/shared-types
    ```
 
 ### Option 2: Monorepo with Workspaces
@@ -132,7 +132,7 @@ credovo-frontend/
 1. **Configure package.json in `shared/types/`:**
    ```json
    {
-     "name": "@credovo/shared-types",
+     "name": "@amanorselliot/shared-types",
      "version": "1.0.0",
      "main": "dist/index.js",
      "types": "dist/index.d.ts",
@@ -162,7 +162,7 @@ credovo-frontend/
 
 2. **Install in frontend:**
    ```bash
-   npm install @credovo/shared-types
+   npm install @amanorselliot/shared-types
    ```
 
 **Option C: Local Package (Development Only)**
@@ -173,7 +173,7 @@ For development, you can use `npm link`:
 npm link
 
 # In credovo-frontend/
-npm link @credovo/shared-types
+npm link @amanorselliot/shared-types
 ```
 
 ### Step 2: Create Frontend Repository
@@ -251,8 +251,8 @@ If you already have code in `credovo-platform/frontend/`:
 
 3. **Update imports:**
    ```typescript
-   // Old: import { KYCRequest } from '@credovo/shared-types'
-   // New: import { KYCRequest } from '@credovo/shared-types'
+   // Old: import { KYCRequest } from '@amanorselliot/shared-types'
+   // New: import { KYCRequest } from '@amanorselliot/shared-types'
    // (Same, but now from npm package)
    ```
 
@@ -274,7 +274,7 @@ credovo-platform/              (Backend - GitHub)
 ├── infrastructure/
 │   └── terraform/
 ├── shared/
-│   └── types/                 → Published as @credovo/shared-types
+│   └── types/                 → Published as @amanorselliot/shared-types
 ├── docs/
 └── scripts/
 
@@ -283,7 +283,7 @@ credovo-webapp/                (Frontend - Lovable + GitHub)
 │   ├── components/
 │   ├── pages/
 │   └── utils/
-├── package.json               → Uses @credovo/shared-types
+├── package.json               → Uses @amanorselliot/shared-types
 └── .env                       → API URLs, etc.
 ```
 
@@ -327,7 +327,7 @@ credovo-webapp/                (Frontend - Lovable + GitHub)
 3. **Update in frontend:**
    ```bash
    cd credovo-webapp
-   npm update @credovo/shared-types --registry=https://npm.pkg.github.com
+   npm update @amanorselliot/shared-types --registry=https://npm.pkg.github.com
    ```
 
 **Automation Option:**
@@ -344,10 +344,10 @@ credovo-webapp/                (Frontend - Lovable + GitHub)
 - ✅ No need for branch protection complexity
 
 **Recommended Approach:**
-1. Publish `shared/types` as `@credovo/shared-types` npm package
+1. Publish `shared/types` as `@amanorselliot/shared-types` npm package
 2. Use `credovo-webapp` repository (already created)
 3. Connect Lovable to `credovo-webapp` (entire repo is safe)
-4. Install `@credovo/shared-types` in frontend
+4. Install `@amanorselliot/shared-types` in frontend
 
 **This is the safest and cleanest approach!**
 

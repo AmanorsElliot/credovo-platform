@@ -23,7 +23,7 @@ if (-not (Test-Path $typesPath)) {
     Write-Host "Creating package.json for shared types..." -ForegroundColor Gray
     
     $packageJson = @{
-        name = "@credovo/shared-types"
+        name = "@amanorselliot/shared-types"
         version = "1.0.0"
         description = "Shared TypeScript types for Credovo platform"
         main = "dist/index.js"
@@ -89,7 +89,7 @@ Write-Host "  # Initialize npm" -ForegroundColor Gray
 Write-Host "  npm init -y" -ForegroundColor White
 Write-Host ""
 Write-Host "  # Install shared types" -ForegroundColor Gray
-Write-Host "  npm install @credovo/shared-types" -ForegroundColor White
+Write-Host "  npm install @amanorselliot/shared-types" -ForegroundColor White
 Write-Host ""
 Write-Host "  # Install React and other dependencies" -ForegroundColor Gray
 Write-Host "  npm install react react-dom" -ForegroundColor White
@@ -140,9 +140,9 @@ Write-Host "✅ Simpler Lovable integration" -ForegroundColor Green
 Write-Host "✅ Independent versioning and deployment" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next Steps:" -ForegroundColor Cyan
-Write-Host "  1. Publish @credovo/shared-types package" -ForegroundColor White
+Write-Host "  1. Publish @amanorselliot/shared-types package" -ForegroundColor White
 Write-Host "  2. Initialize $FrontendRepoName repository" -ForegroundColor White
-Write-Host "  3. Install @credovo/shared-types in $FrontendRepoName" -ForegroundColor White
+Write-Host "  3. Install @amanorselliot/shared-types in $FrontendRepoName" -ForegroundColor White
 Write-Host "  4. Connect Lovable to $FrontendRepoName" -ForegroundColor White
 Write-Host "  5. Update backend CORS" -ForegroundColor White
 Write-Host ""
