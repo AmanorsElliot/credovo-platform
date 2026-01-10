@@ -260,6 +260,21 @@ resource "google_secret_manager_secret_version" "companies_house_api_key_version
   depends_on = [google_secret_manager_secret.companies_house_api_key]
 }
 
+# Shufti Pro secret versions with actual credentials
+resource "google_secret_manager_secret_version" "shufti_pro_client_id_version" {
+  secret      = google_secret_manager_secret.shufti_pro_client_id.id
+  secret_data = "2OhMXk1rS9eqbsLSdHom5tUpWSAISVAT0RJC3TByNpsxhcakYn1768066741"
+  
+  depends_on = [google_secret_manager_secret.shufti_pro_client_id]
+}
+
+resource "google_secret_manager_secret_version" "shufti_pro_secret_key_version" {
+  secret      = google_secret_manager_secret.shufti_pro_secret_key.id
+  secret_data = "lm0PbtEjvHsLsD2doeoMsXlgDxRLBDAB"
+  
+  depends_on = [google_secret_manager_secret.shufti_pro_secret_key]
+}
+
 # Wait for secret versions to be fully available
 resource "time_sleep" "wait_for_secret_versions" {
   depends_on = [
