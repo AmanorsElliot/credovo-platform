@@ -65,28 +65,39 @@ export class KYBService {
 
       const companyData = connectorResponse.data;
 
-      // Map SumSub response to our KYBResponse format
+      // Map Shufti Pro response to our KYBResponse format
+      const verificationResult = companyData?.verification_result || companyData;
+      const event = companyData?.event || verificationResult?.event;
+      const isVerified = event === 'verification.accepted' || event === 'approved';
+      const isPending = event === 'verification.pending' || event === 'pending';
+
       const response: KYBResponse = {
         applicationId: request.applicationId,
         companyNumber: request.companyNumber,
-        status: companyData?.reviewResult?.reviewStatus === 'approved' ? 'verified' : 
-                companyData?.reviewResult?.reviewStatus === 'pending' ? 'pending' : 'not_found',
-        data: companyData ? {
-          companyName: companyData.info?.companyName || request.companyName,
-          status: companyData.reviewResult?.reviewStatus || 'unknown',
-          incorporationDate: companyData.info?.incorporationDate,
-          address: companyData.info?.address ? {
-            line1: companyData.info.address.line1,
-            line2: companyData.info.address.line2,
-            city: companyData.info.address.city,
-            postcode: companyData.info.address.postcode,
-            country: companyData.info.address.country || request.country || 'GB'
+        status: isVerified ? 'verified' : 
+                isPending ? 'pending' : 'not_found',
+        data: verificationResult?.business || companyData ? {
+          companyName: verificationResult?.business?.name || 
+                       companyData?.business?.name || 
+                       request.companyName,
+          status: event || verificationResult?.business?.status || 'unknown',
+          incorporationDate: verificationResult?.business?.incorporation_date || 
+                            companyData?.business?.incorporation_date,
+          address: verificationResult?.business?.address || companyData?.business?.address ? {
+            line1: (verificationResult?.business?.address || companyData?.business?.address)?.line1,
+            line2: (verificationResult?.business?.address || companyData?.business?.address)?.line2,
+            city: (verificationResult?.business?.address || companyData?.business?.address)?.city,
+            postcode: (verificationResult?.business?.address || companyData?.business?.address)?.postcode,
+            country: (verificationResult?.business?.address || companyData?.business?.address)?.country || 
+                    request.country || 'GB'
           } : undefined,
-          // SumSub provides beneficial owners and directors
-          officers: companyData.info?.beneficialOwners || companyData.info?.directors,
-          // Additional SumSub verification data
-          verificationLevel: companyData.reviewResult?.reviewStatus,
-          checks: companyData.reviewResult?.checks,
+          // Shufti Pro provides beneficial owners and directors
+          officers: verificationResult?.business?.directors || 
+                   verificationResult?.business?.beneficial_owners ||
+                   companyData?.business?.directors,
+          // Additional Shufti Pro verification data
+          verificationLevel: event,
+          checks: verificationResult?.business?.checks,
           metadata: companyData
         } : undefined,
         timestamp: new Date()

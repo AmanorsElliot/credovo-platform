@@ -27,13 +27,21 @@ export class KYCService {
       // Store initial request in data lake
       await this.dataLake.storeKYCRequest(request);
 
-      // Call connector service to initiate verification with SumSub
+      // Call connector service to initiate verification with Shufti Pro (primary provider)
       const connectorRequest = {
-        provider: 'sumsub',
-        endpoint: '/resources/applicants',
+        provider: 'shufti-pro',
+        endpoint: '/verify',
         method: 'POST' as const,
         body: {
-          externalUserId: request.userId,
+          reference: `kyc-${request.applicationId}-${Date.now()}`,
+          email: request.data.email,
+          country: request.data.country || 'GB',
+          language: 'EN',
+          verification_mode: 'any',
+          firstName: request.data.firstName,
+          lastName: request.data.lastName,
+          dateOfBirth: request.data.dateOfBirth,
+          address: request.data.address,
           info: {
             firstName: request.data.firstName,
             lastName: request.data.lastName,
@@ -51,14 +59,21 @@ export class KYCService {
       }
 
       // Store response in data lake
+      // Map Shufti Pro response format
+      const verificationStatus = connectorResponse.event || connectorResponse.status;
+      const isApproved = verificationStatus === 'verification.accepted' || 
+                        verificationStatus === 'approved' ||
+                        connectorResponse.verification_result?.event === 'verification.accepted';
+
       const response: KYCResponse = {
         applicationId: request.applicationId,
-        status: 'pending',
-        provider: 'sumsub',
+        status: isApproved ? 'approved' : 
+                verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
+        provider: 'shufti-pro',
         result: {
-          score: connectorResponse.data?.reviewResult?.reviewStatus === 'approved' ? 100 : 0,
-          checks: this.mapSumSubChecks(connectorResponse.data),
-          metadata: connectorResponse.data
+          score: isApproved ? 100 : 0,
+          checks: this.mapShuftiProChecks(connectorResponse),
+          metadata: connectorResponse
         },
         timestamp: new Date()
       };
@@ -81,7 +96,7 @@ export class KYCService {
       const errorResponse: KYCResponse = {
         applicationId: request.applicationId,
         status: 'requires_review',
-        provider: 'sumsub',
+        provider: 'shufti-pro',
         timestamp: new Date()
       };
 
@@ -102,25 +117,30 @@ export class KYCService {
         return stored;
       }
 
-      // If not found, check with provider
+      // If not found, check with provider (Shufti Pro)
       const connectorRequest = {
-        provider: 'sumsub',
-        endpoint: `/resources/applicants/${applicationId}`,
+        provider: 'shufti-pro',
+        endpoint: `/status/${applicationId}`,
         method: 'GET' as const,
         retry: false
       };
 
       const connectorResponse = await this.connector.call(connectorRequest);
 
-      if (connectorResponse.success) {
+      if (connectorResponse.success || connectorResponse.reference) {
+        const verificationStatus = connectorResponse.event || connectorResponse.status;
+        const isApproved = verificationStatus === 'verification.accepted' || 
+                          verificationStatus === 'approved';
+        
         const response: KYCResponse = {
           applicationId,
-          status: this.mapSumSubStatus(connectorResponse.data),
-          provider: 'sumsub',
+          status: isApproved ? 'approved' : 
+                  verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected',
+          provider: 'shufti-pro',
           result: {
-            score: connectorResponse.data?.reviewResult?.reviewStatus === 'approved' ? 100 : 0,
-            checks: this.mapSumSubChecks(connectorResponse.data),
-            metadata: connectorResponse.data
+            score: isApproved ? 100 : 0,
+            checks: this.mapShuftiProChecks(connectorResponse),
+            metadata: connectorResponse
           },
           timestamp: new Date()
         };
@@ -150,8 +170,70 @@ export class KYCService {
     }
   }
 
+  private mapShuftiProChecks(data: any): any[] {
+    // Map Shufti Pro response to our check format
+    const checks = [];
+    
+    const verificationResult = data?.verification_result || data;
+    const event = data?.event || verificationResult?.event;
+    
+    if (verificationResult?.document) {
+      checks.push({
+        type: 'document_verification',
+        status: event === 'verification.accepted' ? 'pass' : 
+                event === 'verification.declined' ? 'fail' : 'pending',
+        message: verificationResult.document?.verification_status || event
+      });
+    }
+    
+    if (verificationResult?.face) {
+      checks.push({
+        type: 'face_verification',
+        status: event === 'verification.accepted' ? 'pass' : 
+                event === 'verification.declined' ? 'fail' : 'pending',
+        message: verificationResult.face?.verification_status || event
+      });
+    }
+    
+    if (verificationResult?.address) {
+      checks.push({
+        type: 'address_verification',
+        status: event === 'verification.accepted' ? 'pass' : 
+                event === 'verification.declined' ? 'fail' : 'pending',
+        message: verificationResult.address?.verification_status || event
+      });
+    }
+    
+    // Fallback to general verification status
+    if (checks.length === 0 && event) {
+      checks.push({
+        type: 'identity_verification',
+        status: event === 'verification.accepted' ? 'pass' : 
+                event === 'verification.declined' ? 'fail' : 'pending',
+        message: event
+      });
+    }
+
+    return checks;
+  }
+
+  // Keep SumSub mapping methods for backward compatibility/fallback
+  private mapSumSubStatus(data: any): 'pending' | 'approved' | 'rejected' | 'requires_review' {
+    const status = data?.reviewResult?.reviewStatus;
+    switch (status) {
+      case 'approved':
+        return 'approved';
+      case 'rejected':
+        return 'rejected';
+      case 'pending':
+        return 'pending';
+      default:
+        return 'requires_review';
+    }
+  }
+
   private mapSumSubChecks(data: any): any[] {
-    // Map SumSub response to our check format
+    // Map SumSub response to our check format (kept for fallback)
     const checks = [];
     
     if (data?.reviewResult) {
@@ -159,6 +241,10 @@ export class KYCService {
         type: 'identity_verification',
         status: data.reviewResult.reviewStatus === 'approved' ? 'pass' : 'fail',
         message: data.reviewResult.reviewStatus
+      });
+    }
+
+    return checks;
       });
     }
 

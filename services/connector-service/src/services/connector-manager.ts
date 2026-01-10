@@ -3,6 +3,7 @@ import { createLogger } from '@credovo/shared-utils/logger';
 import { BaseConnector } from '../adapters/base-connector';
 import { SumSubConnector } from '../adapters/sumsub-connector';
 import { CompaniesHouseConnector } from '../adapters/companies-house-connector';
+import { ShuftiProConnector } from '../adapters/shufti-pro-connector';
 import { CircuitBreaker } from '../utils/circuit-breaker';
 import { RateLimiter } from '../utils/rate-limiter';
 
@@ -19,6 +20,9 @@ export class ConnectorManager {
     this.rateLimiters = new Map();
 
     // Initialize connectors
+    // Shufti Pro is the primary provider (240+ countries, 150+ languages)
+    this.registerConnector('shufti-pro', new ShuftiProConnector());
+    // SumSub kept as fallback/secondary provider
     this.registerConnector('sumsub', new SumSubConnector());
     this.registerConnector('companies-house', new CompaniesHouseConnector());
   }

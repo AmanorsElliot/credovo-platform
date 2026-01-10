@@ -67,7 +67,7 @@ This document explains how the three core services (`orchestration-service`, `ky
 **Role**: Abstraction layer for external vendor APIs
 - **Purpose**: Provides a unified interface to external providers
 - **Responsibilities**:
-  - Manages connections to external APIs (SumSub for global KYC/KYB)
+  - Manages connections to external APIs (Shufti Pro as primary for global KYC/KYB - 240+ countries, 150+ languages)
   - Implements circuit breaker pattern (prevents cascading failures)
   - Rate limiting (prevents API quota exhaustion)
   - Retry logic with exponential backoff
@@ -112,15 +112,17 @@ Body: { firstName, lastName, dateOfBirth, address }
    await this.dataLake.storeKYCRequest(request);
    ```
 
-2. **Calls Connector Service** to interact with SumSub:
+2. **Calls Connector Service** to interact with Shufti Pro:
    ```typescript
    const connectorRequest = {
-     provider: 'sumsub',
-     endpoint: '/resources/applicants',
+     provider: 'shufti-pro',
+     endpoint: '/verify',
      method: 'POST',
      body: {
-       externalUserId: request.userId,
-       info: { firstName, lastName, dateOfBirth, address }
+       reference: `kyc-${applicationId}-${timestamp}`,
+       country: 'GB',
+       language: 'EN',
+       firstName, lastName, dateOfBirth, address
      },
      retry: true
    };

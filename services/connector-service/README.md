@@ -8,7 +8,8 @@ Abstraction layer for vendor integrations with support for:
 
 ## Supported Providers
 
-- **SumSub**: KYC/KYB verification
+- **Shufti Pro** (Primary): Global KYC/KYB verification (240+ countries, 150+ languages)
+- **SumSub** (Fallback): KYC/KYB verification (200+ countries)
 - **Companies House**: UK company verification
 
 ## API Endpoints
