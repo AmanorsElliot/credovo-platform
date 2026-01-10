@@ -91,11 +91,6 @@ if ($builds.Count -eq 0) {
 
 Write-Host "Found $($builds.Count) build(s) total" -ForegroundColor Green
 
-if (-not $buildIds -or $buildIds.Count -eq 0) {
-    Write-Host "No builds found." -ForegroundColor Green
-    exit 0
-}
-
 # Filter out completed/failed builds (only cancel active ones)
 Write-Host ""
 Write-Host "Filtering for cancellable builds (QUEUED, WORKING, PENDING)..." -ForegroundColor Yellow
