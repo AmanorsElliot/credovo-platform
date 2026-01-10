@@ -228,6 +228,16 @@ resource "google_logging_metric" "aml_screening" {
   }
 }
 
+# Log-based metric for data lake storage failures
+resource "google_logging_metric" "data_lake_storage_failures" {
+  name   = "data_lake_storage_failures"
+  filter = "resource.type=\"cloud_run_revision\" AND textPayload=~\"Failed to store.*data lake\" AND severity=\"ERROR\""
+  metric_descriptor {
+    metric_kind = "DELTA"
+    value_type  = "INT64"
+  }
+}
+
 # Alert for webhook failures
 # Note: Uses log-based metric which may take up to 10 minutes to become available
 # Add depends_on to ensure metric exists, or apply in two steps
@@ -270,7 +280,8 @@ resource "time_sleep" "wait_for_metrics" {
     google_logging_metric.kyc_completed,
     google_logging_metric.kyb_initiated,
     google_logging_metric.kyb_completed,
-    google_logging_metric.aml_screening
+    google_logging_metric.aml_screening,
+    google_logging_metric.data_lake_storage_failures
   ]
 
   create_duration = "600s"  # Wait 10 minutes for metrics to propagate
