@@ -14,6 +14,9 @@ on:
 jobs:
   sync-types:
     runs-on: ubuntu-latest
+    # Don't fail the workflow (and send emails) on errors
+    # This is an automated sync, failures can be handled manually
+    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write
