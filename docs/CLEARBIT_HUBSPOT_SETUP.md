@@ -6,22 +6,33 @@ Since Clearbit was acquired by HubSpot, accessing Clearbit's API requires a HubS
 
 ## Step 1: Access Clearbit Dashboard
 
-### Option A: Direct Clearbit Login (If you had a Clearbit account before acquisition)
-1. Go to https://clearbit.com/
-2. Click "Clearbit customer login" or "Sign in"
-3. Log in with your existing Clearbit credentials
-4. Navigate to **Settings** → **API Keys**
+**Important**: Clearbit is not available as a standalone integration in the HubSpot marketplace. You need to access Clearbit directly.
 
-### Option B: Through HubSpot
-1. Log into your HubSpot account
-2. Navigate to **Settings** (gear icon in top right)
-3. Go to **Integrations** → **Connected Apps**
-4. Look for **Clearbit** or **Breeze Intelligence**
-5. Click to access Clearbit settings
-6. Navigate to **API Keys** or **Developer Settings**
+### Direct Clearbit Login
+1. Go to https://clearbit.com/
+2. Click **"Clearbit customer login"** or **"Sign in"** (usually in the top right)
+3. **If you have an existing Clearbit account**: Log in with your Clearbit credentials
+4. **If you don't have a Clearbit account**: You may need to:
+   - Contact Clearbit/HubSpot support to get API access
+   - Or sign up for Clearbit directly (may require HubSpot account verification)
+   - Or use an alternative like OpenCorporates (recommended - no account needed)
+
+### Alternative: Use OpenCorporates (Recommended)
+Since Clearbit requires special access, we recommend using **OpenCorporates** which:
+- ✅ Works immediately (no account setup needed)
+- ✅ Has 200+ million companies globally
+- ✅ Free tier available
+- ✅ Already implemented and set as default
+
+**To use OpenCorporates**: No configuration needed - it's already the default provider!
 
 ## Step 2: Get Your API Key
 
+**Note**: If you cannot access Clearbit directly, you may need to:
+1. Contact HubSpot support to request Clearbit API access
+2. Or use OpenCorporates instead (recommended - see below)
+
+### If You Have Clearbit Access:
 1. In Clearbit dashboard, go to **Settings** → **API Keys**
 2. If you don't have an API key:
    - Click **Create API Key** or **Generate New Key**
@@ -30,6 +41,9 @@ Since Clearbit was acquired by HubSpot, accessing Clearbit's API requires a HubS
 3. If you already have keys, copy the one you want to use
 
 **Important**: The API key format is typically a long alphanumeric string (e.g., `sk_live_xxxxxxxxxxxxx`)
+
+### Recommended: Use OpenCorporates Instead
+Since Clearbit access is complex, **OpenCorporates is already configured as the default** and works immediately without any setup!
 
 ## Step 3: Verify API Access
 
