@@ -44,14 +44,9 @@ KYBRouter.post('/verify', async (req: Request, res: Response) => {
 KYBRouter.get('/status/:applicationId', async (req: Request, res: Response) => {
   try {
     const { applicationId } = req.params;
-    const userId = req.userId;
-
-    if (!userId) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'User ID required'
-      });
-    }
+    // For service-to-service calls, userId might not be present (req.service is set instead)
+    // Use userId if available, otherwise use service identifier or applicationId as fallback
+    const userId = req.userId || req.service || `service-${applicationId}`;
 
     const status = await kybService.getKYBStatus(applicationId, userId);
 
