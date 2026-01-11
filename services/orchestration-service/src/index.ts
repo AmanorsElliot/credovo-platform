@@ -1,13 +1,48 @@
-import express from 'express';
-import { validateBackendJwt, validateSupabaseJwt, configureCors } from '@credovo/shared-auth';
-import { createLogger } from '@credovo/shared-utils/logger';
-import { ApplicationRouter } from './routes/application';
-import { AuthRouter } from './routes/auth';
-import { WebhookRouter } from './routes/webhooks';
-import { BankingRouter } from './routes/banking';
-import { CompanySearchRouter } from './routes/company-search';
-
 console.log('[STARTUP] Starting orchestration service initialization...');
+
+// Import modules with error handling
+let express: any;
+let validateBackendJwt: any;
+let validateSupabaseJwt: any;
+let configureCors: any;
+let createLogger: any;
+let ApplicationRouter: any;
+let AuthRouter: any;
+let WebhookRouter: any;
+let BankingRouter: any;
+let CompanySearchRouter: any;
+
+try {
+  console.log('[STARTUP] Importing express...');
+  express = require('express');
+  console.log('[STARTUP] Express imported successfully');
+  
+  console.log('[STARTUP] Importing shared-auth...');
+  const sharedAuth = require('@credovo/shared-auth');
+  validateBackendJwt = sharedAuth.validateBackendJwt;
+  validateSupabaseJwt = sharedAuth.validateSupabaseJwt;
+  configureCors = sharedAuth.configureCors;
+  console.log('[STARTUP] shared-auth imported successfully');
+  
+  console.log('[STARTUP] Importing shared-utils/logger...');
+  const sharedUtils = require('@credovo/shared-utils/logger');
+  createLogger = sharedUtils.createLogger;
+  console.log('[STARTUP] shared-utils/logger imported successfully');
+  
+  console.log('[STARTUP] Importing routes...');
+  ApplicationRouter = require('./routes/application').ApplicationRouter;
+  AuthRouter = require('./routes/auth').AuthRouter;
+  WebhookRouter = require('./routes/webhooks').WebhookRouter;
+  BankingRouter = require('./routes/banking').BankingRouter;
+  CompanySearchRouter = require('./routes/company-search').CompanySearchRouter;
+  console.log('[STARTUP] All routes imported successfully');
+} catch (error: any) {
+  console.error('[STARTUP] CRITICAL: Failed to import modules:', error);
+  console.error('[STARTUP] Error message:', error.message);
+  console.error('[STARTUP] Error stack:', error.stack);
+  // Exit with error code so Cloud Run knows the container failed
+  process.exit(1);
+}
 
 console.log('[STARTUP] Initializing logger...');
 // Initialize logger with fallback
