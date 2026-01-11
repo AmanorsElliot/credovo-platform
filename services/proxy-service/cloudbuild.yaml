@@ -1,0 +1,63 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-proxy'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/proxy-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/proxy-service:latest'
+      - '.'
+    dir: 'services/proxy-service'
+
+  # Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-proxy'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/proxy-service:${SHORT_SHA}'
+    waitFor: ['build-proxy']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-proxy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'proxy-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/proxy-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'proxy-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--set-env-vars'
+      - 'ORCHESTRATION_SERVICE_URL=https://orchestration-service-saz24fo3sa-ew.a.run.app'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-proxy']
+
+substitutions:
+  _REGION: 'europe-west1'
+  _ARTIFACT_REGISTRY: 'credovo-services'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  substitution_option: 'ALLOW_LOOSE'
+
+timeout: '1800s'
