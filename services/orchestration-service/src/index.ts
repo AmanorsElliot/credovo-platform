@@ -33,6 +33,13 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '8080', 10);
 console.log(`[STARTUP] PORT set to ${PORT}`);
 
+// Add immediate health check BEFORE any other setup
+// This ensures the server can respond even if route setup fails
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'starting', service: 'orchestration-service' });
+});
+console.log('[STARTUP] Basic health check route added');
+
 // Log startup information
 try {
   logger.info('Starting orchestration service', {
@@ -102,9 +109,9 @@ try {
   throw error;
 }
 
-// Health check
+// Update health check to show ready status
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy', service: 'orchestration-service' });
+  res.json({ status: 'healthy', service: 'orchestration-service', ready: true });
 });
 
 // Error handling
@@ -116,13 +123,18 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// Start server with error handling
+// Start server IMMEDIATELY - don't wait for all setup to complete
+// This ensures Cloud Run sees the service is listening
+console.log('[STARTUP] Starting server...');
 try {
   const server = app.listen(PORT, '0.0.0.0', () => {
     const message = `Orchestration service started successfully on port ${PORT}`;
     logger.info(message);
     console.log(message); // Also log to console for Cloud Run logs
+    console.log(`[STARTUP] Server is now listening on 0.0.0.0:${PORT}`);
   });
+  
+  console.log('[STARTUP] Server.listen() called, waiting for callback...');
 
   // Handle server errors
   server.on('error', (error: any) => {
