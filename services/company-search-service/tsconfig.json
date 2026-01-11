@@ -22,5 +22,5 @@
     }
   },
   "include": ["src/**/*", "shared/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/__tests__/**"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "shared/auth/src/**", "shared/types/src/**"]
 }
