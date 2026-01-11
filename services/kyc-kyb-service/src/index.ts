@@ -6,9 +6,24 @@ import { KYBRouter } from './routes/kyb';
 import { HealthRouter } from './routes/health';
 import { WebhookRouter } from './routes/webhooks';
 
-const logger = createLogger('kyc-kyb-service');
+// Initialize logger with fallback
+let logger: any;
+try {
+  logger = createLogger('kyc-kyb-service');
+} catch (error) {
+  // Fallback logger if shared-utils fails to load
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    debug: (...args: any[]) => console.log('[DEBUG]', ...args),
+    request: () => {},
+  };
+  console.error('Failed to initialize logger, using console fallback', error);
+}
+
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Middleware
 // Configure JSON parser with verify to preserve raw body for webhook signature verification
@@ -65,10 +80,52 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`KYC/KYB service started on port ${PORT}`);
-});
+// Start server with error handling
+try {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    const message = `KYC/KYB service started successfully on port ${PORT}`;
+    logger.info(message);
+    console.log(message); // Also log to console for Cloud Run logs
+  });
+
+  // Handle server errors
+  server.on('error', (error: any) => {
+    const errorMsg = `Server error: ${error.message || error}`;
+    logger.error(errorMsg, error);
+    console.error(errorMsg, error);
+    if (error.code === 'EADDRINUSE') {
+      const portMsg = `Port ${PORT} is already in use`;
+      logger.error(portMsg);
+      console.error(portMsg);
+      process.exit(1);
+    } else {
+      logger.error('Unexpected server error', error);
+      console.error('Unexpected server error', error);
+      process.exit(1);
+    }
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error: Error) => {
+    const errorMsg = `Uncaught exception: ${error.message || error}`;
+    logger.error(errorMsg, error);
+    console.error(errorMsg, error);
+    process.exit(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    const errorMsg = `Unhandled promise rejection: ${reason}`;
+    logger.error(errorMsg, { reason, promise });
+    console.error(errorMsg, { reason, promise });
+    process.exit(1);
+  });
+} catch (error: any) {
+  const errorMsg = `Failed to start KYC/KYB service: ${error.message || error}`;
+  logger.error(errorMsg, error);
+  console.error(errorMsg, error);
+  process.exit(1);
+}
 
 export default app;
 
