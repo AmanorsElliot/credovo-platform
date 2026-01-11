@@ -25,7 +25,7 @@ export const KYCRequestSchema = z.object({
     companyName: z.string().min(1, 'Company name is required').max(200, 'Company name is too long').optional()
   })
 }).refine(
-  (data) => {
+  (data: any) => {
     // If type is individual, require firstName and lastName
     if (data.type === 'individual') {
       return data.data.firstName && data.data.lastName;
@@ -91,7 +91,7 @@ export const TransactionRequestSchema = z.object({
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
   count: z.coerce.number().int('Count must be an integer').min(1, 'Count must be at least 1').max(500, 'Count cannot exceed 500').default(100).optional()
 }).refine(
-  (data) => {
+  (data: any) => {
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
     return start <= end;
@@ -101,7 +101,7 @@ export const TransactionRequestSchema = z.object({
     path: ['endDate']
   }
 ).refine(
-  (data) => {
+  (data: any) => {
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));

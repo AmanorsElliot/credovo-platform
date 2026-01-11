@@ -12,9 +12,11 @@ COPY shared ./shared
 # Install dependencies for service and shared packages
 RUN npm install
 RUN cd shared/auth && npm install || true
+RUN cd shared/types && npm install || true
 
 # Build shared packages first (build from shared directory to handle cross-package imports)
 WORKDIR /app/shared
+RUN cd types && npm run build && echo "shared/types build successful" || (echo "shared/types build FAILED" && exit 1)
 RUN cd auth && npm run build && echo "shared/auth build successful" || (echo "shared/auth build FAILED" && exit 1)
 WORKDIR /app
 RUN echo "=== Verifying shared/auth/dist was created ===" && \
@@ -78,6 +80,7 @@ RUN echo "=== Verifying node_modules symlinks ===" && \
     test -f node_modules/@credovo/shared-auth/dist/auth/index.js || (echo "ERROR: node_modules/@credovo/shared-auth/dist/auth/index.js does not exist!" && exit 1)
 
 # Install shared packages' production dependencies
+RUN cd shared/types && npm install --omit=dev || true
 RUN cd shared/auth && npm install --omit=dev || true
 
 # Create non-root user

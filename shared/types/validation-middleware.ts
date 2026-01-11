@@ -76,7 +76,7 @@ export function validateRequest(schema: {
  * Format Zod errors into a user-friendly structure
  */
 function formatZodErrors(error: ZodError): Array<{ path: string; message: string }> {
-  return error.issues.map((err) => ({
+  return error.issues.map((err: any) => ({
     path: err.path.join('.'),
     message: err.message
   }));
