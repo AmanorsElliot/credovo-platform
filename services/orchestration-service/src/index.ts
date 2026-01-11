@@ -11,6 +11,18 @@ const logger = createLogger('orchestration-service');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Log startup information
+logger.info('Starting orchestration service', {
+  port: PORT,
+  environment: process.env.ENVIRONMENT,
+  nodeEnv: process.env.NODE_ENV,
+  hasKycServiceUrl: !!process.env.KYC_SERVICE_URL,
+  hasConnectorServiceUrl: !!process.env.CONNECTOR_SERVICE_URL,
+  hasServiceJwtSecret: !!process.env.SERVICE_JWT_SECRET,
+  hasLovableJwksUri: !!process.env.LOVABLE_JWKS_URI,
+  hasLovableAudience: !!process.env.LOVABLE_AUDIENCE,
+});
+
 // Middleware
 // Configure JSON parser with verify to preserve raw body for webhook signature verification
 app.use(express.json({
@@ -61,8 +73,32 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Start server with error handling
 try {
-  app.listen(PORT, () => {
-    logger.info(`Orchestration service started on port ${PORT}`);
+  const server = app.listen(PORT, () => {
+    logger.info(`Orchestration service started successfully on port ${PORT}`);
+  });
+
+  // Handle server errors
+  server.on('error', (error: any) => {
+    logger.error('Server error', error);
+    if (error.code === 'EADDRINUSE') {
+      logger.error(`Port ${PORT} is already in use`);
+      process.exit(1);
+    } else {
+      logger.error('Unexpected server error', error);
+      process.exit(1);
+    }
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught exception', error);
+    process.exit(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+    logger.error('Unhandled promise rejection', { reason, promise });
+    process.exit(1);
   });
 } catch (error: any) {
   logger.error('Failed to start orchestration service', error);
