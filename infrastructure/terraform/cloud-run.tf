@@ -350,4 +350,11 @@ resource "google_cloud_run_service_iam_member" "orchestration_invoke_connector" 
   member   = "serviceAccount:${google_service_account.services["orchestration-service"].email}"
 }
 
+resource "google_cloud_run_service_iam_member" "kyc_invoke_connector" {
+  service  = google_cloud_run_service.connector_service.name
+  location = google_cloud_run_service.connector_service.location
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.services["kyc-kyb-service"].email}"
+}
+
 
