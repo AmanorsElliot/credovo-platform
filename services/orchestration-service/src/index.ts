@@ -7,10 +7,14 @@ import { WebhookRouter } from './routes/webhooks';
 import { BankingRouter } from './routes/banking';
 import { CompanySearchRouter } from './routes/company-search';
 
+console.log('[STARTUP] Starting orchestration service initialization...');
+
+console.log('[STARTUP] Initializing logger...');
 // Initialize logger with fallback
 let logger: any;
 try {
   logger = createLogger('orchestration-service');
+  console.log('[STARTUP] Logger initialized successfully');
 } catch (error) {
   // Fallback logger if shared-utils fails to load
   logger = {
@@ -20,11 +24,13 @@ try {
     debug: (...args: any[]) => console.log('[DEBUG]', ...args),
     request: () => {},
   };
-  console.error('Failed to initialize logger, using console fallback', error);
+  console.error('[STARTUP] Failed to initialize logger, using console fallback', error);
 }
 
+console.log('[STARTUP] Creating Express app...');
 const app = express();
 const PORT = parseInt(process.env.PORT || '8080', 10);
+console.log(`[STARTUP] PORT set to ${PORT}`);
 
 // Log startup information
 try {
@@ -42,17 +48,26 @@ try {
   console.error('Failed to log startup info', error);
 }
 
+console.log('[STARTUP] Setting up middleware...');
 // Middleware
 // Configure JSON parser with verify to preserve raw body for webhook signature verification
-app.use(express.json({
-  verify: (req: any, res, buf) => {
-    // Preserve raw body for webhook signature verification
-    if (req.path?.startsWith('/api/v1/webhooks')) {
-      req.rawBody = buf.toString('utf8');
+try {
+  app.use(express.json({
+    verify: (req: any, res, buf) => {
+      // Preserve raw body for webhook signature verification
+      if (req.path?.startsWith('/api/v1/webhooks')) {
+        req.rawBody = buf.toString('utf8');
+      }
     }
-  }
-}));
-app.use(configureCors());
+  }));
+  console.log('[STARTUP] JSON middleware configured');
+  
+  app.use(configureCors());
+  console.log('[STARTUP] CORS middleware configured');
+} catch (error) {
+  console.error('[STARTUP] Failed to configure middleware', error);
+  throw error;
+}
 
 // Request logging
 app.use((req, res, next) => {
@@ -60,21 +75,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// Auth routes (no auth required - this is where tokens are issued if using token exchange)
-app.use('/api/v1/auth', AuthRouter);
+console.log('[STARTUP] Setting up routes...');
+try {
+  // Auth routes (no auth required - this is where tokens are issued if using token exchange)
+  app.use('/api/v1/auth', AuthRouter);
+  console.log('[STARTUP] Auth routes configured');
 
-// Webhook routes (no auth required - webhooks come from external services)
-app.use('/api/v1/webhooks', WebhookRouter);
+  // Webhook routes (no auth required - webhooks come from external services)
+  app.use('/api/v1/webhooks', WebhookRouter);
+  console.log('[STARTUP] Webhook routes configured');
 
-// Application routes (require authentication)
-// Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
-const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL)
-  ? validateSupabaseJwt 
-  : validateBackendJwt;
+  // Application routes (require authentication)
+  // Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
+  const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL)
+    ? validateSupabaseJwt 
+    : validateBackendJwt;
+  console.log('[STARTUP] Auth middleware selected:', process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL ? 'Supabase' : 'Backend');
 
-app.use('/api/v1/applications', authMiddleware, ApplicationRouter);
-app.use('/api/v1/applications', authMiddleware, BankingRouter);
-app.use('/api/v1/companies', authMiddleware, CompanySearchRouter);
+  app.use('/api/v1/applications', authMiddleware, ApplicationRouter);
+  app.use('/api/v1/applications', authMiddleware, BankingRouter);
+  app.use('/api/v1/companies', authMiddleware, CompanySearchRouter);
+  console.log('[STARTUP] Application routes configured');
+} catch (error) {
+  console.error('[STARTUP] Failed to configure routes', error);
+  throw error;
+}
 
 // Health check
 app.get('/health', (req, res) => {
