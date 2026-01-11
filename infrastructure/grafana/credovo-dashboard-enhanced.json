@@ -1,0 +1,978 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_count\"\n| group_by 1m, [value_request_count_sum: sum(value.request_count)]\n| every 1m"
+          },
+          "alias": "{{resource.label.service_name}}"
+        }
+      ],
+      "title": "Request Count by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 5000
+              }
+            ]
+          },
+          "unit": "ms"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_latencies\"\n| group_by 1m, [value_request_latencies_p95: percentile(value.request_latencies, 95)]\n| every 1m"
+          },
+          "alias": "{{resource.label.service_name}}"
+        }
+      ],
+      "title": "Request Latency (p95) by Service",
+      "type": "timeseries",
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [5000],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A", "5m", "now"]
+            },
+            "reducer": {
+              "params": [],
+              "type": "last"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "30s",
+        "handler": 1,
+        "name": "High Latency Alert",
+        "noDataState": "no_data",
+        "notifications": ["$notification_channel"]
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_count\" && metric.label.response_code_class = \"5xx\"\n| group_by 1m, [value_request_count_sum: sum(value.request_count)]\n| every 1m"
+          },
+          "alias": "{{resource.label.service_name}}"
+        }
+      ],
+      "title": "Error Rate (5xx) by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/container/instance_count\"\n| group_by 1m, [value_instance_count_sum: sum(value.instance_count)]\n| every 1m"
+          },
+          "alias": "{{resource.label.service_name}}"
+        }
+      ],
+      "title": "Instance Count by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "sum"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_initiated\"\n| group_by 1m, [value_kyc_initiated_sum: sum(value.kyc_initiated)]\n| every 1m"
+          },
+          "alias": "KYC Initiated"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1m, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1m"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Applications - Initiated vs Completed",
+      "type": "timeseries",
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [0],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A", "1m", "now"]
+            },
+            "reducer": {
+              "params": [],
+              "type": "sum"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "0s",
+        "frequency": "30s",
+        "handler": 1,
+        "name": "New KYC Application",
+        "noDataState": "no_data",
+        "notifications": ["$notification_channel"]
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "sum"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyb_initiated\"\n| group_by 1m, [value_kyb_initiated_sum: sum(value.kyb_initiated)]\n| every 1m"
+          },
+          "alias": "KYB Initiated"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyb_completed\"\n| group_by 1m, [value_kyb_completed_sum: sum(value.kyb_completed)]\n| every 1m"
+          },
+          "alias": "KYB Completed"
+        }
+      ],
+      "title": "KYB Applications - Initiated vs Completed",
+      "type": "timeseries",
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [0],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A", "1m", "now"]
+            },
+            "reducer": {
+              "params": [],
+              "type": "sum"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "0s",
+        "frequency": "30s",
+        "handler": 1,
+        "name": "New KYB Application",
+        "noDataState": "no_data",
+        "notifications": ["$notification_channel"]
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "sum"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/webhook_received\"\n| group_by 1m, [value_webhook_received_sum: sum(value.webhook_received)]\n| every 1m"
+          },
+          "alias": "Webhooks Received"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/webhook_failed\"\n| group_by 1m, [value_webhook_failed_sum: sum(value.webhook_failed)]\n| every 1m"
+          },
+          "alias": "Webhooks Failed"
+        }
+      ],
+      "title": "Webhook Activity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "sum"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/aml_screening\"\n| group_by 1m, [value_aml_screening_sum: sum(value.aml_screening)]\n| every 1m"
+          },
+          "alias": "AML Screening Events"
+        }
+      ],
+      "title": "AML Screening Activity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 32
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1h, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1h"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Completed - UK Region",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 32
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "credovo-uae-apps-prod",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1h, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1h"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Completed - UAE Region",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 32
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "credovo-us-apps-prod",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1h, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1h"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Completed - US Region",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-google-cloud-monitoring-datasource",
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 32
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "credovo-eu-apps-prod",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1h, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1h"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Completed - EU Region",
+      "type": "timeseries",
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [0],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A", "1m", "now"]
+            },
+            "reducer": {
+              "params": [],
+              "type": "sum"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "0s",
+        "frequency": "30s",
+        "handler": 1,
+        "name": "KYC Application Completed",
+        "noDataState": "no_data",
+        "notifications": ["$notification_channel"]
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["credovo", "applications", "multi-region", "kyc", "kyb"],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": ["credovo-eu-apps-nonprod"],
+          "value": ["credovo-eu-apps-nonprod"]
+        },
+        "datasource": {
+          "type": "grafana-google-cloud-monitoring-datasource",
+          "uid": "$datasource"
+        },
+        "definition": "label_values(resource.label.project_id, resource.label.project_id)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Project/Region",
+        "multi": true,
+        "name": "project",
+        "options": [],
+        "query": {
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "",
+            "query": "label_values(resource.label.project_id, resource.label.project_id)"
+          }
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "grafana-google-cloud-monitoring-datasource",
+          "uid": "$datasource"
+        },
+        "definition": "label_values(resource.label.service_name, resource.label.service_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "label_values(resource.label.service_name, resource.label.service_name)"
+          }
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Google Cloud Monitoring",
+          "value": "Google Cloud Monitoring"
+        },
+        "hide": 0,
+        "label": "Data Source",
+        "name": "datasource",
+        "options": [],
+        "query": "Google Cloud Monitoring",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "label": "Notification Channel",
+        "name": "notification_channel",
+        "options": [],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Credovo Platform - Multi-Region Applications Dashboard",
+  "uid": "credovo-multi-region",
+  "version": 1,
+  "weekStart": ""
+}

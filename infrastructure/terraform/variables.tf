@@ -45,6 +45,18 @@ variable "alert_email_address" {
   default     = ""
 }
 
+variable "domain" {
+  description = "Domain name for Grafana (e.g., credovo.com)"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_admin_user" {
+  description = "Grafana admin username"
+  type        = string
+  default     = "admin"
+}
+
 variable "github_repo" {
   description = "GitHub repository in format owner/repo"
   type        = string
