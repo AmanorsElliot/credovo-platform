@@ -10,26 +10,29 @@ const KYC_SERVICE_URL = process.env.KYC_SERVICE_URL || 'http://kyc-kyb-service:8
 
 // Helper function to get Cloud Run identity token for service-to-service calls
 // Uses the Metadata Server available in Cloud Run
-async function getIdentityToken(audience: string): Promise<string> {
+async function getIdentityToken(audience: string): Promise<string | null> {
   try {
     const metadataServerTokenUrl = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
     const response = await axios.get(metadataServerTokenUrl, {
       params: {
-        audience: audience,
-        format: 'full'
+        audience: audience
       },
       headers: {
         'Metadata-Flavor': 'Google'
       },
       timeout: 5000
     });
-    return response.data;
+    // The response should be the token as a string
+    const token = typeof response.data === 'string' ? response.data.trim() : response.data;
+    logger.debug('Successfully retrieved identity token from Metadata Server');
+    return token;
   } catch (error: any) {
-    logger.warn('Failed to get identity token from Metadata Server, falling back to service token', {
-      error: error.message
+    logger.warn('Failed to get identity token from Metadata Server', {
+      error: error.message,
+      code: error.code
     });
-    // Fallback to service JWT token if Metadata Server is not available (e.g., local development)
-    return createServiceToken();
+    // Return null to indicate we should skip IAM token (services might be public)
+    return null;
   }
 }
 
@@ -55,10 +58,19 @@ ApplicationRouter.post('/:applicationId/kyc/initiate', async (req: Request, res:
   try {
     const { applicationId } = req.params;
     
-    // Get Cloud Run identity token for IAM authentication
+    // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
     const identityToken = await getIdentityToken(KYC_SERVICE_URL);
-    // Also create application-level service token
+    // Create application-level service token (required)
     const serviceToken = createServiceToken();
+    
+    // Build headers - include identity token if available, always include service token
+    const headers: Record<string, string> = {
+      'X-Service-Token': serviceToken // Application-level service token
+    };
+    
+    if (identityToken) {
+      headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
+    }
     
     const response = await axios.post(
       `${KYC_SERVICE_URL}/api/v1/kyc/initiate`,
@@ -68,10 +80,7 @@ ApplicationRouter.post('/:applicationId/kyc/initiate', async (req: Request, res:
         userId: req.userId
       },
       {
-        headers: {
-          'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
-          'X-Service-Token': serviceToken // Application-level service token
-        }
+        headers
       }
     );
 
@@ -89,18 +98,24 @@ ApplicationRouter.get('/:applicationId/kyc/status', async (req: Request, res: Re
   try {
     const { applicationId } = req.params;
     
-    // Get Cloud Run identity token for IAM authentication
+    // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
     const identityToken = await getIdentityToken(KYC_SERVICE_URL);
-    // Also create application-level service token
+    // Create application-level service token (required)
     const serviceToken = createServiceToken();
+    
+    // Build headers - include identity token if available, always include service token
+    const headers: Record<string, string> = {
+      'X-Service-Token': serviceToken // Application-level service token
+    };
+    
+    if (identityToken) {
+      headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
+    }
     
     const response = await axios.get(
       `${KYC_SERVICE_URL}/api/v1/kyc/status/${applicationId}`,
       {
-        headers: {
-          'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
-          'X-Service-Token': serviceToken // Application-level service token
-        }
+        headers
       }
     );
 

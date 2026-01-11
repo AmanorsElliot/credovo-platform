@@ -10,26 +10,29 @@ export const WebhookRouter = Router();
 const KYC_SERVICE_URL = process.env.KYC_SERVICE_URL || 'http://kyc-kyb-service:8080';
 
 // Helper function to get Cloud Run identity token for service-to-service calls
-async function getIdentityToken(audience: string): Promise<string> {
+async function getIdentityToken(audience: string): Promise<string | null> {
   try {
     const metadataServerTokenUrl = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
     const response = await axios.get(metadataServerTokenUrl, {
       params: {
-        audience: audience,
-        format: 'full'
+        audience: audience
       },
       headers: {
         'Metadata-Flavor': 'Google'
       },
       timeout: 5000
     });
-    return response.data;
+    // The response should be the token as a string
+    const token = typeof response.data === 'string' ? response.data.trim() : response.data;
+    logger.debug('Successfully retrieved identity token from Metadata Server');
+    return token;
   } catch (error: any) {
-    logger.warn('Failed to get identity token from Metadata Server, falling back to service token', {
-      error: error.message
+    logger.warn('Failed to get identity token from Metadata Server', {
+      error: error.message,
+      code: error.code
     });
-    // Fallback to service JWT token if Metadata Server is not available
-    return createServiceToken();
+    // Return null to indicate we should skip IAM token (services might be public)
+    return null;
   }
 }
 
@@ -112,10 +115,20 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
     const isKYB = reference?.startsWith('kyb-') || webhookData.business;
     const isKYC = reference?.startsWith('kyc-') || webhookData.document;
 
-    // Get Cloud Run identity token for IAM authentication
+    // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
     const identityToken = await getIdentityToken(KYC_SERVICE_URL);
-    // Also create application-level service token
+    // Create application-level service token (required)
     const serviceToken = createServiceToken();
+    
+    // Build headers - include identity token if available, always include service token
+    const headers: Record<string, string> = {
+      'X-Service-Token': serviceToken, // Application-level service token
+      'Content-Type': 'application/json'
+    };
+    
+    if (identityToken) {
+      headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
+    }
     
     if (isKYC) {
       // Forward to KYC service for processing
@@ -123,11 +136,7 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
         `${KYC_SERVICE_URL}/api/v1/webhooks/shufti-pro`,
         webhookData,
         {
-          headers: {
-            'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
-            'X-Service-Token': serviceToken, // Application-level service token
-            'Content-Type': 'application/json'
-          }
+          headers
         }
       );
     } else if (isKYB) {
@@ -136,11 +145,7 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
         `${KYC_SERVICE_URL}/api/v1/webhooks/shufti-pro-kyb`,
         webhookData,
         {
-          headers: {
-            'Authorization': `Bearer ${identityToken}`, // Cloud Run IAM token
-            'X-Service-Token': serviceToken, // Application-level service token
-            'Content-Type': 'application/json'
-          }
+          headers
         }
       );
     } else {
