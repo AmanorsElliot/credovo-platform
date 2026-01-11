@@ -1,73 +1,14 @@
-// Add error handlers BEFORE any imports to catch module load errors
-process.on('uncaughtException', (error: Error) => {
-  console.error('[CRITICAL] Uncaught exception during module load:', error);
-  console.error('[CRITICAL] Error message:', error.message);
-  console.error('[CRITICAL] Error stack:', error.stack);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason: any) => {
-  console.error('[CRITICAL] Unhandled promise rejection during module load:', reason);
-  process.exit(1);
-});
+import express, { Request, Response, NextFunction } from 'express';
+import { validateBackendJwt, validateSupabaseJwt, configureCors } from '@credovo/shared-auth';
+import { createLogger } from '@credovo/shared-utils/logger';
+import { ApplicationRouter } from './routes/application';
+import { AuthRouter } from './routes/auth';
+import { WebhookRouter } from './routes/webhooks';
+import { BankingRouter } from './routes/banking';
+import { CompanySearchRouter } from './routes/company-search';
 
 console.log('[STARTUP] Starting orchestration service initialization...');
-
-let express: any;
-let validateBackendJwt: any;
-let validateSupabaseJwt: any;
-let configureCors: any;
-let createLogger: any;
-let ApplicationRouter: any;
-let AuthRouter: any;
-let WebhookRouter: any;
-let BankingRouter: any;
-let CompanySearchRouter: any;
-
-try {
-  console.log('[STARTUP] Importing express...');
-  express = require('express');
-  console.log('[STARTUP] Express imported');
-  
-  console.log('[STARTUP] Importing @credovo/shared-auth...');
-  const sharedAuth = require('@credovo/shared-auth');
-  validateBackendJwt = sharedAuth.validateBackendJwt;
-  validateSupabaseJwt = sharedAuth.validateSupabaseJwt;
-  configureCors = sharedAuth.configureCors;
-  console.log('[STARTUP] @credovo/shared-auth imported');
-  
-  console.log('[STARTUP] Importing @credovo/shared-utils/logger...');
-  const sharedUtils = require('@credovo/shared-utils/logger');
-  createLogger = sharedUtils.createLogger;
-  console.log('[STARTUP] @credovo/shared-utils/logger imported');
-  
-  console.log('[STARTUP] Importing routes/application...');
-  ApplicationRouter = require('./routes/application').ApplicationRouter;
-  console.log('[STARTUP] routes/application imported');
-  
-  console.log('[STARTUP] Importing routes/auth...');
-  AuthRouter = require('./routes/auth').AuthRouter;
-  console.log('[STARTUP] routes/auth imported');
-  
-  console.log('[STARTUP] Importing routes/webhooks...');
-  WebhookRouter = require('./routes/webhooks').WebhookRouter;
-  console.log('[STARTUP] routes/webhooks imported');
-  
-  console.log('[STARTUP] Importing routes/banking...');
-  BankingRouter = require('./routes/banking').BankingRouter;
-  console.log('[STARTUP] routes/banking imported');
-  
-  console.log('[STARTUP] Importing routes/company-search...');
-  CompanySearchRouter = require('./routes/company-search').CompanySearchRouter;
-  console.log('[STARTUP] routes/company-search imported');
-  
-  console.log('[STARTUP] All modules imported successfully');
-} catch (error: any) {
-  console.error('[CRITICAL] Failed to import module:', error);
-  console.error('[CRITICAL] Error message:', error.message);
-  console.error('[CRITICAL] Error stack:', error.stack);
-  process.exit(1);
-}
+console.log('[STARTUP] All modules imported successfully');
 
 console.log('[STARTUP] Initializing logger...');
 // Initialize logger with fallback
@@ -130,7 +71,7 @@ try {
 }
 
 // Request logging
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   logger.request(req, res, { service: 'orchestration-service' });
   next();
 });
@@ -162,12 +103,12 @@ try {
 }
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'healthy', service: 'orchestration-service' });
 });
 
 // Error handling
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   logger.error('Unhandled error', err);
   res.status(err.statusCode || 500).json({
     error: 'Internal Server Error',
