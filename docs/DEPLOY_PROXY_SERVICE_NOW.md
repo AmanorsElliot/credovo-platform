@@ -21,20 +21,43 @@ If you have GitHub Actions set up for Cloud Build triggers:
 
 ### Option 2: Fix Cloud Build Permissions and Deploy
 
-Grant the Compute Engine service account the necessary permissions:
+Grant the necessary service accounts the required permissions:
 
 ```powershell
-# Grant Cloud Build service account permissions
+# Get project number (used for Google-managed service accounts)
 $projectNumber = (gcloud projects describe credovo-eu-apps-nonprod --format="value(projectNumber)")
 
+# Grant Cloud Build service account permissions (for building images)
+gcloud projects add-iam-policy-binding credovo-eu-apps-nonprod `
+    --member="serviceAccount:$projectNumber@cloudbuild.gserviceaccount.com" `
+    --role="roles/storage.admin" `
+    --condition=None `
+    --project=credovo-eu-apps-nonprod
+
+gcloud projects add-iam-policy-binding credovo-eu-apps-nonprod `
+    --member="serviceAccount:$projectNumber@cloudbuild.gserviceaccount.com" `
+    --role="roles/artifactregistry.writer" `
+    --condition=None `
+    --project=credovo-eu-apps-nonprod
+
+# Grant Compute Engine default service account permissions (for source deployments)
 gcloud projects add-iam-policy-binding credovo-eu-apps-nonprod `
     --member="serviceAccount:$projectNumber-compute@developer.gserviceaccount.com" `
     --role="roles/storage.admin" `
+    --condition=None `
+    --project=credovo-eu-apps-nonprod
+
+gcloud projects add-iam-policy-binding credovo-eu-apps-nonprod `
+    --member="serviceAccount:$projectNumber-compute@developer.gserviceaccount.com" `
+    --role="roles/artifactregistry.writer" `
+    --condition=None `
     --project=credovo-eu-apps-nonprod
 
 # Then deploy
 .\scripts\deploy-proxy-service-simple.ps1
 ```
+
+**Note:** The service accounts with numeric IDs (`$projectNumber@cloudbuild.gserviceaccount.com` and `$projectNumber-compute@developer.gserviceaccount.com`) are Google-managed default service accounts. We use variables to reference them clearly rather than hardcoding numbers.
 
 ### Option 3: Manual Docker Build (If Docker Available)
 
