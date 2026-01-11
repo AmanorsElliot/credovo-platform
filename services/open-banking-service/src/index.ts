@@ -1,5 +1,5 @@
 import express from 'express';
-import { validateBackendJwt, configureCors } from '@credovo/shared-auth';
+import { validateServiceJwt, configureCors } from '@credovo/shared-auth';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { BankingRouter } from './routes/banking';
 
@@ -24,13 +24,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
-// Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
-const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL)
-  ? require('@credovo/shared-auth').validateSupabaseJwt 
-  : validateBackendJwt;
+// Custom middleware to handle dual authentication (like KYC-KYB service):
+// 1. Cloud Run IAM token in Authorization header (handled by Cloud Run)
+// 2. Application-level service token in X-Service-Token header
+const validateServiceAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Check for application-level service token in X-Service-Token header
+  if (req.headers['x-service-token']) {
+    return validateServiceJwt(req, res, next);
+  } else {
+    // If no X-Service-Token, just proceed (Cloud Run IAM is sufficient)
+    next();
+  }
+};
 
-app.use('/api/v1/banking', authMiddleware, BankingRouter);
+// Routes
+app.use('/api/v1/banking', validateServiceAuth, BankingRouter);
 
 // Health check
 app.get('/health', (req, res) => {
