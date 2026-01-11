@@ -1,5 +1,8 @@
 // Shared types across all services
 
+// Export banking types
+export * from './banking';
+
 export interface Application {
   id: string;
   userId: string;

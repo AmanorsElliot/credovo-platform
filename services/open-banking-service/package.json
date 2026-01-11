@@ -1,38 +1,38 @@
 {
-  "name": "@credovo/kyc-kyb-service",
+  "name": "@credovo/open-banking-service",
   "version": "1.0.0",
-  "description": "KYC/KYB verification service",
+  "description": "Open Banking service for Plaid integration",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
     "express": "^4.18.2",
     "axios": "^1.6.2",
     "jsonwebtoken": "^9.0.2",
-    "@google-cloud/storage": "^7.7.0",
-    "@google-cloud/bigquery": "^7.3.0",
-    "@google-cloud/pubsub": "^4.0.1",
     "@credovo/shared-types": "file:../../shared/types",
     "@credovo/shared-auth": "file:../../shared/auth",
     "@credovo/shared-utils": "file:../../shared/utils"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@types/node": "^20.10.0",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.0",
     "typescript": "^5.3.3",
     "ts-node-dev": "^2.0.0",
     "jest": "^29.7.0",
     "@types/jest": "^29.5.8",
     "ts-jest": "^29.1.1",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.16",
     "eslint": "^8.54.0",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1"
   }
 }
-

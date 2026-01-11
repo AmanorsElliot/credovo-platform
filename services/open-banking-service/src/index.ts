@@ -1,17 +1,13 @@
 import express from 'express';
-import { validateBackendJwt, validateSupabaseJwt, configureCors } from '@credovo/shared-auth';
+import { validateBackendJwt, configureCors } from '@credovo/shared-auth';
 import { createLogger } from '@credovo/shared-utils/logger';
-import { ApplicationRouter } from './routes/application';
-import { AuthRouter } from './routes/auth';
-import { WebhookRouter } from './routes/webhooks';
 import { BankingRouter } from './routes/banking';
 
-const logger = createLogger('orchestration-service');
+const logger = createLogger('open-banking-service');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-// Configure JSON parser with verify to preserve raw body for webhook signature verification
 app.use(express.json({
   verify: (req: any, res, buf) => {
     // Preserve raw body for webhook signature verification
@@ -24,28 +20,21 @@ app.use(configureCors());
 
 // Request logging
 app.use((req, res, next) => {
-  logger.request(req, res, { service: 'orchestration-service' });
+  logger.request(req, res, { service: 'open-banking-service' });
   next();
 });
 
-// Auth routes (no auth required - this is where tokens are issued if using token exchange)
-app.use('/api/v1/auth', AuthRouter);
-
-// Webhook routes (no auth required - webhooks come from external services)
-app.use('/api/v1/webhooks', WebhookRouter);
-
-// Application routes (require authentication)
+// Routes
 // Use Supabase JWT validation if SUPABASE_JWKS_URI or SUPABASE_URL is set, otherwise use backend JWT
 const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_URL)
-  ? validateSupabaseJwt 
+  ? require('@credovo/shared-auth').validateSupabaseJwt 
   : validateBackendJwt;
 
-app.use('/api/v1/applications', authMiddleware, ApplicationRouter);
-app.use('/api/v1/applications', authMiddleware, BankingRouter);
+app.use('/api/v1/banking', authMiddleware, BankingRouter);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', service: 'orchestration-service' });
+  res.json({ status: 'healthy', service: 'open-banking-service' });
 });
 
 // Error handling
@@ -58,8 +47,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 app.listen(PORT, () => {
-  logger.info(`Orchestration service started on port ${PORT}`);
+  logger.info(`Open Banking service started on port ${PORT}`);
 });
 
 export default app;
-

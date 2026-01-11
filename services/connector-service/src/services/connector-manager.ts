@@ -4,6 +4,7 @@ import { BaseConnector } from '../adapters/base-connector';
 import { SumSubConnector } from '../adapters/sumsub-connector';
 import { CompaniesHouseConnector } from '../adapters/companies-house-connector';
 import { ShuftiProConnector } from '../adapters/shufti-pro-connector';
+import { PlaidConnector } from '../adapters/plaid-connector';
 import { CircuitBreaker } from '../utils/circuit-breaker';
 import { RateLimiter } from '../utils/rate-limiter';
 
@@ -25,6 +26,8 @@ export class ConnectorManager {
     // SumSub kept as fallback/secondary provider
     this.registerConnector('sumsub', new SumSubConnector());
     this.registerConnector('companies-house', new CompaniesHouseConnector());
+    // Plaid for open banking (US, UK, and other supported countries)
+    this.registerConnector('plaid', new PlaidConnector());
   }
 
   private registerConnector(name: string, connector: BaseConnector) {

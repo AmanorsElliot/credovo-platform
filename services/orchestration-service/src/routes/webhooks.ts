@@ -204,6 +204,90 @@ function isIpAllowed(ip: string, allowedIps: string[]): boolean {
 }
 
 /**
+ * Plaid Webhook Endpoint
+ * POST /api/v1/webhooks/plaid
+ * 
+ * Handles webhooks from Plaid for:
+ * - Transaction updates
+ * - Income verification status
+ * - Account updates
+ * - Item errors
+ * 
+ * Reference: https://plaid.com/docs/api/webhooks/
+ */
+WebhookRouter.post('/plaid', async (req: Request, res: Response) => {
+  try {
+    const webhook = req.body;
+    
+    logger.info('Received Plaid webhook', {
+      webhook_type: webhook.webhook_type,
+      webhook_code: webhook.webhook_code,
+      item_id: webhook.item_id,
+    });
+
+    // Verify webhook signature (Plaid uses HMAC-SHA256)
+    // Note: Plaid webhook verification requires the raw body
+    const plaidVerificationKey = process.env.PLAID_WEBHOOK_VERIFICATION_KEY;
+    if (plaidVerificationKey && req.rawBody) {
+      // Plaid webhook verification would go here
+      // For now, we'll log and process
+      logger.debug('Plaid webhook signature verification (to be implemented)');
+    }
+
+    // Process webhook based on type
+    const webhookType = webhook.webhook_type;
+    const webhookCode = webhook.webhook_code;
+
+    // Handle different webhook types
+    switch (webhookType) {
+      case 'TRANSACTIONS':
+        if (webhookCode === 'INITIAL_UPDATE' || webhookCode === 'HISTORICAL_UPDATE' || webhookCode === 'DEFAULT_UPDATE') {
+          logger.info('Transaction update received', {
+            new_transactions: webhook.new_transactions,
+            item_id: webhook.item_id,
+          });
+          // Publish event to Pub/Sub for async processing
+          // TODO: Implement Pub/Sub event publishing
+        }
+        break;
+      
+      case 'INCOME':
+        if (webhookCode === 'VERIFICATION_COMPLETE') {
+          logger.info('Income verification complete', {
+            item_id: webhook.item_id,
+          });
+          // Publish event to Pub/Sub for async processing
+          // TODO: Implement Pub/Sub event publishing
+        }
+        break;
+      
+      case 'ITEM':
+        if (webhookCode === 'ERROR') {
+          logger.error('Plaid item error', {
+            item_id: webhook.item_id,
+            error: webhook.error,
+          });
+        }
+        break;
+      
+      default:
+        logger.info('Unhandled Plaid webhook type', {
+          webhook_type: webhookType,
+          webhook_code: webhookCode,
+        });
+    }
+
+    // Store webhook in data lake
+    // TODO: Implement data lake storage
+
+    res.status(200).json({ received: true });
+  } catch (error: any) {
+    logger.error('Failed to process Plaid webhook', error);
+    res.status(500).json({ error: 'Failed to process webhook' });
+  }
+});
+
+/**
  * Health check for webhook endpoint
  */
 WebhookRouter.get('/health', (req: Request, res: Response) => {

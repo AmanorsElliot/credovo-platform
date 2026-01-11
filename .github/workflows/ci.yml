@@ -27,9 +27,28 @@ jobs:
           cache: 'npm'
           cache-dependency-path: services/${{ matrix.service }}/package-lock.json
       
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: |
+          npm install -g jest ts-jest typescript
+          if [ -f "package.json" ]; then npm ci; fi
+        continue-on-error: true
+      
+      - name: Install shared dependencies
+        run: |
+          cd shared/types && npm ci || true
+          cd ../auth && npm ci || true
+          cd ../utils && npm ci || true
+        continue-on-error: true
+      
+      - name: Install service dependencies
         working-directory: services/${{ matrix.service }}
         run: npm ci
+        continue-on-error: true
+      
+      - name: Build shared libraries
+        run: |
+          cd shared/types && npm run build || true
+          cd ../auth && npm run build || true
         continue-on-error: true
       
       - name: Run linter
@@ -37,8 +56,16 @@ jobs:
         run: npm run lint || true
         continue-on-error: true
       
-      - name: Run tests
+      - name: Run unit tests
         working-directory: services/${{ matrix.service }}
-        run: npm test || true
+        run: npm test -- --coverage --maxWorkers=2 || true
+        continue-on-error: true
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: services/${{ matrix.service }}/coverage/lcov.info
+          flags: ${{ matrix.service }}
+          name: ${{ matrix.service }}-coverage
         continue-on-error: true
 
