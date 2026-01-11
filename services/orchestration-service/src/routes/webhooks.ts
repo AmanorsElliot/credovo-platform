@@ -228,7 +228,7 @@ WebhookRouter.post('/plaid', async (req: Request, res: Response) => {
     // Verify webhook signature (Plaid uses HMAC-SHA256)
     // Note: Plaid webhook verification requires the raw body
     const plaidVerificationKey = process.env.PLAID_WEBHOOK_VERIFICATION_KEY;
-    if (plaidVerificationKey && req.rawBody) {
+    if (plaidVerificationKey && (req as any).rawBody) {
       // Plaid webhook verification would go here
       // For now, we'll log and process
       logger.debug('Plaid webhook signature verification (to be implemented)');
