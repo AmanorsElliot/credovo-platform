@@ -8,23 +8,19 @@ Since Clearbit was acquired by HubSpot, accessing Clearbit's API requires a HubS
 
 **Important**: Clearbit is not available as a standalone integration in the HubSpot marketplace. You need to access Clearbit directly.
 
-### Direct Clearbit Login
-1. Go to https://clearbit.com/
-2. Click **"Clearbit customer login"** or **"Sign in"** (usually in the top right)
-3. **If you have an existing Clearbit account**: Log in with your Clearbit credentials
-4. **If you don't have a Clearbit account**: You may need to:
-   - Contact Clearbit/HubSpot support to get API access
-   - Or sign up for Clearbit directly (may require HubSpot account verification)
-   - Or use an alternative like OpenCorporates (recommended - no account needed)
+### Getting Clearbit API Access
 
-### Alternative: Use OpenCorporates (Recommended)
-Since Clearbit requires special access, we recommend using **OpenCorporates** which:
-- ✅ Works immediately (no account setup needed)
-- ✅ Has 200+ million companies globally
-- ✅ Free tier available
-- ✅ Already implemented and set as default
+**Note**: Direct Clearbit login is no longer available. To get API access:
 
-**To use OpenCorporates**: No configuration needed - it's already the default provider!
+1. **Contact HubSpot/Clearbit Support**: 
+   - Reach out to HubSpot support to request Clearbit API access
+   - You may need a paid HubSpot plan that includes Clearbit
+   - API access is not available through the HubSpot marketplace
+
+2. **Alternative Options**:
+   - Use **Companies House API** (already integrated, UK companies only)
+   - Use **The Companies API** (UK-focused, standalone)
+   - Consider other company data providers
 
 ## Step 2: Get Your API Key
 
