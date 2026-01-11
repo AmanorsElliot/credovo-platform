@@ -31,20 +31,22 @@ export class OpenCorporatesConnector extends BaseConnector {
 
     // OpenCorporates allows requests without API token (rate limited)
     // API token increases rate limits
-    const authParam = apiToken ? { api_token: apiToken } : {};
+    const authParams: Record<string, string> = apiToken ? { api_token: apiToken } : {};
 
     if (request.endpoint?.includes('/companies/search')) {
-      return this.handleCompanySearch(request, authParam);
+      return this.handleCompanySearch(request, authParams);
     } else if (request.endpoint?.includes('/companies/')) {
-      return this.handleCompanyLookup(request, authParam);
+      return this.handleCompanyLookup(request, authParams);
     } else {
-      return this.handleGenericRequest(request, authParam);
+      return this.handleGenericRequest(request, authParams);
     }
   }
 
   private async getApiToken(): Promise<string> {
+    // OpenCorporates uses 'api-token' instead of 'api-key'
     const secretName = `${this.providerName}-api-token`;
-    return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
+    const envVar = secretName.toUpperCase().replace(/-/g, '_');
+    return process.env[envVar] || '';
   }
 
   /**
