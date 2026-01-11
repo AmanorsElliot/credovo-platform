@@ -25,28 +25,39 @@
 **Purpose**: Provide real-time company name autocomplete for application forms
 
 **Recommended APIs**:
-- **Clearbit Enrichment API** (Recommended)
+- **⚠️ Clearbit Enrichment API** (Requires HubSpot Account)
+  - **Status**: Acquired by HubSpot - now requires HubSpot account access
+  - **Note**: Free tools sunset April 30, 2025 - requires paid HubSpot plan
   - Company search with autocomplete
   - Rich company data (employees, revenue, industry, etc.)
   - Global coverage (US, UK, EU, etc.)
-  - Free tier: 50 requests/month
-  - Pricing: $99/month for 1,000 requests
   - Documentation: https://clearbit.com/docs#enrichment-api
+  - **Recommendation**: Only use if you already have HubSpot
+
+- **OpenCorporates API** (Recommended - No HubSpot Required) ✅
+  - Global company database (200+ million companies)
+  - Company search with autocomplete
+  - Free tier available (rate limited without API token)
+  - Good for international coverage
+  - Standalone API (no HubSpot required)
+  - Documentation: https://opencorporates.com/api_accounts/new
+  - **Status**: ✅ Implemented as default provider
 
 - **The Companies API** (Alternative)
   - Company search with autocomplete
   - UK-focused but expanding
   - Good for lead verification
+  - Standalone API (no HubSpot required)
   - Documentation: https://www.thecompaniesapi.com/
 
-- **OpenCorporates API** (Global)
-  - Global company database
-  - 200+ million companies
-  - Good for international coverage
+- **Companies House API** (UK Only - Already Integrated) ✅
+  - UK company search and verification
   - Free tier available
-  - Documentation: https://opencorporates.com/api_accounts/new
+  - Already integrated in connector service
+  - Documentation: https://developer.company-information.service.gov.uk/
 
 **Implementation Priority**: High - Needed for better UX in application forms
+**Current Status**: ✅ OpenCorporates connector implemented as default (no HubSpot required)
 
 #### 2. Credit Check Service
 **Purpose**: Credit scoring and credit history checks
