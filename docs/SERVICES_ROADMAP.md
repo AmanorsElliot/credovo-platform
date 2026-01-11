@@ -29,19 +29,10 @@
   - **Status**: ✅ Active and configured as default
   - Company search with autocomplete
   - UK-focused company database
-  - Standalone API (no HubSpot required)
+  - Standalone API
   - Production and sandbox API keys configured
   - Documentation: https://www.thecompaniesapi.com/
   - **Recommendation**: ✅ Use this as the primary provider
-
-- **⚠️ Clearbit Enrichment API** (Optional - Requires HubSpot Account)
-  - **Status**: Acquired by HubSpot - requires HubSpot account access
-  - **Note**: Free tools sunset April 30, 2025 - requires paid HubSpot plan
-  - Company search with autocomplete
-  - Rich company data (employees, revenue, industry, etc.)
-  - Global coverage (US, UK, EU, etc.)
-  - Documentation: https://clearbit.com/docs#enrichment-api
-  - **Recommendation**: Only use if you already have HubSpot
 
 - **Companies House API** (UK Only - Already Integrated) ✅
   - UK company search and verification
@@ -161,7 +152,7 @@
 
 ## Recommended Integration Order
 
-1. **Company Autocomplete API** (Clearbit) - Immediate UX improvement
+1. **Company Autocomplete API** (The Companies API) - ✅ Implemented
 2. **Credit Check Service** (Experian/Equifax) - Core lending requirement
 3. **Property AVM Service** (Zoopla/Hometrack) - Required for property loans
 4. **Affordability Service** (Internal) - Leverage existing Plaid data

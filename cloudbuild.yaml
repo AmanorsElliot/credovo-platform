@@ -42,6 +42,34 @@ steps:
       - '.'
     waitFor: ['-']
 
+  # Build company-search-service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-company-search'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/company-search-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/company-search-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/company-search-service:latest'
+      - '.'
+    waitFor: ['-']
+
+  # Build open-banking-service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-open-banking'
+    args:
+      - 'build'
+      - '-f'
+      - 'services/open-banking-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/open-banking-service:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/open-banking-service:latest'
+      - '.'
+    waitFor: ['-']
+
   # Push all images in parallel (after builds complete)
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-orchestration'
@@ -66,6 +94,22 @@ steps:
       - '--all-tags'
       - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/connector-service'
     waitFor: ['build-connector']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-company-search'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/company-search-service'
+    waitFor: ['build-company-search']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-open-banking'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/open-banking-service'
+    waitFor: ['build-open-banking']
 
   # Deploy all services in parallel (after pushes complete)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -131,6 +175,46 @@ steps:
       - '--project'
       - '${PROJECT_ID}'
     waitFor: ['push-connector']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-company-search'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'company-search-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/company-search-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'company-search-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-company-search']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-open-banking'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'open-banking-service'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/open-banking-service:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'open-banking-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
+      - '--project'
+      - '${PROJECT_ID}'
+    waitFor: ['push-open-banking']
 
 substitutions:
   _REGION: 'europe-west1'

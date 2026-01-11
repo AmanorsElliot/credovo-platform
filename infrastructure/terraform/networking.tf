@@ -337,18 +337,6 @@ resource "google_secret_manager_secret_version" "shufti_pro_secret_key_version" 
   depends_on = [google_secret_manager_secret.shufti_pro_secret_key]
 }
 
-# Clearbit API key (optional - for company search)
-resource "google_secret_manager_secret" "clearbit_api_key" {
-  secret_id = "clearbit-api-key"
-  replication {
-    user_managed {
-      replicas {
-        location = var.region
-      }
-    }
-  }
-}
-
 # The Companies API key (for company search/autocomplete)
 resource "google_secret_manager_secret" "companies_api_key" {
   secret_id = "companies-api-api-key"

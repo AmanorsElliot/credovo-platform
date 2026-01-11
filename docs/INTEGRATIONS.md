@@ -34,48 +34,6 @@ Shufti Pro is the primary KYC/KYB verification provider, supporting 240+ countri
 2. Webhook endpoint: `/api/v1/webhooks/shufti-pro`
 3. See [SHUFTI_PRO_API_REQUIREMENTS.md](SHUFTI_PRO_API_REQUIREMENTS.md) for details
 
-## Clearbit (Company Search & Autocomplete)
-
-### ⚠️ Important: HubSpot Account Required
-
-**Status**: Clearbit has been acquired by HubSpot and now requires a HubSpot account to access their API. This may require a paid HubSpot plan depending on your needs.
-
-### Overview
-Clearbit provides company search with autocomplete functionality and company enrichment data.
-
-### Features
-- **Company Search**: Real-time autocomplete for company names
-- **Company Enrichment**: Detailed company data (employees, revenue, industry, etc.)
-- **Domain Lookup**: Find companies by domain name
-- **Global Coverage**: US, UK, EU, and other countries
-
-### Documentation
-- **Clearbit API Docs**: https://clearbit.com/docs#enrichment-api
-- **HubSpot Integration**: https://www.hubspot.com/company-news/hubspot-completes-acquisition-of-b2b-intelligence-leader-clearbit
-
-### Quick Start
-
-**⚠️ Important**: Clearbit is not available as a standalone integration in the HubSpot marketplace, and direct Clearbit login is no longer available. API access may require contacting HubSpot/Clearbit support.
-
-### Setup:
-1. **Get Clearbit API Key**:
-   - Log into https://clearbit.com/ directly (not through HubSpot marketplace)
-   - Navigate to **Settings** → **API Keys**
-   - Create or copy your API key
-2. **Store API key**: Use `scripts/configure-clearbit-secret.ps1` or see [Clearbit HubSpot Setup Guide](CLEARBIT_HUBSPOT_SETUP.md)
-3. **Configure service**: Set `COMPANY_SEARCH_PROVIDER=clearbit` in company-search-service
-4. Use endpoint: `GET /api/v1/companies/search?query=company+name`
-
-**📖 Detailed Setup**: See [CLEARBIT_HUBSPOT_SETUP.md](CLEARBIT_HUBSPOT_SETUP.md) for step-by-step instructions
-
-### API Endpoints
-- `GET /api/v1/companies/search?query=name&limit=10` - Company search with autocomplete
-- `GET /api/v1/companies/enrich?domain=example.com` - Company enrichment by domain
-
-### Alternatives
-- **Clearbit**: Company search and enrichment (requires HubSpot account)
-- **Companies House API**: UK company data (already integrated)
-
 ---
 
 ## The Companies API ✅ (Default Provider)
@@ -116,9 +74,8 @@ The Companies API provides UK-focused company search with autocomplete functiona
 - `GET /api/v1/companies/company?number=12345678` - Company lookup by number
 
 ### Configuration
-- **Default Provider**: The Companies API is the default (`COMPANY_SEARCH_PROVIDER=companies-api`)
+- **Default Provider**: The Companies API is the default provider
 - **Environment Variable**: `COMPANIES_API_API_KEY` (automatically loaded from Secret Manager)
-- **Switch to Clearbit**: Set `COMPANY_SEARCH_PROVIDER=clearbit` in company-search-service (requires Clearbit API key)
 
 ## Credentials Management
 

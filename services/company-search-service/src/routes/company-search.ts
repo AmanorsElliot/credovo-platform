@@ -64,19 +64,8 @@ CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
       headers['Authorization'] = `Bearer ${identityToken}`;
     }
 
-    // Use The Companies API by default (UK-focused, no HubSpot required)
-    // Can be configured to use 'clearbit' if HubSpot account is available
-    const provider = process.env.COMPANY_SEARCH_PROVIDER || 'companies-api';
-    
-    const connectorRequest = provider === 'clearbit' ? {
-      provider: 'clearbit',
-      endpoint: '/v2/companies/search',
-      method: 'GET' as const,
-      body: {
-        query,
-        limit,
-      },
-    } : {
+    // Use The Companies API for company search
+    const connectorRequest = {
       provider: 'companies-api',
       endpoint: '/v1/search',
       method: 'GET' as const,
@@ -135,24 +124,12 @@ CompanySearchRouter.get('/enrich', async (req: Request, res: Response) => {
       headers['Authorization'] = `Bearer ${identityToken}`;
     }
 
-    // Use Clearbit for domain lookup (The Companies API doesn't support domain lookup)
-    const provider = process.env.COMPANY_SEARCH_PROVIDER || 'companies-api';
-    
-    if (provider !== 'clearbit') {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Domain lookup requires Clearbit provider. Use company search instead.'
-      });
-    }
-
-    const connectorRequest = {
-      provider: 'clearbit',
-      endpoint: '/v1/domains/find',
-      method: 'GET' as const,
-      body: {
-        domain,
-      },
-    };
+    // Domain lookup is not supported by The Companies API
+    // Use company search with the domain name instead
+    return res.status(400).json({
+      error: 'Bad Request',
+      message: 'Domain lookup is not supported. Use company search endpoint with the company name instead.'
+    });
 
     const response = await axios.post(
       `${CONNECTOR_SERVICE_URL}/api/v1/connector/call`,
