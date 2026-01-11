@@ -7,6 +7,10 @@
     "./logger": {
       "require": "./logger.js",
       "types": "./logger.d.ts"
+    },
+    "./webhook-verifier": {
+      "require": "./webhook-verifier.js",
+      "types": "./webhook-verifier.d.ts"
     }
   }
 }
