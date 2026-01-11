@@ -6,7 +6,6 @@ Credovo is a fully automated secured and unsecured commercial finance platform t
 
 This platform is built as a microservices architecture deployed on Google Cloud Platform:
 
-- **Frontend**: Lovable frontend with Lovable Cloud authentication
 - **Backend**: Cloud Run microservices
 - **Data Layer**: GCS Data Lake, BigQuery, Cloud SQL
 - **Infrastructure**: Terraform for IaC, Cloud Build for CI/CD
@@ -19,9 +18,9 @@ credovo-platform/
 ├── services/              # Microservices
 │   ├── kyc-kyb-service/
 │   ├── connector-service/
-│   └── orchestration-service/
+│   ├── orchestration-service/
+│   └── open-banking-service/
 ├── infrastructure/        # Terraform configurations
-├── frontend/              # Lovable frontend
 ├── shared/                # Shared libraries
 └── docs/                  # Documentation
 ```

@@ -6,8 +6,8 @@ This document explains how the three core services (`orchestration-service`, `ky
 
 ```
 ┌─────────────────┐
-│  Frontend       │
-│  (Lovable)      │
+│  Client App     │
+│  (External)     │
 └────────┬────────┘
          │ HTTPS + JWT
          ▼
@@ -81,10 +81,10 @@ This document explains how the three core services (`orchestration-service`, `ky
 
 Here's a step-by-step walkthrough of what happens when a user initiates KYC verification:
 
-### Step 1: Frontend Request
+### Step 1: Client Request
 ```
-Frontend → POST /api/v1/applications/{appId}/kyc/initiate
-Headers: Authorization: Bearer <Supabase JWT>
+Client → POST /api/v1/applications/{appId}/kyc/initiate
+Headers: Authorization: Bearer <JWT>
 Body: { firstName, lastName, dateOfBirth, address }
 ```
 

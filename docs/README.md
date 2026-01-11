@@ -13,7 +13,6 @@ This directory contains documentation for the Credovo platform.
 - **[Architecture Overview](architecture.md)** - System architecture and components
 - **[Service Interactions](SERVICE_INTERACTIONS.md)** - How services communicate
 - **[Authentication Guide](AUTHENTICATION.md)** - Authentication patterns and setup
-- **[Multi-Region Strategy](MULTI_REGION_STRATEGY.md)** - Multi-region deployment strategy
 
 ### Integrations
 - **[Integrations Guide](INTEGRATIONS.md)** - All external service integrations (Plaid, Shufti Pro)

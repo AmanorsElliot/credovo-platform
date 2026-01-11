@@ -6,10 +6,6 @@ Credovo is built as a microservices architecture on Google Cloud Platform, desig
 
 ## Components
 
-### Frontend Layer
-- **Lovable Frontend**: React-based frontend application
-- **Lovable Cloud Auth**: Authentication and user management
-
 ### API Gateway
 - **Orchestration Service**: Routes requests to appropriate microservices, handles authentication
 
@@ -36,14 +32,13 @@ Credovo is built as a microservices architecture on Google Cloud Platform, desig
 
 ## Data Flow
 
-1. User submits application via Lovable frontend
-2. Frontend authenticates with Lovable Cloud Auth
-3. Authenticated request → Orchestration Service
-4. Orchestration Service routes to appropriate microservice
-5. Microservice → Connector Service → External APIs
-6. Results stored in Data Lake (GCS)
-7. Events published to Pub/Sub for async processing
-8. Status updates returned to frontend
+1. Client application submits request to Orchestration Service
+2. Orchestration Service authenticates request (JWT validation)
+3. Orchestration Service routes to appropriate microservice
+4. Microservice → Connector Service → External APIs
+5. Results stored in Data Lake (GCS)
+6. Events published to Pub/Sub for async processing
+7. Status updates returned to client
 
 ## Security
 
@@ -51,7 +46,7 @@ Credovo is built as a microservices architecture on Google Cloud Platform, desig
 - Service-to-service authentication using GCP service accounts
 - Secrets stored in Secret Manager
 - VPC connector for private resource access
-- CORS configured for Lovable frontend domain
+- CORS configured for client applications
 
 ## Deployment
 
