@@ -70,12 +70,18 @@ resource "google_secret_manager_secret_iam_member" "connector_plaid_client_id_ac
 - **Secret Key**: `2bf99d20b80c1cebf3b98da518f220`
 - **Base URL**: `https://sandbox.plaid.com`
 
-### Production (Future)
+### Production (Current - Limited Access)
+
+**⚠️ Important Limitation**: Current production credentials have **Limited Production access**:
+- ✅ Can access live data from institutions that **don't use OAuth**
+- ❌ Cannot connect to institutions that **require OAuth**
+- This will change when full production access is granted
 
 When deploying to production:
 1. Update `PLAID_ENV` to `production` in Cloud Run
 2. Update `PLAID_SECRET_KEY` to reference `plaid-secret-key-prod`
 3. Base URL will automatically switch to `https://production.plaid.com`
+4. **Note**: Only non-OAuth institutions will be available until full access is granted
 
 ## Testing
 
@@ -121,6 +127,8 @@ gcloud secrets versions access latest --secret=plaid-secret-key-prod --project=c
 2. **Test Integration**: Use Plaid sandbox to test the integration
 3. **Configure Webhooks**: Set up webhook endpoint in Plaid Dashboard
 4. **Production Setup**: When ready, switch to production credentials
+   - **Note**: Current production access is Limited (no OAuth institutions)
+   - Full production access will enable OAuth institution support
 
 ## Resources
 

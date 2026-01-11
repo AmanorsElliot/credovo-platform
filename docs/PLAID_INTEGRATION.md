@@ -225,6 +225,20 @@ const { accessToken, itemId } = await response.json();
 - `PLAID_WEBHOOK_VERIFICATION_KEY`: For webhook signature verification
 - `OPEN_BANKING_SERVICE_URL`: Open banking service URL (auto-detected in Cloud Run)
 
+### Production Access Limitations
+
+**⚠️ Important**: Current Plaid production credentials have **Limited Production access**:
+- ✅ Can access live data from institutions that **don't use OAuth**
+- ❌ Cannot connect to institutions that **require OAuth**
+- This limitation will be resolved when full production access is granted
+
+**Impact:**
+- Some banks may not be available for connection
+- Users attempting to connect OAuth-only banks will see an error
+- Consider showing a message to users: "Some banks may not be available. If your bank is not listed, please contact support."
+
+**Future**: When full production access is granted, OAuth institutions will become available automatically.
+
 ### Secret Manager
 
 Store Plaid credentials in GCP Secret Manager:
@@ -298,12 +312,14 @@ Handle errors gracefully and provide user-friendly messages.
 
 - [ ] Set `PLAID_ENV=production`
 - [ ] Configure production credentials in Secret Manager
+- [ ] **Note**: Current production access is Limited (no OAuth institutions)
 - [ ] Set up webhook endpoint in Plaid Dashboard
 - [ ] Configure webhook verification key
-- [ ] Test end-to-end flow in production
+- [ ] Test end-to-end flow in production (non-OAuth institutions only)
 - [ ] Set up monitoring and alerts
 - [ ] Document incident response procedures
 - [ ] Review compliance requirements (GDPR, PCI-DSS)
+- [ ] Update when full production access is granted (OAuth support)
 
 ## Resources
 

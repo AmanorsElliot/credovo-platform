@@ -16,6 +16,9 @@ Plaid integration provides open banking functionality including account verifica
 2. Service uses sandbox environment by default (`PLAID_ENV=sandbox`)
 3. See [PLAID_INTEGRATION.md](PLAID_INTEGRATION.md) for API endpoints
 
+### Production Access Status
+**⚠️ Limited Production Access**: Current production credentials can only access institutions that don't use OAuth. OAuth-only institutions are not available until full production access is granted.
+
 ## Shufti Pro (KYC/KYB)
 
 ### Overview
