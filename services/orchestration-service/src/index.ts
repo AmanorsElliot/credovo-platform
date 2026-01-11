@@ -7,21 +7,40 @@ import { WebhookRouter } from './routes/webhooks';
 import { BankingRouter } from './routes/banking';
 import { CompanySearchRouter } from './routes/company-search';
 
-const logger = createLogger('orchestration-service');
+// Initialize logger with fallback
+let logger: any;
+try {
+  logger = createLogger('orchestration-service');
+} catch (error) {
+  // Fallback logger if shared-utils fails to load
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    debug: (...args: any[]) => console.log('[DEBUG]', ...args),
+    request: () => {},
+  };
+  console.error('Failed to initialize logger, using console fallback', error);
+}
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Log startup information
-logger.info('Starting orchestration service', {
-  port: PORT,
-  environment: process.env.ENVIRONMENT,
-  nodeEnv: process.env.NODE_ENV,
-  hasKycServiceUrl: !!process.env.KYC_SERVICE_URL,
-  hasConnectorServiceUrl: !!process.env.CONNECTOR_SERVICE_URL,
-  hasServiceJwtSecret: !!process.env.SERVICE_JWT_SECRET,
-  hasLovableJwksUri: !!process.env.LOVABLE_JWKS_URI,
-  hasLovableAudience: !!process.env.LOVABLE_AUDIENCE,
-});
+try {
+  logger.info('Starting orchestration service', {
+    port: PORT,
+    environment: process.env.ENVIRONMENT,
+    nodeEnv: process.env.NODE_ENV,
+    hasKycServiceUrl: !!process.env.KYC_SERVICE_URL,
+    hasConnectorServiceUrl: !!process.env.CONNECTOR_SERVICE_URL,
+    hasServiceJwtSecret: !!process.env.SERVICE_JWT_SECRET,
+    hasLovableJwksUri: !!process.env.LOVABLE_JWKS_URI,
+    hasLovableAudience: !!process.env.LOVABLE_AUDIENCE,
+  });
+} catch (error) {
+  console.error('Failed to log startup info', error);
+}
 
 // Middleware
 // Configure JSON parser with verify to preserve raw body for webhook signature verification
@@ -73,35 +92,48 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Start server with error handling
 try {
-  const server = app.listen(PORT, () => {
-    logger.info(`Orchestration service started successfully on port ${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    const message = `Orchestration service started successfully on port ${PORT}`;
+    logger.info(message);
+    console.log(message); // Also log to console for Cloud Run logs
   });
 
   // Handle server errors
   server.on('error', (error: any) => {
-    logger.error('Server error', error);
+    const errorMsg = `Server error: ${error.message || error}`;
+    logger.error(errorMsg, error);
+    console.error(errorMsg, error);
     if (error.code === 'EADDRINUSE') {
-      logger.error(`Port ${PORT} is already in use`);
+      const portMsg = `Port ${PORT} is already in use`;
+      logger.error(portMsg);
+      console.error(portMsg);
       process.exit(1);
     } else {
       logger.error('Unexpected server error', error);
+      console.error('Unexpected server error', error);
       process.exit(1);
     }
   });
 
   // Handle uncaught exceptions
   process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught exception', error);
+    const errorMsg = `Uncaught exception: ${error.message || error}`;
+    logger.error(errorMsg, error);
+    console.error(errorMsg, error);
     process.exit(1);
   });
 
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    logger.error('Unhandled promise rejection', { reason, promise });
+    const errorMsg = `Unhandled promise rejection: ${reason}`;
+    logger.error(errorMsg, { reason, promise });
+    console.error(errorMsg, { reason, promise });
     process.exit(1);
   });
 } catch (error: any) {
-  logger.error('Failed to start orchestration service', error);
+  const errorMsg = `Failed to start orchestration service: ${error.message || error}`;
+  logger.error(errorMsg, error);
+  console.error(errorMsg, error);
   process.exit(1);
 }
 
