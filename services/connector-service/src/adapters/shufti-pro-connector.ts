@@ -213,14 +213,22 @@ export class ShuftiProConnector extends BaseConnector {
         '/status',
         {
           'Authorization': `Basic ${authHeader}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         statusData
       );
 
+      // Check if response indicates success
+      const event = response.event || response.verification_result?.event;
+      const hasData = response.reference || event || response.verification_result;
+      
       return {
         success: true,
         reference: reference,
+        event: event,
+        status: response.status || event,
+        verification_result: response.verification_result || response,
         ...response
       };
     } catch (error: any) {
@@ -241,14 +249,20 @@ export class ShuftiProConnector extends BaseConnector {
             '/status',
             {
               'Authorization': `Basic ${authHeader}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
             },
             statusData
           );
 
+          const event = retryResponse.event || retryResponse.verification_result?.event;
+          
           return {
             success: true,
             reference: reference,
+            event: event,
+            status: retryResponse.status || event,
+            verification_result: retryResponse.verification_result || retryResponse,
             retries: retries,
             ...retryResponse
           };

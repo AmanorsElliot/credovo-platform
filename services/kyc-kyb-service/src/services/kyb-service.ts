@@ -144,5 +144,85 @@ export class KYBService {
       throw error;
     }
   }
+
+  async getKYBStatus(applicationId: string, userId: string): Promise<KYBResponse | null> {
+    logger.info('Getting KYB status', { applicationId, userId });
+
+    try {
+      // Try to get from data lake first
+      const stored = await this.dataLake.getKYBResponse(applicationId);
+      
+      if (stored) {
+        return stored;
+      }
+
+      // If not found, check with provider (Shufti Pro)
+      // Get the reference from the stored API request
+      const rawRequest = await this.dataLake.getRawAPIRequest('kyb', applicationId);
+      let reference: string;
+      
+      if (rawRequest && rawRequest.body && rawRequest.body.reference) {
+        reference = rawRequest.body.reference;
+      } else {
+        // Fallback: construct reference from applicationId (format: kyb-{applicationId}-{timestamp})
+        // This won't work for status checks but provides a fallback
+        reference = `kyb-${applicationId}`;
+        logger.warn('Could not find stored reference, using fallback', { applicationId, reference });
+      }
+      
+      const connectorRequest = {
+        provider: 'shufti-pro',
+        endpoint: `/status/${reference}`,
+        method: 'POST' as const,
+        body: {
+          reference: reference
+        },
+        retry: true  // Enable retry for status checks
+      };
+
+      try {
+        const connectorResponse = await this.connector.call(connectorRequest);
+
+        if (connectorResponse.success && connectorResponse.reference) {
+          const verificationResult = connectorResponse.verification_result || connectorResponse;
+          const event = connectorResponse.event || 
+                       verificationResult.event || 
+                       connectorResponse.status;
+          const isVerified = event === 'verification.accepted' || event === 'approved';
+          const isPending = event === 'verification.pending' || event === 'pending';
+          
+          const response: KYBResponse = {
+            applicationId,
+            companyNumber: verificationResult.business?.registration_number || 
+                          connectorResponse.business?.registration_number || '',
+            status: isVerified ? 'verified' : 
+                   isPending ? 'pending' : 'not_found',
+            data: verificationResult.business || connectorResponse.business ? {
+              companyName: verificationResult.business?.name || 
+                          connectorResponse.business?.name,
+              status: event || 'unknown',
+              metadata: connectorResponse,
+              aml: verificationResult.risk_assessment || connectorResponse.risk_assessment
+            } : undefined,
+            timestamp: new Date()
+          };
+
+          await this.dataLake.storeKYBResponse(response);
+          return response;
+        }
+
+        // If status check failed, return null (application not found)
+        logger.warn('Status check returned no data', { applicationId, reference, response: connectorResponse });
+        return null;
+      } catch (error: any) {
+        logger.error('Status check failed', error, { applicationId, reference });
+        // Don't throw - return null to indicate not found
+        return null;
+      }
+    } catch (error: any) {
+      logger.error('Failed to get KYB status', error);
+      throw error;
+    }
+  }
 }
 

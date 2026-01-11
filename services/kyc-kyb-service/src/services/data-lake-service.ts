@@ -98,6 +98,48 @@ export class DataLakeService {
     logger.info('Stored KYB response to data lake', { path, applicationId: response.applicationId });
   }
 
+  async getKYBResponse(applicationId: string): Promise<KYBResponse | null> {
+    const prefix = `kyb/responses/${applicationId}/`;
+    const [files] = await this.storage.bucket(this.bucketName).getFiles({ prefix });
+    
+    if (files.length === 0) {
+      return null;
+    }
+
+    // Get the most recent file
+    const latestFile = files.sort((a, b) => {
+      const timeA = a.metadata.timeCreated || '';
+      const timeB = b.metadata.timeCreated || '';
+      return timeB.localeCompare(timeA);
+    })[0];
+
+    const [content] = await latestFile.download();
+    return JSON.parse(content.toString());
+  }
+
+  /**
+   * Get the most recent raw API request for a given application
+   * Used to retrieve the reference ID for status checks
+   */
+  async getRawAPIRequest(type: 'kyc' | 'kyb', applicationId: string): Promise<any | null> {
+    const prefix = `${type}/api-requests/${applicationId}/`;
+    const [files] = await this.storage.bucket(this.bucketName).getFiles({ prefix });
+    
+    if (files.length === 0) {
+      return null;
+    }
+
+    // Get the most recent file
+    const latestFile = files.sort((a, b) => {
+      const timeA = a.metadata.timeCreated || '';
+      const timeB = b.metadata.timeCreated || '';
+      return timeB.localeCompare(timeA);
+    })[0];
+
+    const [content] = await latestFile.download();
+    return JSON.parse(content.toString());
+  }
+
   /**
    * Store raw API request sent to external provider
    */

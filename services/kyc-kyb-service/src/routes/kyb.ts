@@ -41,3 +41,37 @@ KYBRouter.post('/verify', async (req: Request, res: Response) => {
   }
 });
 
+KYBRouter.get('/status/:applicationId', async (req: Request, res: Response) => {
+  try {
+    const { applicationId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User ID required'
+      });
+    }
+
+    const status = await kybService.getKYBStatus(applicationId, userId);
+
+    if (!status) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'KYB application not found'
+      });
+    }
+
+    res.json(status);
+  } catch (error: any) {
+    logger.error('KYB status check failed', error, {
+      applicationId: req.params.applicationId
+    });
+    
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message || 'Failed to get KYB status'
+    });
+  }
+});
+

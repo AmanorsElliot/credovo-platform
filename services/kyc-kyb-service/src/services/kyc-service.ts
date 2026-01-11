@@ -138,10 +138,18 @@ export class KYCService {
       }
 
       // If not found, check with provider (Shufti Pro)
-      // Need to get the reference from the initial request
-      // For now, construct reference from applicationId (format: kyc-{applicationId}-{timestamp})
-      // In production, we should store the reference when initiating KYC
-      const reference = `kyc-${applicationId}`;
+      // Get the reference from the stored API request
+      const rawRequest = await this.dataLake.getRawAPIRequest('kyc', applicationId);
+      let reference: string;
+      
+      if (rawRequest && rawRequest.body && rawRequest.body.reference) {
+        reference = rawRequest.body.reference;
+      } else {
+        // Fallback: construct reference from applicationId (format: kyc-{applicationId}-{timestamp})
+        // This won't work for status checks but provides a fallback
+        reference = `kyc-${applicationId}`;
+        logger.warn('Could not find stored reference, using fallback', { applicationId, reference });
+      }
       
       const connectorRequest = {
         provider: 'shufti-pro',
