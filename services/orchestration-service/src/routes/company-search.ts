@@ -43,6 +43,14 @@ function createServiceToken(): string {
  */
 CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
   try {
+    // Check if company search service is configured
+    if (!COMPANY_SEARCH_SERVICE_URL || COMPANY_SEARCH_SERVICE_URL.includes('company-search-service:8080')) {
+      return res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Company search service is not configured. Please deploy company-search-service first.'
+      });
+    }
+
     const identityToken = await getIdentityToken(COMPANY_SEARCH_SERVICE_URL);
     const serviceToken = createServiceToken();
 
@@ -59,12 +67,22 @@ CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
       {
         params: req.query,
         headers,
+        timeout: 10000,
       }
     );
 
     res.json(response.data);
   } catch (error: any) {
     logger.error('Failed to search companies', error);
+    
+    // Handle service not available gracefully
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.response?.status === 404) {
+      return res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Company search service is not available. Please ensure company-search-service is deployed.'
+      });
+    }
+    
     res.status(error.response?.status || 500).json({
       error: 'Failed to search companies',
       message: error.message
@@ -78,6 +96,14 @@ CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
  */
 CompanySearchRouter.get('/enrich', async (req: Request, res: Response) => {
   try {
+    // Check if company search service is configured
+    if (!COMPANY_SEARCH_SERVICE_URL || COMPANY_SEARCH_SERVICE_URL.includes('company-search-service:8080')) {
+      return res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Company search service is not configured. Please deploy company-search-service first.'
+      });
+    }
+
     const identityToken = await getIdentityToken(COMPANY_SEARCH_SERVICE_URL);
     const serviceToken = createServiceToken();
 
@@ -94,12 +120,22 @@ CompanySearchRouter.get('/enrich', async (req: Request, res: Response) => {
       {
         params: req.query,
         headers,
+        timeout: 10000,
       }
     );
 
     res.json(response.data);
   } catch (error: any) {
     logger.error('Failed to enrich company', error);
+    
+    // Handle service not available gracefully
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.response?.status === 404) {
+      return res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Company search service is not available. Please ensure company-search-service is deployed.'
+      });
+    }
+    
     res.status(error.response?.status || 500).json({
       error: 'Failed to enrich company',
       message: error.message
