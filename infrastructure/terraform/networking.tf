@@ -349,6 +349,35 @@ resource "google_secret_manager_secret" "clearbit_api_key" {
   }
 }
 
+# The Companies API key (for company search/autocomplete)
+resource "google_secret_manager_secret" "companies_api_key" {
+  secret_id = "companies-api-api-key"
+  
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    provider    = "companies-api"
+    purpose      = "company-search"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
+# Create initial placeholder secret version (will be updated with actual key)
+resource "google_secret_manager_secret_version" "companies_api_key_version" {
+  secret      = google_secret_manager_secret.companies_api_key.id
+  secret_data = "7p4EEUJmvJf4JhQuWSRnIlQ3V10R6TCK"  # Production API key
+  
+  depends_on = [google_secret_manager_secret.companies_api_key]
+}
+
 # Plaid secret versions (using sandbox for nonprod)
 resource "google_secret_manager_secret_version" "plaid_client_id_version" {
   secret      = google_secret_manager_secret.plaid_client_id.id

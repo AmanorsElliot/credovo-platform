@@ -112,6 +112,13 @@ resource "google_secret_manager_secret_iam_member" "connector_clearbit_api_key_a
   role      = "roles/secretmanager.secretAccessor"
 }
 
+# Grant connector service access to The Companies API secret
+resource "google_secret_manager_secret_iam_member" "connector_companies_api_key_access" {
+  secret_id = google_secret_manager_secret.companies_api_key.secret_id
+  member    = "serviceAccount:${google_service_account.services["connector-service"].email}"
+  role      = "roles/secretmanager.secretAccessor"
+}
+
 # Grant connector service access to Plaid secrets
 resource "google_secret_manager_secret_iam_member" "connector_plaid_client_id_access" {
   secret_id = google_secret_manager_secret.plaid_client_id.secret_id

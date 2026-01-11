@@ -216,6 +216,17 @@ resource "google_cloud_run_service" "connector_service" {
         #   }
         # }
 
+        # The Companies API key (for company search/autocomplete)
+        env {
+          name = "COMPANIES_API_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = "companies-api-api-key"
+              key  = "latest"
+            }
+          }
+        }
+
         ports {
           container_port = 8080
         }

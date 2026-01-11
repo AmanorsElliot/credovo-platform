@@ -25,21 +25,23 @@
 **Purpose**: Provide real-time company name autocomplete for application forms
 
 **Recommended APIs**:
-- **⚠️ Clearbit Enrichment API** (Requires HubSpot Account)
-  - **Status**: Acquired by HubSpot - now requires HubSpot account access
+- **✅ The Companies API** (Default Provider - Recommended) ✅
+  - **Status**: ✅ Active and configured as default
+  - Company search with autocomplete
+  - UK-focused company database
+  - Standalone API (no HubSpot required)
+  - Production and sandbox API keys configured
+  - Documentation: https://www.thecompaniesapi.com/
+  - **Recommendation**: ✅ Use this as the primary provider
+
+- **⚠️ Clearbit Enrichment API** (Optional - Requires HubSpot Account)
+  - **Status**: Acquired by HubSpot - requires HubSpot account access
   - **Note**: Free tools sunset April 30, 2025 - requires paid HubSpot plan
   - Company search with autocomplete
   - Rich company data (employees, revenue, industry, etc.)
   - Global coverage (US, UK, EU, etc.)
   - Documentation: https://clearbit.com/docs#enrichment-api
   - **Recommendation**: Only use if you already have HubSpot
-
-- **The Companies API** (Alternative)
-  - Company search with autocomplete
-  - UK-focused but expanding
-  - Good for lead verification
-  - Standalone API (no HubSpot required)
-  - Documentation: https://www.thecompaniesapi.com/
 
 - **Companies House API** (UK Only - Already Integrated) ✅
   - UK company search and verification
@@ -48,7 +50,7 @@
   - Documentation: https://developer.company-information.service.gov.uk/
 
 **Implementation Priority**: High - Needed for better UX in application forms
-**Current Status**: ⚠️ Clearbit requires API access from HubSpot/Clearbit support (direct login no longer available)
+**Current Status**: ✅ The Companies API implemented and configured as default provider
 
 #### 2. Credit Check Service
 **Purpose**: Credit scoring and credit history checks
