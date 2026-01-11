@@ -32,17 +32,23 @@ $SecretName = "companies-api-api-key"
 
 # Check if secret exists
 Write-Host "`nChecking if secret exists..." -ForegroundColor Cyan
-$secretExists = gcloud secrets describe $SecretName --project=$ProjectId 2>&1
+$secretCheck = gcloud secrets describe $SecretName --project=$ProjectId 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Secret does not exist. Please create it via Terraform first." -ForegroundColor Red
-    Write-Host "Run: terraform apply in infrastructure/terraform/" -ForegroundColor Yellow
-    exit 1
+    Write-Host "Secret does not exist. Creating it..." -ForegroundColor Yellow
+    echo $ApiKey | gcloud secrets create $SecretName --project=$ProjectId --replication-policy="user-managed" --locations=$Region --data-file=-
+    
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Secret created successfully!" -ForegroundColor Green
+    } else {
+        Write-Host "❌ Failed to create secret" -ForegroundColor Red
+        exit 1
+    }
+} else {
+    # Add new secret version
+    Write-Host "Secret exists. Adding new version..." -ForegroundColor Cyan
+    echo $ApiKey | gcloud secrets versions add $SecretName --project=$ProjectId --data-file=-
 }
-
-# Add new secret version
-Write-Host "`nAdding new secret version..." -ForegroundColor Cyan
-echo $ApiKey | gcloud secrets versions add $SecretName --project=$ProjectId --data-file=-
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n✅ Successfully configured The Companies API secret!" -ForegroundColor Green
