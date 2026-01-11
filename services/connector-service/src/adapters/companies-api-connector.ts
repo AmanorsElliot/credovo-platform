@@ -43,11 +43,6 @@ export class CompaniesApiConnector extends BaseConnector {
     }
   }
 
-  private async getApiKey(): Promise<string> {
-    const secretName = `${this.providerName}-api-key`;
-    return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
-  }
-
   /**
    * Company Search with Autocomplete
    * GET /v1/search?q=company+name&limit=10
