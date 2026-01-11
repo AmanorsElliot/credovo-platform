@@ -4,6 +4,20 @@
   "description": "Shared TypeScript types for Credovo platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./validation": {
+      "types": "./dist/validation.d.ts",
+      "default": "./dist/validation.js"
+    },
+    "./validation-middleware": {
+      "types": "./dist/validation-middleware.d.ts",
+      "default": "./dist/validation-middleware.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build"

@@ -8,6 +8,8 @@
     "baseUrl": ".",
     "paths": {
       "@credovo/shared-types": ["shared/types/index.ts"],
+      "@credovo/shared-types/validation": ["shared/types/validation.ts"],
+      "@credovo/shared-types/validation-middleware": ["shared/types/validation-middleware.ts"],
       "@credovo/shared-auth": ["shared/auth/index.ts"],
       "@credovo/shared-utils/*": ["shared/utils/*.ts"]
     },
