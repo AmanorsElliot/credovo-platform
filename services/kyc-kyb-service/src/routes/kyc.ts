@@ -2,24 +2,21 @@ import { Router, Request, Response } from 'express';
 import { KYCRequest, KYCResponse } from '@credovo/shared-types';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { KYCService } from '../services/kyc-service';
+import { validateBody, validateParams } from '@credovo/shared-types/validation-middleware';
+import { KYCRequestSchema, ApplicationIdParamSchema } from '@credovo/shared-types/validation';
 
 const logger = createLogger('kyc-service');
 export const KYCRouter = Router();
 const kycService = new KYCService();
 
-KYCRouter.post('/initiate', async (req: Request, res: Response) => {
-  try {
-    const request: KYCRequest = {
-      ...req.body,
-      userId: req.userId || req.body.userId
-    };
-
-    if (!request.applicationId || !request.userId) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Missing required fields: applicationId, userId'
-      });
-    }
+KYCRouter.post('/initiate',
+  validateBody(KYCRequestSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const request: KYCRequest = {
+        ...req.body,
+        userId: req.userId || req.body.userId
+      };
 
     logger.info('KYC initiation requested', {
       applicationId: request.applicationId,
@@ -42,9 +39,11 @@ KYCRouter.post('/initiate', async (req: Request, res: Response) => {
   }
 });
 
-KYCRouter.get('/status/:applicationId', async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
+KYCRouter.get('/status/:applicationId',
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
     // For service-to-service calls, userId might not be present (req.service is set instead)
     // Use userId if available, otherwise use service identifier or applicationId as fallback
     const userId = req.userId || req.service || `service-${applicationId}`;

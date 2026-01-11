@@ -2,6 +2,9 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { validateRequest, validateParams } from '@credovo/shared-types/validation-middleware';
+import { ApplicationIdParamSchema, KYCRequestSchema, KYBRequestSchema } from '@credovo/shared-types/validation';
+import { Application, ApplicationStatus } from '@credovo/shared-types';
 
 const logger = createLogger('orchestration-service');
 export const ApplicationRouter = Router();
@@ -54,49 +57,155 @@ function createServiceToken(): string {
   );
 }
 
-ApplicationRouter.post('/:applicationId/kyc/initiate', async (req: Request, res: Response) => {
+/**
+ * Create a new application
+ * POST /api/v1/applications
+ */
+ApplicationRouter.post('/', async (req: Request, res: Response) => {
   try {
-    const { applicationId } = req.params;
+    const userId = req.userId;
     
-    // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
-    const identityToken = await getIdentityToken(KYC_SERVICE_URL);
-    // Create application-level service token (required)
-    const serviceToken = createServiceToken();
-    
-    // Build headers - include identity token if available, always include service token
-    const headers: Record<string, string> = {
-      'X-Service-Token': serviceToken // Application-level service token
-    };
-    
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User ID is required'
+      });
     }
-    
-    const response = await axios.post(
-      `${KYC_SERVICE_URL}/api/v1/kyc/initiate`,
-      {
-        ...req.body,
-        applicationId,
-        userId: req.userId
-      },
-      {
-        headers
-      }
-    );
 
-    res.json(response.data);
+    // Generate application ID
+    const applicationId = `app-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Create application object
+    const application: Application = {
+      id: applicationId,
+      userId: userId,
+      status: ApplicationStatus.PENDING,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      data: {
+        type: req.body.type || 'business_mortgage',
+        ...req.body
+      }
+    };
+
+    logger.info('Application created', {
+      applicationId,
+      userId,
+      type: application.data.type
+    });
+
+    res.status(201).json({
+      success: true,
+      application: {
+        id: application.id,
+        userId: application.userId,
+        status: application.status,
+        createdAt: application.createdAt,
+        updatedAt: application.updatedAt,
+        data: application.data
+      }
+    });
   } catch (error: any) {
-    logger.error('Failed to initiate KYC', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to initiate KYC',
+    logger.error('Failed to create application', error);
+    res.status(500).json({
+      error: 'Failed to create application',
       message: error.message
     });
   }
 });
 
-ApplicationRouter.get('/:applicationId/kyc/status', async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
+/**
+ * Get application by ID
+ * GET /api/v1/applications/:applicationId
+ */
+ApplicationRouter.get('/:applicationId', 
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
+      const userId = req.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User ID is required'
+        });
+      }
+
+      // TODO: In the future, this would fetch from a database
+      // For now, return a basic response
+      logger.info('Application retrieved', { applicationId, userId });
+
+      res.json({
+        id: applicationId,
+        userId: userId,
+        status: ApplicationStatus.PENDING,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        data: {}
+      });
+    } catch (error: any) {
+      logger.error('Failed to get application', error);
+      res.status(500).json({
+        error: 'Failed to get application',
+        message: error.message
+      });
+    }
+  }
+);
+
+ApplicationRouter.post('/:applicationId/kyc/initiate', 
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: KYCRequestSchema.omit({ applicationId: true, userId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
+      
+      // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
+      const identityToken = await getIdentityToken(KYC_SERVICE_URL);
+      // Create application-level service token (required)
+      const serviceToken = createServiceToken();
+      
+      // Build headers - include identity token if available, always include service token
+      const headers: Record<string, string> = {
+        'X-Service-Token': serviceToken // Application-level service token
+      };
+      
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
+      }
+      
+      // Combine validated body with applicationId and userId
+      const validatedBody = {
+        ...req.body,
+        applicationId,
+        userId: req.userId
+      };
+      
+      const response = await axios.post(
+        `${KYC_SERVICE_URL}/api/v1/kyc/initiate`,
+        validatedBody,
+        {
+          headers
+        }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to initiate KYC', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to initiate KYC',
+        message: error.message
+      });
+    }
+  }
+);
+
+ApplicationRouter.get('/:applicationId/kyc/status',
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
     
     // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
     const identityToken = await getIdentityToken(KYC_SERVICE_URL);
@@ -129,49 +238,57 @@ ApplicationRouter.get('/:applicationId/kyc/status', async (req: Request, res: Re
   }
 });
 
-ApplicationRouter.post('/:applicationId/kyb/verify', async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
-    
-    // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
-    const identityToken = await getIdentityToken(KYC_SERVICE_URL);
-    // Create application-level service token (required)
-    const serviceToken = createServiceToken();
-    
-    // Build headers - include identity token if available, always include service token
-    const headers: Record<string, string> = {
-      'X-Service-Token': serviceToken // Application-level service token
-    };
-    
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
-    }
-    
-    const response = await axios.post(
-      `${KYC_SERVICE_URL}/api/v1/kyb/verify`,
-      {
-        ...req.body,
-        applicationId,
-        userId: req.userId
-      },
-      {
-        headers
+ApplicationRouter.post('/:applicationId/kyb/verify',
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: KYBRequestSchema.omit({ applicationId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
+      
+      // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
+      const identityToken = await getIdentityToken(KYC_SERVICE_URL);
+      // Create application-level service token (required)
+      const serviceToken = createServiceToken();
+      
+      // Build headers - include identity token if available, always include service token
+      const headers: Record<string, string> = {
+        'X-Service-Token': serviceToken // Application-level service token
+      };
+      
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
       }
-    );
+      
+      // Combine validated body with applicationId
+      const validatedBody = {
+        ...req.body,
+        applicationId
+      };
+      
+      const response = await axios.post(
+        `${KYC_SERVICE_URL}/api/v1/kyb/verify`,
+        validatedBody,
+        {
+          headers
+        }
+      );
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to verify KYB', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to verify KYB',
-      message: error.message
-    });
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to verify KYB', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to verify KYB',
+        message: error.message
+      });
+    }
   }
-});
+);
 
-ApplicationRouter.get('/:applicationId/kyb/status', async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
+ApplicationRouter.get('/:applicationId/kyb/status',
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
     
     // Try to get Cloud Run identity token for IAM authentication (optional if service is public)
     const identityToken = await getIdentityToken(KYC_SERVICE_URL);

@@ -4,6 +4,13 @@ This guide explains how to test the Credovo platform end-to-end, including KYC/K
 
 ## Quick Start
 
+### Test All Integrations
+
+```powershell
+# Test all service health endpoints and integrations
+.\scripts\test-integrations.ps1
+```
+
 ### Run Comprehensive Test Suite
 
 ```powershell

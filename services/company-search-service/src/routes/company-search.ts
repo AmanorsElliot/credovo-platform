@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { validateQuery } from '@credovo/shared-types/validation-middleware';
+import { CompanySearchQuerySchema } from '@credovo/shared-types/validation';
 
 const logger = createLogger('company-search-routes');
 export const CompanySearchRouter = Router();
@@ -41,17 +43,12 @@ function createServiceToken(): string {
  * Company Search with Autocomplete
  * GET /api/v1/companies/search?query=company+name&limit=10
  */
-CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
-  try {
-    const query = req.query.query as string;
-    const limit = parseInt(req.query.limit as string) || 10;
-
-    if (!query || query.length < 2) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Query parameter is required and must be at least 2 characters'
-      });
-    }
+CompanySearchRouter.get('/search',
+  validateQuery(CompanySearchQuerySchema),
+  async (req: Request, res: Response) => {
+    try {
+      const query = req.query.query as string;
+      const limit = req.query.limit as number;
 
     const identityToken = await getIdentityToken(CONNECTOR_SERVICE_URL);
     const serviceToken = createServiceToken();

@@ -307,6 +307,16 @@ resource "google_cloud_run_service" "orchestration_service" {
         }
 
         env {
+          name = "LOVABLE_FRONTEND_URL"
+          value_from {
+            secret_key_ref {
+              name = "lovable-frontend-url"
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
           name = "SERVICE_JWT_SECRET"
           value_from {
             secret_key_ref {
@@ -354,23 +364,22 @@ resource "google_cloud_run_service" "orchestration_service" {
   }
 }
 
-# IAM policy - Services require authentication by default
-# To allow public access, uncomment and configure the resources below
+# IAM policy - Allow unauthenticated invocation for orchestration service
+# This allows Cloud Run to accept requests without Google Identity tokens.
+# The application layer will enforce authentication using Supabase JWT tokens.
 # Note: Organization policies may restrict public access (allUsers)
 #
-# resource "google_cloud_run_service_iam_member" "kyc_kyb_public_access" {
-#   service  = google_cloud_run_service.kyc_kyb_service.name
-#   location = google_cloud_run_service.kyc_kyb_service.location
-#   role     = "roles/run.invoker"
-#   member   = "allUsers"
-# }
+# KYC/KYB service remains authenticated (service-to-service only)
 #
-# resource "google_cloud_run_service_iam_member" "orchestration_public_access" {
-#   service  = google_cloud_run_service.orchestration_service.name
-#   location = google_cloud_run_service.orchestration_service.location
-#   role     = "roles/run.invoker"
-#   member   = "allUsers"
-# }
+resource "google_cloud_run_service_iam_member" "orchestration_public_access" {
+  service  = google_cloud_run_service.orchestration_service.name
+  location = google_cloud_run_service.orchestration_service.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+  
+  # This allows the Edge Function (and other external callers) to invoke the service
+  # without requiring Google Identity tokens. The application will validate Supabase JWTs.
+}
 
 # Grant service account access to invoke services (for service-to-service communication)
 resource "google_cloud_run_service_iam_member" "orchestration_invoke_kyc" {

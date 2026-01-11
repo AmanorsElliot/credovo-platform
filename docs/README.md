@@ -13,9 +13,16 @@ This directory contains documentation for the Credovo platform.
 - **[Architecture Overview](architecture.md)** - System architecture and components
 - **[Service Interactions](SERVICE_INTERACTIONS.md)** - How services communicate
 - **[Authentication Guide](AUTHENTICATION.md)** - Authentication patterns and setup
+- **[Application Creation Endpoint](APPLICATION_CREATION_ENDPOINT.md)** - Application creation API
+- **[Input Validation](INPUT_VALIDATION_IMPLEMENTATION.md)** - Server-side input validation
+- **[Security Review](SECURITY_REVIEW.md)** - Security assessment and recommendations
 
 ### Integrations
-- **[Integrations Guide](INTEGRATIONS.md)** - All external service integrations (Plaid, Shufti Pro)
+- **[Integrations Guide](INTEGRATIONS.md)** - All external service integrations (Plaid, Shufti Pro, The Companies API)
+- **[Integration Status](INTEGRATION_STATUS.md)** - Current status of all integrations
+- **[Frontend Connection](FRONTEND_CONNECTION.md)** - Connect Lovable frontend to backend
+- **[Supabase Edge Function Auth](SUPABASE_EDGE_FUNCTION_AUTH.md)** - Edge Function authentication setup
+- **[Proxy Service Setup](PROXY_SERVICE_SETUP.md)** - Regulatory-compliant proxy service for Edge Functions
 - **[Plaid Integration](PLAID_INTEGRATION.md)** - Open banking integration
 - **[Plaid Credentials](PLAID_CREDENTIALS_SETUP.md)** - Plaid credential setup
 - **[Shufti Pro API](SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
@@ -27,6 +34,7 @@ This directory contains documentation for the Credovo platform.
 - **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
 - **[Testing Guide](TESTING_GUIDE.md)** - End-to-end testing instructions
 - **[Cloud Build Troubleshooting](CLOUD_BUILD_TROUBLESHOOTING.md)** - Common build issues
+- **[Troubleshooting 401 Error](TROUBLESHOOTING_401_ERROR.md)** - Fixing 401 Unauthorized errors
 
 ### CI/CD
 - **[Cloud Build Setup](CLOUD_BUILD_GITHUB_SETUP.md)** - Automated builds and deployments

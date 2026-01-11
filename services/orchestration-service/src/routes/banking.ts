@@ -1,6 +1,14 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { validateRequest, validateParams } from '@credovo/shared-types/validation-middleware';
+import { 
+  ApplicationIdParamSchema, 
+  BankLinkRequestSchema, 
+  BankLinkExchangeRequestSchema,
+  AccountBalanceRequestSchema,
+  TransactionRequestSchema
+} from '@credovo/shared-types/validation';
 
 const logger = createLogger('orchestration-banking');
 export const BankingRouter = Router();
@@ -41,218 +49,247 @@ function createServiceToken(): string {
  * Create Plaid Link Token
  * POST /api/v1/applications/:applicationId/banking/link-token
  */
-BankingRouter.post('/:applicationId/banking/link-token', async (req: Request, res: Response) => {
-  try {
-    const applicationId = req.params.applicationId;
-    const userId = req.userId;
+BankingRouter.post('/:applicationId/banking/link-token',
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: BankLinkRequestSchema.omit({ applicationId: true, userId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const userId = req.userId;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
-    const serviceToken = createServiceToken();
+      const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
+      const serviceToken = createServiceToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
 
-    const response = await axios.post(
-      `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/link-token`,
-      {
-        applicationId,
-        userId,
+      const validatedBody = {
         ...req.body,
-      },
-      { headers }
-    );
+        applicationId,
+        userId
+      };
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to create link token', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to create link token',
-      message: error.message
-    });
+      const response = await axios.post(
+        `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/link-token`,
+        validatedBody,
+        { headers }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to create link token', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to create link token',
+        message: error.message
+      });
+    }
   }
-});
+);
 
 /**
  * Exchange Public Token
  * POST /api/v1/applications/:applicationId/banking/exchange-token
  */
-BankingRouter.post('/:applicationId/banking/exchange-token', async (req: Request, res: Response) => {
-  try {
-    const applicationId = req.params.applicationId;
-    const userId = req.userId;
+BankingRouter.post('/:applicationId/banking/exchange-token',
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: BankLinkExchangeRequestSchema.omit({ applicationId: true, userId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const userId = req.userId;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
-    const serviceToken = createServiceToken();
+      const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
+      const serviceToken = createServiceToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
 
-    const response = await axios.post(
-      `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/exchange-token`,
-      {
-        applicationId,
-        userId,
+      const validatedBody = {
         ...req.body,
-      },
-      { headers }
-    );
+        applicationId,
+        userId
+      };
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to exchange token', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to exchange token',
-      message: error.message
-    });
+      const response = await axios.post(
+        `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/exchange-token`,
+        validatedBody,
+        { headers }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to exchange token', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to exchange token',
+        message: error.message
+      });
+    }
   }
-});
+);
 
 /**
  * Get Account Balances
  * POST /api/v1/applications/:applicationId/banking/accounts/balance
  */
-BankingRouter.post('/:applicationId/banking/accounts/balance', async (req: Request, res: Response) => {
-  try {
-    const applicationId = req.params.applicationId;
-    const userId = req.userId;
+BankingRouter.post('/:applicationId/banking/accounts/balance',
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: AccountBalanceRequestSchema.omit({ applicationId: true, userId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const userId = req.userId;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
-    const serviceToken = createServiceToken();
+      const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
+      const serviceToken = createServiceToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
 
-    const response = await axios.post(
-      `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/accounts/balance`,
-      {
-        applicationId,
-        userId,
+      const validatedBody = {
         ...req.body,
-      },
-      { headers }
-    );
+        applicationId,
+        userId
+      };
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to get account balances', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to get account balances',
-      message: error.message
-    });
+      const response = await axios.post(
+        `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/accounts/balance`,
+        validatedBody,
+        { headers }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to get account balances', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to get account balances',
+        message: error.message
+      });
+    }
   }
-});
+);
 
 /**
  * Get Transactions
  * POST /api/v1/applications/:applicationId/banking/transactions
  */
-BankingRouter.post('/:applicationId/banking/transactions', async (req: Request, res: Response) => {
-  try {
-    const applicationId = req.params.applicationId;
-    const userId = req.userId;
+BankingRouter.post('/:applicationId/banking/transactions',
+  validateParams(ApplicationIdParamSchema),
+  validateRequest({ body: TransactionRequestSchema.omit({ applicationId: true, userId: true }) }),
+  async (req: Request, res: Response) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const userId = req.userId;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
-    const serviceToken = createServiceToken();
+      const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
+      const serviceToken = createServiceToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
 
-    const response = await axios.post(
-      `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/transactions`,
-      {
-        applicationId,
-        userId,
+      const validatedBody = {
         ...req.body,
-      },
-      { headers }
-    );
+        applicationId,
+        userId
+      };
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to get transactions', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to get transactions',
-      message: error.message
-    });
+      const response = await axios.post(
+        `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/transactions`,
+        validatedBody,
+        { headers }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to get transactions', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to get transactions',
+        message: error.message
+      });
+    }
   }
-});
+);
 
 /**
  * Create Income Verification
  * POST /api/v1/applications/:applicationId/banking/income/verify
  */
-BankingRouter.post('/:applicationId/banking/income/verify', async (req: Request, res: Response) => {
-  try {
-    const applicationId = req.params.applicationId;
-    const userId = req.userId;
+BankingRouter.post('/:applicationId/banking/income/verify',
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const applicationId = req.params.applicationId;
+      const userId = req.userId;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
-    const serviceToken = createServiceToken();
+      const identityToken = await getIdentityToken(OPEN_BANKING_SERVICE_URL);
+      const serviceToken = createServiceToken();
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
 
-    const response = await axios.post(
-      `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/income/verify`,
-      {
-        applicationId,
-        userId,
+      const validatedBody = {
         ...req.body,
-      },
-      { headers }
-    );
+        applicationId,
+        userId
+      };
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to create income verification', error);
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to create income verification',
-      message: error.message
-    });
+      const response = await axios.post(
+        `${OPEN_BANKING_SERVICE_URL}/api/v1/banking/income/verify`,
+        validatedBody,
+        { headers }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to create income verification', error);
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to create income verification',
+        message: error.message
+      });
+    }
   }
-});
+);

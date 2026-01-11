@@ -10,14 +10,19 @@ Credovo is built as a microservices architecture on Google Cloud Platform, desig
 - **Orchestration Service**: Routes requests to appropriate microservices, handles authentication
 
 ### Microservices (Cloud Run)
-- **KYC/KYB Service**: Identity and company verification
+- **Orchestration Service**: API gateway, authentication, request routing
+- **KYC/KYB Service**: Identity and company verification (Shufti Pro, SumSub)
+- **Company Search Service**: Company search and autocomplete (The Companies API)
+- **Open Banking Service**: Financial data and income verification (Plaid)
+- **Connector Service**: Vendor integration abstraction layer with circuit breakers and rate limiting
+
+### Future Services (Planned)
 - **AML & Fraud Service**: Anti-money laundering and fraud detection
 - **Credit & Income Service**: Credit checks and income verification
 - **Affordability Service**: Affordability calculations
 - **Property AVM Service**: Automated property valuation
 - **Payments Service**: Payment processing
 - **Legal/Execution Service**: Legal document handling
-- **Connector Service**: Vendor integration abstraction layer
 
 ### Data Layer
 - **GCS Data Lake**: Raw data storage with lifecycle policies

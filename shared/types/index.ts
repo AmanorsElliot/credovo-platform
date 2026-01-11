@@ -3,6 +3,10 @@
 // Export banking types
 export * from './banking';
 
+// Export validation schemas
+export * from './validation';
+export * from './validation-middleware';
+
 export interface Application {
   id: string;
   userId: string;

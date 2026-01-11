@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { validateQuery } from '@credovo/shared-types/validation-middleware';
+import { CompanySearchQuerySchema } from '@credovo/shared-types/validation';
 
 const logger = createLogger('orchestration-company-search');
 export const CompanySearchRouter = Router();
@@ -41,54 +43,57 @@ function createServiceToken(): string {
  * Company Search with Autocomplete
  * GET /api/v1/companies/search?query=company+name&limit=10
  */
-CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
-  try {
-    // Check if company search service is configured
-    if (!COMPANY_SEARCH_SERVICE_URL || COMPANY_SEARCH_SERVICE_URL.includes('company-search-service:8080')) {
-      return res.status(503).json({
-        error: 'Service Unavailable',
-        message: 'Company search service is not configured. Please deploy company-search-service first.'
-      });
-    }
-
-    const identityToken = await getIdentityToken(COMPANY_SEARCH_SERVICE_URL);
-    const serviceToken = createServiceToken();
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'X-Service-Token': serviceToken,
-    };
-    if (identityToken) {
-      headers['Authorization'] = `Bearer ${identityToken}`;
-    }
-
-    const response = await axios.get(
-      `${COMPANY_SEARCH_SERVICE_URL}/api/v1/companies/search`,
-      {
-        params: req.query,
-        headers,
-        timeout: 10000,
+CompanySearchRouter.get('/search',
+  validateQuery(CompanySearchQuerySchema),
+  async (req: Request, res: Response) => {
+    try {
+      // Check if company search service is configured
+      if (!COMPANY_SEARCH_SERVICE_URL || COMPANY_SEARCH_SERVICE_URL.includes('company-search-service:8080')) {
+        return res.status(503).json({
+          error: 'Service Unavailable',
+          message: 'Company search service is not configured. Please deploy company-search-service first.'
+        });
       }
-    );
 
-    res.json(response.data);
-  } catch (error: any) {
-    logger.error('Failed to search companies', error);
-    
-    // Handle service not available gracefully
-    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.response?.status === 404) {
-      return res.status(503).json({
-        error: 'Service Unavailable',
-        message: 'Company search service is not available. Please ensure company-search-service is deployed.'
+      const identityToken = await getIdentityToken(COMPANY_SEARCH_SERVICE_URL);
+      const serviceToken = createServiceToken();
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Service-Token': serviceToken,
+      };
+      if (identityToken) {
+        headers['Authorization'] = `Bearer ${identityToken}`;
+      }
+
+      const response = await axios.get(
+        `${COMPANY_SEARCH_SERVICE_URL}/api/v1/companies/search`,
+        {
+          params: req.query,
+          headers,
+          timeout: 10000,
+        }
+      );
+
+      res.json(response.data);
+    } catch (error: any) {
+      logger.error('Failed to search companies', error);
+      
+      // Handle service not available gracefully
+      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.response?.status === 404) {
+        return res.status(503).json({
+          error: 'Service Unavailable',
+          message: 'Company search service is not available. Please ensure company-search-service is deployed.'
+        });
+      }
+      
+      res.status(error.response?.status || 500).json({
+        error: 'Failed to search companies',
+        message: error.message
       });
     }
-    
-    res.status(error.response?.status || 500).json({
-      error: 'Failed to search companies',
-      message: error.message
-    });
   }
-});
+);
 
 /**
  * Company Enrichment by Domain

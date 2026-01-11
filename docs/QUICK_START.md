@@ -56,6 +56,9 @@ This will configure:
 - Service JWT Secret (auto-generated)
 - SumSub API Key (you'll be prompted)
 - Companies House API Key (you'll be prompted)
+- The Companies API Key (you'll be prompted)
+- Plaid API credentials (you'll be prompted)
+- Shufti Pro API credentials (you'll be prompted)
 
 ## Step 4: Set Up Cloud Build GitHub Integration
 
@@ -109,6 +112,8 @@ $urls = terraform output -json | ConvertFrom-Json
 curl $urls.connector_service_url.value/health
 curl $urls.kyc_kyb_service_url.value/health
 curl $urls.orchestration_service_url.value/health
+curl $urls.company_search_service_url.value/health
+curl $urls.open_banking_service_url.value/health
 ```
 
 ## Troubleshooting

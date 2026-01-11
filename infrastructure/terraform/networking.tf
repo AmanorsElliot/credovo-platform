@@ -96,6 +96,25 @@ resource "google_secret_manager_secret" "lovable_audience" {
   depends_on = [time_sleep.wait_for_apis]
 }
 
+resource "google_secret_manager_secret" "lovable_frontend_url" {
+  secret_id = "lovable-frontend-url"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    purpose     = "cors"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
 resource "google_secret_manager_secret" "service_jwt_secret" {
   secret_id = "service-jwt-secret"
 

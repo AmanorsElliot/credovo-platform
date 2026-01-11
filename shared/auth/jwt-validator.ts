@@ -158,7 +158,14 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
   if (!token) {
     logger.warn('Missing or invalid authorization header', {
       path: req.path,
-      ip: req.ip
+      ip: req.ip,
+      hasAuthHeader: !!req.headers.authorization,
+      authHeaderPrefix: req.headers.authorization?.substring(0, 20) || 'none'
+    });
+    console.error('[JWT] Missing token:', {
+      path: req.path,
+      hasAuthHeader: !!req.headers.authorization,
+      authHeaderPrefix: req.headers.authorization?.substring(0, 20) || 'none'
     });
     return res.status(401).json({
       error: 'Unauthorized',
@@ -209,11 +216,21 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
           
           logger.warn('Supabase JWT validation failed (JWKS)', {
             error: err.message,
-            path: req.path
+            errorName: err.name,
+            path: req.path,
+            tokenPrefix: token.substring(0, 20) + '...',
+            jwksUri: SUPABASE_JWKS_URI
+          });
+          console.error('[JWT] Supabase JWT validation failed:', {
+            error: err.message,
+            errorName: err.name,
+            path: req.path,
+            jwksUri: SUPABASE_JWKS_URI
           });
           return res.status(401).json({
             error: 'Unauthorized',
-            message: 'Invalid or expired token'
+            message: 'Invalid or expired token',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
           });
         }
 

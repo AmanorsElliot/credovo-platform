@@ -16,10 +16,11 @@ This platform is built as a microservices architecture deployed on Google Cloud 
 credovo-platform/
 ├── .github/workflows/     # CI/testing workflows
 ├── services/              # Microservices
-│   ├── kyc-kyb-service/
-│   ├── connector-service/
-│   ├── orchestration-service/
-│   └── open-banking-service/
+│   ├── kyc-kyb-service/   # Identity and company verification
+│   ├── connector-service/ # Vendor integration abstraction layer
+│   ├── orchestration-service/ # API gateway and request routing
+│   ├── company-search-service/ # Company search and autocomplete
+│   └── open-banking-service/ # Open banking and financial data
 ├── infrastructure/        # Terraform configurations
 ├── shared/                # Shared libraries
 └── docs/                  # Documentation
@@ -31,9 +32,11 @@ See individual service READMEs for setup instructions.
 
 ## Services
 
-- **KYC/KYB Service**: Identity and company verification
-- **Connector Service**: Vendor integration abstraction layer
 - **Orchestration Service**: API gateway and request routing
+- **KYC/KYB Service**: Identity and company verification (Shufti Pro, SumSub)
+- **Company Search Service**: Company search and autocomplete (The Companies API)
+- **Open Banking Service**: Financial data and income verification (Plaid)
+- **Connector Service**: Vendor integration abstraction layer with circuit breakers and rate limiting
 
 ## Documentation
 

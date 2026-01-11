@@ -2,24 +2,21 @@ import { Router, Request, Response } from 'express';
 import { KYBRequest, KYBResponse } from '@credovo/shared-types';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { KYBService } from '../services/kyb-service';
+import { validateBody, validateParams } from '@credovo/shared-types/validation-middleware';
+import { KYBRequestSchema, ApplicationIdParamSchema } from '@credovo/shared-types/validation';
 
 const logger = createLogger('kyb-service');
 export const KYBRouter = Router();
 const kybService = new KYBService();
 
-KYBRouter.post('/verify', async (req: Request, res: Response) => {
-  try {
-    const request: KYBRequest = {
-      ...req.body,
-      applicationId: req.body.applicationId || `kyb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    };
-
-    if (!request.companyNumber) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Missing required field: companyNumber'
-      });
-    }
+KYBRouter.post('/verify',
+  validateBody(KYBRequestSchema.partial({ applicationId: true })),
+  async (req: Request, res: Response) => {
+    try {
+      const request: KYBRequest = {
+        ...req.body,
+        applicationId: req.body.applicationId || `kyb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
 
     logger.info('KYB verification requested', {
       applicationId: request.applicationId,
@@ -41,9 +38,11 @@ KYBRouter.post('/verify', async (req: Request, res: Response) => {
   }
 });
 
-KYBRouter.get('/status/:applicationId', async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
+KYBRouter.get('/status/:applicationId',
+  validateParams(ApplicationIdParamSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { applicationId } = req.params;
     // For service-to-service calls, userId might not be present (req.service is set instead)
     // Use userId if available, otherwise use service identifier or applicationId as fallback
     const userId = req.userId || req.service || `service-${applicationId}`;

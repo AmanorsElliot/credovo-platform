@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["index.ts"],
+  "include": ["*.ts", "validation.ts", "validation-middleware.ts"],
   "exclude": ["node_modules", "dist"]
 }
 

@@ -1,23 +1,19 @@
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { validateBody } from '@credovo/shared-types/validation-middleware';
+import { AuthTokenRequestSchema } from '@credovo/shared-types/validation';
 
 const logger = createLogger('orchestration-service');
 export const AuthRouter = Router();
 
 // Token exchange endpoint
 // Frontend sends Lovable user info, backend issues its own JWT
-AuthRouter.post('/token', async (req: Request, res: Response) => {
-  try {
-    const { userId, email, name } = req.body;
-
-    // Validate required fields
-    if (!userId) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'userId is required'
-      });
-    }
+AuthRouter.post('/token',
+  validateBody(AuthTokenRequestSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { userId, email, name } = req.body;
 
     // Optional: Verify with Lovable API if you have an API key
     // For now, we'll trust the frontend (you can add verification later)
