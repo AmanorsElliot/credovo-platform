@@ -14,10 +14,11 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "baseUrl": ".",
     "paths": {
-      "@credovo/shared-types": ["../../shared/types/src"],
-      "@credovo/shared-auth": ["../../shared/auth/src"],
-      "@credovo/shared-utils/*": ["../../shared/utils/src/*"]
+      "@credovo/shared-types": ["../../shared/types/index.ts"],
+      "@credovo/shared-auth": ["../../shared/auth/index.ts"],
+      "@credovo/shared-utils/*": ["../../shared/utils/*.ts"]
     }
   },
   "include": ["src/**/*", "../../shared/**/*.ts"],
