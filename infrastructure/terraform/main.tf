@@ -125,7 +125,6 @@ resource "google_secret_manager_secret_iam_member" "connector_plaid_secret_key_a
   secret_id = google_secret_manager_secret.plaid_secret_key.secret_id
   member    = "serviceAccount:${google_service_account.services["connector-service"].email}"
   role      = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${each.value.email}"
 }
 
 resource "google_project_iam_member" "service_account_storage" {
