@@ -103,6 +103,19 @@ resource "google_project_iam_member" "service_account_permissions" {
 
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
+}
+
+# Grant connector service access to Plaid secrets
+resource "google_secret_manager_secret_iam_member" "connector_plaid_client_id_access" {
+  secret_id = google_secret_manager_secret.plaid_client_id.secret_id
+  member    = "serviceAccount:${google_service_account.services["connector-service"].email}"
+  role      = "roles/secretmanager.secretAccessor"
+}
+
+resource "google_secret_manager_secret_iam_member" "connector_plaid_secret_key_access" {
+  secret_id = google_secret_manager_secret.plaid_secret_key.secret_id
+  member    = "serviceAccount:${google_service_account.services["connector-service"].email}"
+  role      = "roles/secretmanager.secretAccessor"
   member  = "serviceAccount:${each.value.email}"
 }
 

@@ -216,6 +216,67 @@ resource "google_secret_manager_secret" "shufti_pro_secret_key" {
   depends_on = [time_sleep.wait_for_apis]
 }
 
+# Plaid credentials (open banking provider)
+resource "google_secret_manager_secret" "plaid_client_id" {
+  secret_id = "plaid-client-id"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    provider    = "plaid"
+    purpose      = "open-banking"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
+resource "google_secret_manager_secret" "plaid_secret_key" {
+  secret_id = "plaid-secret-key"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = var.environment
+    provider    = "plaid"
+    purpose      = "open-banking"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
+resource "google_secret_manager_secret" "plaid_secret_key_prod" {
+  secret_id = "plaid-secret-key-prod"
+
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+
+  labels = {
+    environment = "production"
+    provider    = "plaid"
+    purpose      = "open-banking"
+  }
+  
+  depends_on = [time_sleep.wait_for_apis]
+}
+
 # Create initial placeholder secret versions so Cloud Run can reference them
 # These will be updated with actual values later via the configure-secrets script
 resource "google_secret_manager_secret_version" "lovable_jwks_uri_version" {
@@ -276,12 +337,36 @@ resource "google_secret_manager_secret_version" "shufti_pro_secret_key_version" 
   depends_on = [google_secret_manager_secret.shufti_pro_secret_key]
 }
 
+# Plaid secret versions (using sandbox for nonprod)
+resource "google_secret_manager_secret_version" "plaid_client_id_version" {
+  secret      = google_secret_manager_secret.plaid_client_id.id
+  secret_data = "695f4eebbd1561001d2a5159"  # Plaid Client ID
+  
+  depends_on = [google_secret_manager_secret.plaid_client_id]
+}
+
+resource "google_secret_manager_secret_version" "plaid_secret_key_version" {
+  secret      = google_secret_manager_secret.plaid_secret_key.id
+  secret_data = "2bf99d20b80c1cebf3b98da518f220"  # Plaid Sandbox Secret
+  
+  depends_on = [google_secret_manager_secret.plaid_secret_key]
+}
+
+resource "google_secret_manager_secret_version" "plaid_secret_key_prod_version" {
+  secret      = google_secret_manager_secret.plaid_secret_key_prod.id
+  secret_data = "4fa53299017068600116eb956c80de"  # Plaid Production Secret
+  
+  depends_on = [google_secret_manager_secret.plaid_secret_key_prod]
+}
+
 # Wait for secret versions to be fully available
 resource "time_sleep" "wait_for_secret_versions" {
   depends_on = [
     google_secret_manager_secret_version.lovable_jwks_uri_version,
     google_secret_manager_secret_version.lovable_audience_version,
-    google_secret_manager_secret_version.service_jwt_secret_version
+    google_secret_manager_secret_version.service_jwt_secret_version,
+    google_secret_manager_secret_version.plaid_client_id_version,
+    google_secret_manager_secret_version.plaid_secret_key_version
   ]
   
   create_duration = "30s"  # Wait 30 seconds for secret versions to be available

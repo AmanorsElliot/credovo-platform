@@ -178,6 +178,32 @@ resource "google_cloud_run_service" "connector_service" {
           }
         }
 
+        # Plaid credentials (open banking)
+        env {
+          name = "PLAID_CLIENT_ID"
+          value_from {
+            secret_key_ref {
+              name = "plaid-client-id"
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
+          name = "PLAID_SECRET_KEY"
+          value_from {
+            secret_key_ref {
+              name = "plaid-secret-key"
+              key  = "latest"
+            }
+          }
+        }
+
+        env {
+          name  = "PLAID_ENV"
+          value = "sandbox"  # Use sandbox for nonprod, change to "production" for prod
+        }
+
         ports {
           container_port = 8080
         }
