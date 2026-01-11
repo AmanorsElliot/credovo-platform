@@ -5,6 +5,7 @@ import { SumSubConnector } from '../adapters/sumsub-connector';
 import { CompaniesHouseConnector } from '../adapters/companies-house-connector';
 import { ShuftiProConnector } from '../adapters/shufti-pro-connector';
 import { PlaidConnector } from '../adapters/plaid-connector';
+import { ClearbitConnector } from '../adapters/clearbit-connector';
 import { CircuitBreaker } from '../utils/circuit-breaker';
 import { RateLimiter } from '../utils/rate-limiter';
 
@@ -28,6 +29,8 @@ export class ConnectorManager {
     this.registerConnector('companies-house', new CompaniesHouseConnector());
     // Plaid for open banking (US, UK, and other supported countries)
     this.registerConnector('plaid', new PlaidConnector());
+    // Clearbit for company search and enrichment (autocomplete)
+    this.registerConnector('clearbit', new ClearbitConnector());
   }
 
   private registerConnector(name: string, connector: BaseConnector) {

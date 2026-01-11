@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@credovo/shared-types": ["../../shared/types/index.ts"],
+      "@credovo/shared-auth": ["../../shared/auth/index.ts"],
+      "@credovo/shared-utils/*": ["../../shared/utils/*.ts"]
+    }
+  },
+  "include": ["src/**/*", "../../shared/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/__tests__/**"]
+}

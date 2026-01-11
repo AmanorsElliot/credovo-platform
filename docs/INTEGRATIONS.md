@@ -31,6 +31,31 @@ Shufti Pro is the primary KYC/KYB verification provider, supporting 240+ countri
 2. Webhook endpoint: `/api/v1/webhooks/shufti-pro`
 3. See [SHUFTI_PRO_API_REQUIREMENTS.md](SHUFTI_PRO_API_REQUIREMENTS.md) for details
 
+## Clearbit (Company Search & Autocomplete)
+
+### Overview
+Clearbit provides company search with autocomplete functionality and company enrichment data.
+
+### Features
+- **Company Search**: Real-time autocomplete for company names
+- **Company Enrichment**: Detailed company data (employees, revenue, industry, etc.)
+- **Domain Lookup**: Find companies by domain name
+- **Global Coverage**: US, UK, EU, and other countries
+
+### Documentation
+- **Clearbit API Docs**: https://clearbit.com/docs#enrichment-api
+- **Pricing**: Free tier (50 requests/month), $99/month for 1,000 requests
+
+### Quick Start
+1. Sign up at https://clearbit.com
+2. Get API key from dashboard
+3. Store in Secret Manager: `clearbit-api-key`
+4. Use endpoint: `GET /api/v1/companies/search?query=company+name`
+
+### API Endpoints
+- `GET /api/v1/companies/search?query=name&limit=10` - Company search with autocomplete
+- `GET /api/v1/companies/enrich?domain=example.com` - Company enrichment by domain
+
 ## Credentials Management
 
 All credentials are stored in GCP Secret Manager. See [CREDENTIALS.md](CREDENTIALS.md) for details.

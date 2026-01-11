@@ -5,6 +5,7 @@ import { ApplicationRouter } from './routes/application';
 import { AuthRouter } from './routes/auth';
 import { WebhookRouter } from './routes/webhooks';
 import { BankingRouter } from './routes/banking';
+import { CompanySearchRouter } from './routes/company-search';
 
 const logger = createLogger('orchestration-service');
 const app = express();
@@ -42,6 +43,7 @@ const authMiddleware = (process.env.SUPABASE_JWKS_URI || process.env.SUPABASE_UR
 
 app.use('/api/v1/applications', authMiddleware, ApplicationRouter);
 app.use('/api/v1/applications', authMiddleware, BankingRouter);
+app.use('/api/v1/companies', authMiddleware, CompanySearchRouter);
 
 // Health check
 app.get('/health', (req, res) => {
