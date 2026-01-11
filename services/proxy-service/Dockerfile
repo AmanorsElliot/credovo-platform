@@ -2,15 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
+# Copy package files (from services/proxy-service relative to build context root)
+COPY services/proxy-service/package*.json ./
+COPY services/proxy-service/tsconfig.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
-COPY src ./src
+COPY services/proxy-service/src ./src
 
 # Build TypeScript
 RUN npm run build
