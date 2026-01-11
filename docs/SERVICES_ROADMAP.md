@@ -34,15 +34,6 @@
   - Documentation: https://clearbit.com/docs#enrichment-api
   - **Recommendation**: Only use if you already have HubSpot
 
-- **OpenCorporates API** (Recommended - No HubSpot Required) ✅
-  - Global company database (200+ million companies)
-  - Company search with autocomplete
-  - Free tier available (rate limited without API token)
-  - Good for international coverage
-  - Standalone API (no HubSpot required)
-  - Documentation: https://opencorporates.com/api_accounts/new
-  - **Status**: ✅ Implemented as default provider
-
 - **The Companies API** (Alternative)
   - Company search with autocomplete
   - UK-focused but expanding
@@ -57,7 +48,7 @@
   - Documentation: https://developer.company-information.service.gov.uk/
 
 **Implementation Priority**: High - Needed for better UX in application forms
-**Current Status**: ✅ OpenCorporates connector implemented as default (no HubSpot required)
+**Current Status**: ⚠️ Clearbit requires API access from HubSpot/Clearbit support (direct login no longer available)
 
 #### 2. Credit Check Service
 **Purpose**: Credit scoring and credit history checks

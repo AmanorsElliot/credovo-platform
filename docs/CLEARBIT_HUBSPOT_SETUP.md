@@ -28,11 +28,9 @@ Since Clearbit requires special access, we recommend using **OpenCorporates** wh
 
 ## Step 2: Get Your API Key
 
-**Note**: If you cannot access Clearbit directly, you may need to:
-1. Contact HubSpot support to request Clearbit API access
-2. Or use OpenCorporates instead (recommended - see below)
+**Note**: Clearbit API access requires contacting HubSpot/Clearbit support as direct login is no longer available.
 
-### If You Have Clearbit Access:
+### Getting Clearbit API Key:
 1. In Clearbit dashboard, go to **Settings** → **API Keys**
 2. If you don't have an API key:
    - Click **Create API Key** or **Generate New Key**
@@ -42,8 +40,7 @@ Since Clearbit requires special access, we recommend using **OpenCorporates** wh
 
 **Important**: The API key format is typically a long alphanumeric string (e.g., `sk_live_xxxxxxxxxxxxx`)
 
-### Recommended: Use OpenCorporates Instead
-Since Clearbit access is complex, **OpenCorporates is already configured as the default** and works immediately without any setup!
+**Note**: If Clearbit API access is not available, consider using **Companies House API** (already integrated for UK companies) or other company data providers.
 
 ## Step 3: Verify API Access
 
@@ -198,15 +195,11 @@ Clearbit rate limits vary by plan:
 - [HubSpot Clearbit Integration](https://help.clearbit.com/hc/en-us/articles/21570749175703-Clearbit-By-HubSpot-Set-Up-Clearbit-Enrichment-for-HubSpot)
 - [Clearbit Support](https://support.clearbit.com/)
 
-## Alternative: Using OpenCorporates (No HubSpot Required)
+## Alternative: Using Companies House (UK Only)
 
-If you prefer not to use Clearbit, the platform defaults to OpenCorporates which doesn't require a HubSpot account:
+If Clearbit is not available, you can use the Companies House API which is already integrated:
 
-```bash
-# Use OpenCorporates (default, no configuration needed)
-# Or explicitly set:
-gcloud run services update company-search-service \
-  --update-env-vars=COMPANY_SEARCH_PROVIDER=opencorporates \
-  --region=europe-west1 \
-  --project=credovo-eu-apps-nonprod
-```
+- **Companies House API**: UK company data (already integrated in connector service)
+- No additional setup required
+- Free tier available
+- UK companies only

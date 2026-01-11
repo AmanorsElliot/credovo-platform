@@ -55,15 +55,9 @@ Clearbit provides company search with autocomplete functionality and company enr
 
 ### Quick Start
 
-**⚠️ Important**: Clearbit is not available as a standalone integration in HubSpot marketplace. API access requires direct Clearbit account access, which may be difficult to obtain.
+**⚠️ Important**: Clearbit is not available as a standalone integration in the HubSpot marketplace, and direct Clearbit login is no longer available. API access may require contacting HubSpot/Clearbit support.
 
-**✅ Recommended**: Use **OpenCorporates** instead (already configured as default):
-- No account setup needed
-- Works immediately
-- 200+ million companies globally
-- Free tier available
-
-### If You Have Clearbit API Access:
+### Setup:
 1. **Get Clearbit API Key**:
    - Log into https://clearbit.com/ directly (not through HubSpot marketplace)
    - Navigate to **Settings** → **API Keys**
@@ -78,8 +72,7 @@ Clearbit provides company search with autocomplete functionality and company enr
 - `GET /api/v1/companies/search?query=name&limit=10` - Company search with autocomplete
 - `GET /api/v1/companies/enrich?domain=example.com` - Company enrichment by domain
 
-### Alternatives (No HubSpot Required)
-- **OpenCorporates API**: Global company database (200M+ companies), free tier available
+### Alternatives
 - **The Companies API**: UK-focused company search, standalone API
 - **Companies House API**: UK company data (already integrated)
 

@@ -6,7 +6,6 @@ import { CompaniesHouseConnector } from '../adapters/companies-house-connector';
 import { ShuftiProConnector } from '../adapters/shufti-pro-connector';
 import { PlaidConnector } from '../adapters/plaid-connector';
 import { ClearbitConnector } from '../adapters/clearbit-connector';
-import { OpenCorporatesConnector } from '../adapters/opencorporates-connector';
 import { CircuitBreaker } from '../utils/circuit-breaker';
 import { RateLimiter } from '../utils/rate-limiter';
 
@@ -32,8 +31,6 @@ export class ConnectorManager {
     this.registerConnector('plaid', new PlaidConnector());
     // Clearbit for company search and enrichment (autocomplete) - Requires HubSpot account
     this.registerConnector('clearbit', new ClearbitConnector());
-    // OpenCorporates for company search (global, 200M+ companies, no HubSpot required)
-    this.registerConnector('opencorporates', new OpenCorporatesConnector());
   }
 
   private registerConnector(name: string, connector: BaseConnector) {

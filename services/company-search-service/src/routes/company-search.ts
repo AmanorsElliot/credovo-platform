@@ -64,21 +64,10 @@ CompanySearchRouter.get('/search', async (req: Request, res: Response) => {
       headers['Authorization'] = `Bearer ${identityToken}`;
     }
 
-    // Use OpenCorporates by default (no HubSpot required)
-    // Can be configured to use 'clearbit' if HubSpot account is available
-    const provider = process.env.COMPANY_SEARCH_PROVIDER || 'opencorporates';
-    
-    const connectorRequest = provider === 'clearbit' ? {
+    // Use Clearbit for company search (requires API key configuration)
+    const connectorRequest = {
       provider: 'clearbit',
       endpoint: '/v2/companies/search',
-      method: 'GET' as const,
-      body: {
-        query,
-        limit,
-      },
-    } : {
-      provider: 'opencorporates',
-      endpoint: '/v0.4.8/companies/search',
       method: 'GET' as const,
       body: {
         query,
@@ -135,45 +124,15 @@ CompanySearchRouter.get('/enrich', async (req: Request, res: Response) => {
       headers['Authorization'] = `Bearer ${identityToken}`;
     }
 
-    // Use OpenCorporates by default (no HubSpot required)
-    // Clearbit domain lookup requires HubSpot account
-    const provider = process.env.COMPANY_SEARCH_PROVIDER || 'opencorporates';
-    
-    if (provider === 'clearbit') {
-      const connectorRequest = {
-        provider: 'clearbit',
-        endpoint: '/v1/domains/find',
-        method: 'GET' as const,
-        body: {
-          domain,
-        },
-      };
-
-      const response = await axios.post(
-        `${CONNECTOR_SERVICE_URL}/api/v1/connector/call`,
-        connectorRequest,
-        { headers }
-      );
-
-      if (response.data.success) {
-        res.json({
-          company: response.data.company,
-        });
-      } else {
-        res.status(404).json({
-          error: 'Not Found',
-          message: response.data.error?.message || 'Company not found'
-        });
-      }
-      return;
-    }
-
-    // For OpenCorporates, domain lookup is not directly supported
-    // Would need to search by company name extracted from domain
-    res.status(400).json({
-      error: 'Bad Request',
-      message: 'Domain lookup requires Clearbit provider (HubSpot account needed). Use company search instead.'
-    });
+    // Use Clearbit for domain lookup
+    const connectorRequest = {
+      provider: 'clearbit',
+      endpoint: '/v1/domains/find',
+      method: 'GET' as const,
+      body: {
+        domain,
+      },
+    };
 
     const response = await axios.post(
       `${CONNECTOR_SERVICE_URL}/api/v1/connector/call`,
