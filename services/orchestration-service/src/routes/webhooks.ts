@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { createLogger } from '@credovo/shared-utils/logger';
-import crypto from 'crypto';
+import { verifyShuftiProSignature, extractSignature } from '@credovo/shared-utils/webhook-verifier';
 
 const logger = createLogger('webhook-handler');
 export const WebhookRouter = Router();
@@ -80,24 +80,31 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
     });
 
     // Verify webhook signature if provided
-    // Shufti Pro may send signature in headers - verify if present
-    if (req.headers['x-shufti-signature'] || req.headers['x-shufti-pro-signature']) {
-      const signature = req.headers['x-shufti-signature'] || req.headers['x-shufti-pro-signature'];
-      const secretKey = process.env.SHUFTI_PRO_SECRET_KEY;
+    const secretKey = process.env.SHUFTI_PRO_SECRET_KEY;
+    const signature = extractSignature(req.headers);
+    
+    if (secretKey && signature) {
+      // Get raw body for signature verification (preserved by middleware)
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      const isValid = verifyShuftiProSignature(
+        rawBody,
+        signature,
+        secretKey,
+        true // Assume client registered after March 2023
+      );
       
-      if (secretKey && signature) {
-        const isValid = verifyWebhookSignature(req.body, signature as string, secretKey);
-        if (!isValid) {
-          logger.warn('Invalid webhook signature', { reference, signature });
-          // Still return 200 to prevent retries, but log the security issue
-          // In production, you might want to return 401 and investigate
-          return res.status(200).json({ 
-            success: false, 
-            message: 'Invalid signature - logged for review' 
-          });
-        }
-        logger.info('Webhook signature verified', { reference });
+      if (!isValid) {
+        logger.warn('Invalid webhook signature', { reference, signature });
+        // Return 401 to reject invalid webhooks
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid webhook signature' 
+        });
       }
+      logger.info('Webhook signature verified', { reference });
+    } else if (secretKey && !signature) {
+      // Secret configured but no signature - log warning
+      logger.warn('Webhook signature expected but not found', { reference });
     }
 
     // Optional: IP whitelisting (Shufti Pro sends from specific IP ranges)
@@ -175,38 +182,6 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * Verify webhook signature
- * 
- * Shufti Pro may use HMAC-SHA256 or similar for signature verification
- * This is a placeholder implementation - verify exact method with Shufti Pro docs
- */
-function verifyWebhookSignature(
-  payload: any, 
-  signature: string, 
-  secretKey: string
-): boolean {
-  try {
-    // Convert payload to string (consistent format)
-    const payloadString = typeof payload === 'string' 
-      ? payload 
-      : JSON.stringify(payload);
-    
-    // Generate HMAC-SHA256 signature
-    const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update(payloadString);
-    const expectedSignature = hmac.digest('hex');
-    
-    // Compare signatures (constant-time comparison to prevent timing attacks)
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
-  } catch (error) {
-    logger.error('Signature verification error', error);
-    return false;
-  }
-}
 
 /**
  * Check if IP is in allowed list

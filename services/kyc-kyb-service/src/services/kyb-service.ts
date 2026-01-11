@@ -149,10 +149,21 @@ export class KYBService {
     logger.info('Getting KYB status', { applicationId, userId });
 
     try {
+      // Check cache first (fast path)
+      const { statusCache } = await import('@credovo/shared-utils/cache');
+      const cacheKey = `kyb-status:${applicationId}`;
+      const cached = statusCache.get<KYBResponse>(cacheKey);
+      if (cached) {
+        logger.debug('KYB status retrieved from cache', { applicationId });
+        return cached;
+      }
+
       // Try to get from data lake first
       const stored = await this.dataLake.getKYBResponse(applicationId);
       
       if (stored) {
+        // Cache the result
+        statusCache.set(cacheKey, stored, 300); // 5 minutes
         return stored;
       }
 
@@ -213,6 +224,11 @@ export class KYBService {
           };
 
           await this.dataLake.storeKYBResponse(response);
+          
+          // Cache the result
+          const { statusCache } = await import('@credovo/shared-utils/cache');
+          statusCache.set(`kyb-status:${applicationId}`, response, 300); // 5 minutes
+          
           return response;
         }
 

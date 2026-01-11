@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { verifyShuftiProSignature, extractSignature } from '@credovo/shared-utils/webhook-verifier';
 import { KYCService } from '../services/kyc-service';
 import { KYBService } from '../services/kyb-service';
 import { DataLakeService } from '../services/data-lake-service';
@@ -21,6 +22,31 @@ const dataLake = new DataLakeService();
  */
 WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
   try {
+    // Verify webhook signature if provided
+    const secretKey = process.env.SHUFTI_PRO_SECRET_KEY;
+    const signature = extractSignature(req.headers);
+    
+    if (secretKey && signature) {
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      const isValid = verifyShuftiProSignature(
+        rawBody,
+        signature,
+        secretKey,
+        true // Assume client registered after March 2023
+      );
+      
+      if (!isValid) {
+        logger.warn('Invalid webhook signature for KYC webhook', { 
+          reference: req.body?.reference 
+        });
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid webhook signature' 
+        });
+      }
+      logger.debug('KYC webhook signature verified');
+    }
+    
     const webhookData = req.body;
     const reference = webhookData.reference || webhookData.event?.reference;
     const event = webhookData.event || webhookData.verification_result?.event;
@@ -66,6 +92,10 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
 
     await dataLake.storeKYCResponse(kycResponse);
 
+    // Invalidate cache for this application
+    const { statusCache } = await import('@credovo/shared-utils/cache');
+    statusCache.delete(`kyc-status:${applicationId}`);
+
     // Publish event to Pub/Sub
     const pubsub = (await import('../services/pubsub-service')).PubSubService;
     const pubsubService = new pubsub();
@@ -96,6 +126,31 @@ WebhookRouter.post('/shufti-pro', async (req: Request, res: Response) => {
  */
 WebhookRouter.post('/shufti-pro-kyb', async (req: Request, res: Response) => {
   try {
+    // Verify webhook signature if provided
+    const secretKey = process.env.SHUFTI_PRO_SECRET_KEY;
+    const signature = extractSignature(req.headers);
+    
+    if (secretKey && signature) {
+      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+      const isValid = verifyShuftiProSignature(
+        rawBody,
+        signature,
+        secretKey,
+        true // Assume client registered after March 2023
+      );
+      
+      if (!isValid) {
+        logger.warn('Invalid webhook signature for KYB webhook', { 
+          reference: req.body?.reference 
+        });
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid webhook signature' 
+        });
+      }
+      logger.debug('KYB webhook signature verified');
+    }
+    
     const webhookData = req.body;
     const reference = webhookData.reference || webhookData.event?.reference;
     const event = webhookData.event || webhookData.verification_result?.event;
@@ -139,6 +194,10 @@ WebhookRouter.post('/shufti-pro-kyb', async (req: Request, res: Response) => {
     };
 
     await dataLake.storeKYBResponse(kybResponse);
+
+    // Invalidate cache for this application
+    const { statusCache } = await import('@credovo/shared-utils/cache');
+    statusCache.delete(`kyb-status:${applicationId}`);
 
     // Publish event to Pub/Sub
     const pubsubService = new PubSubService();

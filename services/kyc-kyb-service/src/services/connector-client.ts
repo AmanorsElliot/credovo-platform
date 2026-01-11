@@ -1,12 +1,13 @@
-import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { ConnectorRequest, ConnectorResponse } from '@credovo/shared-types';
 import { createLogger } from '@credovo/shared-utils/logger';
+import { connectorHttpClient } from '@credovo/shared-utils/http-client';
 
 const logger = createLogger('connector-client');
 
 export class ConnectorClient {
   private baseUrl: string;
+  private httpClient = connectorHttpClient;
 
   constructor() {
     this.baseUrl = process.env.CONNECTOR_SERVICE_URL || 'http://connector-service:8080';
@@ -76,12 +77,11 @@ export class ConnectorClient {
         headers['Authorization'] = `Bearer ${identityToken}`; // Cloud Run IAM token (if available)
       }
 
-      const response = await axios.post(
+      const response = await this.httpClient.post(
         `${this.baseUrl}/api/v1/connector/call`,
         request,
         {
-          headers,
-          timeout: 30000
+          headers
         }
       );
 

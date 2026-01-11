@@ -360,6 +360,45 @@ try {
     $kybReference = $null
 }
 
+# Test 4b: KYB Status Check (with retries)
+Write-Host ""
+Write-Host "4b. KYB Status Check (Polling)" -ForegroundColor Yellow
+
+$kybStatusFound = $false
+for ($i = 1; $i -le $StatusCheckRetries; $i++) {
+    Write-Host "   Attempt $i/$StatusCheckRetries..." -ForegroundColor Gray
+    Start-Sleep -Seconds $StatusCheckDelay
+    
+    try {
+        $kybStatusResponse = Invoke-RestMethod `
+            -Uri "$OrchestrationUrl/api/v1/applications/$ApplicationId/kyb/status" `
+            -Method Get `
+            -Headers $appHeaders `
+            -ErrorAction Stop
+        
+        if ($kybStatusResponse.status -and $kybStatusResponse.status -ne 'pending') {
+            Add-TestResult -Name "KYB Status Retrieved" -Passed $true -Message "Status: $($kybStatusResponse.status)"
+            if ($kybStatusResponse.data -and $kybStatusResponse.data.aml) {
+                Write-Host "      AML screening data available" -ForegroundColor Gray
+            }
+            $kybStatusFound = $true
+            break
+        } else {
+            Write-Host "      Status: $($kybStatusResponse.status) (still processing...)" -ForegroundColor Gray
+        }
+    } catch {
+        if ($_.Exception.Response.StatusCode -eq 404) {
+            Write-Host "      Status not found yet (normal for async processing)" -ForegroundColor Gray
+        } else {
+            Write-Host "      Error: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
+}
+
+if (-not $kybStatusFound) {
+    Add-TestResult -Name "KYB Status Retrieved" -Passed $false -Message "Status not available after $StatusCheckRetries attempts (may still be processing)"
+}
+
 # Test 5: Webhook Endpoint Health
 Write-Host ""
 Write-Host "5. Webhook Endpoint" -ForegroundColor Yellow
@@ -428,16 +467,37 @@ try {
         -Headers $appHeaders `
         -ErrorAction Stop
     
-    Add-TestResult -Name "Invalid Application ID Handling" -Passed $false -Message "Should return 404 for invalid ID"
+    Add-TestResult -Name "Invalid KYC Application ID Handling" -Passed $false -Message "Should return 404 for invalid ID"
 } catch {
     $statusCode = $_.Exception.Response.StatusCode.value__
     if ($statusCode -eq 404) {
-        Add-TestResult -Name "Invalid Application ID Handling" -Passed $true -Message "Correctly returns 404 (application not found)"
+        Add-TestResult -Name "Invalid KYC Application ID Handling" -Passed $true -Message "Correctly returns 404 (application not found)"
     } elseif ($statusCode -eq 401) {
         # 401 is also acceptable - means authentication failed (token might be expired or invalid)
-        Add-TestResult -Name "Invalid Application ID Handling" -Passed $true -Message "Returns 401 (authentication required - token may be expired)"
+        Add-TestResult -Name "Invalid KYC Application ID Handling" -Passed $true -Message "Returns 401 (authentication required - token may be expired)"
     } else {
-        Add-TestResult -Name "Invalid Application ID Handling" -Passed $false -Message "Unexpected error: $($_.Exception.Message) (Status: $statusCode)"
+        Add-TestResult -Name "Invalid KYC Application ID Handling" -Passed $false -Message "Unexpected error: $($_.Exception.Message) (Status: $statusCode)"
+    }
+}
+
+# Test invalid KYB application ID
+try {
+    $invalidKYBResponse = Invoke-RestMethod `
+        -Uri "$OrchestrationUrl/api/v1/applications/invalid-id-12345/kyb/status" `
+        -Method Get `
+        -Headers $appHeaders `
+        -ErrorAction Stop
+    
+    Add-TestResult -Name "Invalid KYB Application ID Handling" -Passed $false -Message "Should return 404 for invalid ID"
+} catch {
+    $statusCode = $_.Exception.Response.StatusCode.value__
+    if ($statusCode -eq 404) {
+        Add-TestResult -Name "Invalid KYB Application ID Handling" -Passed $true -Message "Correctly returns 404 (application not found)"
+    } elseif ($statusCode -eq 401) {
+        # 401 is also acceptable - means authentication failed (token might be expired or invalid)
+        Add-TestResult -Name "Invalid KYB Application ID Handling" -Passed $true -Message "Returns 401 (authentication required - token may be expired)"
+    } else {
+        Add-TestResult -Name "Invalid KYB Application ID Handling" -Passed $false -Message "Unexpected error: $($_.Exception.Message) (Status: $statusCode)"
     }
 }
 

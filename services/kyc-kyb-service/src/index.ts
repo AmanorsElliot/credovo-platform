@@ -11,7 +11,15 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-app.use(express.json());
+// Configure JSON parser with verify to preserve raw body for webhook signature verification
+app.use(express.json({
+  verify: (req: any, res, buf) => {
+    // Preserve raw body for webhook signature verification
+    if (req.path?.startsWith('/api/v1/webhooks')) {
+      req.rawBody = buf.toString('utf8');
+    }
+  }
+}));
 app.use(configureCors());
 
 // Request logging
