@@ -152,7 +152,7 @@ export class KYBService {
       // Check cache first (fast path)
       const { statusCache } = await import('@credovo/shared-utils/cache');
       const cacheKey = `kyb-status:${applicationId}`;
-      const cached = statusCache.get<KYBResponse>(cacheKey);
+      const cached = statusCache.get(cacheKey) as KYBResponse | null;
       if (cached) {
         logger.debug('KYB status retrieved from cache', { applicationId });
         return cached;

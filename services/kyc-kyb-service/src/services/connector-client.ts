@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import { ConnectorRequest, ConnectorResponse } from '@credovo/shared-types';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { connectorHttpClient } from '@credovo/shared-utils/http-client';

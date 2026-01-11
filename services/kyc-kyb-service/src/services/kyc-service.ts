@@ -141,7 +141,7 @@ export class KYCService {
       // Check cache first (fast path)
       const { statusCache } = await import('@credovo/shared-utils/cache');
       const cacheKey = `kyc-status:${applicationId}`;
-      const cached = statusCache.get<KYCResponse>(cacheKey);
+      const cached = statusCache.get(cacheKey) as KYCResponse | null;
       if (cached) {
         logger.debug('KYC status retrieved from cache', { applicationId });
         return cached;
