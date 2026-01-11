@@ -30,6 +30,22 @@ Orchestration Service (Cloud Run, authenticated)
 Application Logic
 ```
 
+## Quick Diagnosis
+
+**Run the diagnostic script first:**
+```powershell
+.\scripts\diagnose-401-error.ps1
+```
+
+This will check:
+- ✅ Proxy service deployment and accessibility
+- ✅ Orchestration service configuration
+- ✅ Service account permissions
+- ✅ Recent authentication errors
+- ✅ End-to-end flow (if token provided)
+
+See `docs/DIAGNOSE_401_ERROR.md` for detailed troubleshooting steps.
+
 ## Quick Fix Steps
 
 1. **Deploy Proxy Service** - See `docs/PROXY_SERVICE_SETUP.md`
