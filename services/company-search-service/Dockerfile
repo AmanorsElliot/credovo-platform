@@ -29,7 +29,13 @@ RUN npm install
 COPY services/company-search-service/src ./src
 
 # Build service
-RUN npm run build
+RUN echo "=== Starting TypeScript build ===" && \
+    npm run build && \
+    echo "=== Build completed ===" && \
+    echo "=== Checking dist structure ===" && \
+    ls -la dist/ || true && \
+    ls -la dist/src/ || true && \
+    ls -la dist/shared/ || true
 
 # Copy compiled shared files back to shared directories for runtime resolution
 RUN if [ -d "dist/shared/types" ]; then cp -r dist/shared/types/*.js shared/types/ 2>/dev/null || true; fi
