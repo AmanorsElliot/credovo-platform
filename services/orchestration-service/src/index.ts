@@ -59,9 +59,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
-  logger.info(`Orchestration service started on port ${PORT}`);
-});
+// Start server with error handling
+try {
+  app.listen(PORT, () => {
+    logger.info(`Orchestration service started on port ${PORT}`);
+  });
+} catch (error: any) {
+  logger.error('Failed to start orchestration service', error);
+  process.exit(1);
+}
 
 export default app;
 

@@ -18,16 +18,25 @@ export interface JwtPayload {
 const LOVABLE_JWKS_URI = process.env.LOVABLE_JWKS_URI || 'https://auth.lovable.dev/.well-known/jwks.json';
 const LOVABLE_AUDIENCE = process.env.LOVABLE_AUDIENCE || 'credovo-api';
 
-const client = jwksClient({
-  jwksUri: LOVABLE_JWKS_URI,
-  cache: true,
-  cacheMaxAge: 86400000, // 24 hours
-  rateLimit: true,
-  jwksRequestsPerMinute: 10
-});
+// Initialize JWKS client lazily to avoid startup failures
+let client: ReturnType<typeof jwksClient> | null = null;
+
+function getJwksClient(): ReturnType<typeof jwksClient> {
+  if (!client) {
+    client = jwksClient({
+      jwksUri: LOVABLE_JWKS_URI,
+      cache: true,
+      cacheMaxAge: 86400000, // 24 hours
+      rateLimit: true,
+      jwksRequestsPerMinute: 10
+    });
+  }
+  return client;
+}
 
 function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
-  client.getSigningKey(header.kid, (err, key) => {
+  const jwks = getJwksClient();
+  jwks.getSigningKey(header.kid, (err, key) => {
     if (err) {
       callback(err);
       return;
