@@ -7,7 +7,7 @@ COPY services/proxy-service/package*.json ./
 COPY services/proxy-service/tsconfig.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY services/proxy-service/src ./src
