@@ -1,0 +1,563 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_count\"\n| group_by 1m, [value_request_count_sum: sum(value.request_count)]\n| every 1m"
+          }
+        }
+      ],
+      "title": "Request Count by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 5000
+              }
+            ]
+          },
+          "unit": "ms"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_latencies\"\n| group_by 1m, [value_request_latencies_p95: percentile(value.request_latencies, 95)]\n| every 1m"
+          }
+        }
+      ],
+      "title": "Request Latency (p95) by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/request_count\" && metric.label.response_code_class = \"5xx\"\n| group_by 1m, [value_request_count_sum: sum(value.request_count)]\n| every 1m"
+          }
+        }
+      ],
+      "title": "Error Rate (5xx) by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"run.googleapis.com/container/instance_count\"\n| group_by 1m, [value_instance_count_sum: sum(value.instance_count)]\n| every 1m"
+          }
+        }
+      ],
+      "title": "Instance Count by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_initiated\"\n| group_by 1m, [value_kyc_initiated_sum: sum(value.kyc_initiated)]\n| every 1m"
+          },
+          "alias": "KYC Initiated"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyc_completed\"\n| group_by 1m, [value_kyc_completed_sum: sum(value.kyc_completed)]\n| every 1m"
+          },
+          "alias": "KYC Completed"
+        }
+      ],
+      "title": "KYC Applications - Initiated vs Completed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyb_initiated\"\n| group_by 1m, [value_kyb_initiated_sum: sum(value.kyb_initiated)]\n| every 1m"
+          },
+          "alias": "KYB Initiated"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/kyb_completed\"\n| group_by 1m, [value_kyb_completed_sum: sum(value.kyb_completed)]\n| every 1m"
+          },
+          "alias": "KYB Completed"
+        }
+      ],
+      "title": "KYB Applications - Initiated vs Completed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/webhook_received\"\n| group_by 1m, [value_webhook_received_sum: sum(value.webhook_received)]\n| every 1m"
+          },
+          "alias": "Webhooks Received"
+        },
+        {
+          "refId": "B",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/webhook_failed\"\n| group_by 1m, [value_webhook_failed_sum: sum(value.webhook_failed)]\n| every 1m"
+          },
+          "alias": "Webhooks Failed"
+        }
+      ],
+      "title": "Webhook Activity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Google Cloud Monitoring",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "metrics",
+          "metricQuery": {
+            "projectId": "$project",
+            "query": "fetch cloud_run_revision\n| filter metric.type = \"logging.googleapis.com/user/aml_screening\"\n| group_by 1m, [value_aml_screening_sum: sum(value.aml_screening)]\n| every 1m"
+          },
+          "alias": "AML Screening Events"
+        }
+      ],
+      "title": "AML Screening Activity",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": ["credovo", "applications", "multi-region"],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "credovo-eu-apps-nonprod",
+          "value": "credovo-eu-apps-nonprod"
+        },
+        "datasource": "Google Cloud Monitoring",
+        "definition": "label_values(resource.label.project_id, resource.label.project_id)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Project/Region",
+        "multi": true,
+        "name": "project",
+        "options": [],
+        "query": "label_values(resource.label.project_id, resource.label.project_id)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Google Cloud Monitoring",
+        "definition": "label_values(resource.label.service_name, resource.label.service_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": "label_values(resource.label.service_name, resource.label.service_name)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Credovo Platform - Multi-Region Applications Dashboard",
+  "uid": "credovo-multi-region",
+  "version": 1
+}

@@ -1,0 +1,476 @@
+{
+  "dashboard": {
+    "title": "Credovo Platform - Multi-Region Applications Dashboard",
+    "tags": ["credovo", "applications", "multi-region", "kyc", "kyb"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "region",
+          "type": "query",
+          "label": "Region",
+          "datasource": "Google Cloud Monitoring",
+          "query": "label_values(resource.label.project_id, resource.label.project_id)",
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          }
+        },
+        {
+          "name": "service",
+          "type": "query",
+          "label": "Service",
+          "datasource": "Google Cloud Monitoring",
+          "query": "label_values(resource.label.service_name, resource.label.service_name)",
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          }
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Applications Overview by Region",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 24, "h": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'run.googleapis.com/request_count' | group_by 1m, [value_request_count_sum: sum(value.request_count)] | every 1m"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        },
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 2,
+        "title": "KYC Applications - Initiated vs Completed",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyc_initiated' | group_by 1m, [value_kyc_initiated_sum: sum(value.kyc_initiated)] | every 1m",
+              "alias": "KYC Initiated"
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyc_completed' | group_by 1m, [value_kyc_completed_sum: sum(value.kyc_completed)] | every 1m",
+              "alias": "KYC Completed"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "KYB Applications - Initiated vs Completed",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyb_initiated' | group_by 1m, [value_kyb_initiated_sum: sum(value.kyb_initiated)] | every 1m",
+              "alias": "KYB Initiated"
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyb_completed' | group_by 1m, [value_kyb_completed_sum: sum(value.kyb_completed)] | every 1m",
+              "alias": "KYB Completed"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Request Latency by Service (p95)",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'run.googleapis.com/request_latencies' | group_by 1m, [value_request_latencies_p95: percentile(value.request_latencies, 95)] | every 1m",
+              "alias": "{{resource.label.service_name}}"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "ms",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1000, "color": "yellow"},
+                {"value": 5000, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Error Rate by Service (5xx)",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'run.googleapis.com/request_count' && metric.label.response_code_class = '5xx' | group_by 1m, [value_request_count_sum: sum(value.request_count)] | every 1m",
+              "alias": "{{resource.label.service_name}}"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 5, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Webhook Activity",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/webhook_received' | group_by 1m, [value_webhook_received_sum: sum(value.webhook_received)] | every 1m",
+              "alias": "Webhooks Received"
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/webhook_failed' | group_by 1m, [value_webhook_failed_sum: sum(value.webhook_failed)] | every 1m",
+              "alias": "Webhooks Failed"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "AML Screening Activity",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/aml_screening' | group_by 1m, [value_aml_screening_sum: sum(value.aml_screening)] | every 1m",
+              "alias": "AML Screening Events"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Service Instance Count",
+        "type": "timeseries",
+        "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'run.googleapis.com/container/instance_count' | group_by 1m, [value_instance_count_sum: sum(value.instance_count)] | every 1m",
+              "alias": "{{resource.label.service_name}}"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Request Count by Service",
+        "type": "timeseries",
+        "gridPos": {"x": 12, "y": 28, "w": 12, "h": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'run.googleapis.com/request_count' | group_by 1m, [value_request_count_sum: sum(value.request_count)] | every 1m",
+              "alias": "{{resource.label.service_name}}"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "KYC Success Rate",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 36, "w": 6, "h": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyc_completed' | group_by 1h, [value_kyc_completed_sum: sum(value.kyc_completed)] | every 1h"
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyc_initiated' | group_by 1h, [value_kyc_initiated_sum: sum(value.kyc_initiated)] | every 1h"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "unit": "percent",
+            "decimals": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "red"},
+                {"value": 70, "color": "yellow"},
+                {"value": 90, "color": "green"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "graphMode": "none"
+        },
+        "transformations": [
+          {
+            "id": "calculateField",
+            "options": {
+              "mode": "binary",
+              "binary": {
+                "left": "A",
+                "operator": "/",
+                "reducer": "sum"
+              },
+              "alias": "Success Rate"
+            }
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "KYB Success Rate",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 36, "w": 6, "h": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyb_completed' | group_by 1h, [value_kyb_completed_sum: sum(value.kyb_completed)] | every 1h"
+            }
+          },
+          {
+            "refId": "B",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyb_initiated' | group_by 1h, [value_kyb_initiated_sum: sum(value.kyb_initiated)] | every 1h"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "unit": "percent",
+            "decimals": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "red"},
+                {"value": 70, "color": "yellow"},
+                {"value": 90, "color": "green"}
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 12,
+        "title": "Total Applications (Last 24h)",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 36, "w": 6, "h": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/kyc_initiated' || metric.type = 'logging.googleapis.com/user/kyb_initiated' | group_by 24h, [value_total_sum: sum(value)] | every 24h"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Data Lake Storage Failures",
+        "type": "timeseries",
+        "gridPos": {"x": 18, "y": 36, "w": 6, "h": 4},
+        "targets": [
+          {
+            "refId": "A",
+            "queryType": "metrics",
+            "metricQuery": {
+              "projectId": "${region}",
+              "query": "fetch cloud_run_revision | filter metric.type = 'logging.googleapis.com/user/data_lake_storage_failures' | group_by 1m, [value_failures_sum: sum(value.data_lake_storage_failures)] | every 1m",
+              "alias": "Storage Failures"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 1, "color": "yellow"},
+                {"value": 5, "color": "red"}
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
