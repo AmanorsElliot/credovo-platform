@@ -100,21 +100,33 @@ const SUPABASE_JWKS_URI = process.env.SUPABASE_JWKS_URI || (process.env.SUPABASE
 
 // Note: jwks-rsa primarily supports RSA keys, but can work with EC keys via getPublicKey()
 // For ES256, we'll fetch the JWKS and convert EC keys appropriately
-const supabaseJwksClient = SUPABASE_JWKS_URI ? jwksClient({
-  jwksUri: SUPABASE_JWKS_URI,
-  cache: true,
-  cacheMaxAge: 86400000, // 24 hours
-  rateLimit: true,
-  jwksRequestsPerMinute: 10
-}) : null;
+// Initialize Supabase JWKS client lazily to avoid startup failures
+let supabaseJwksClient: ReturnType<typeof jwksClient> | null = null;
+
+function getSupabaseJwksClient(): ReturnType<typeof jwksClient> | null {
+  if (!SUPABASE_JWKS_URI) {
+    return null;
+  }
+  if (!supabaseJwksClient) {
+    supabaseJwksClient = jwksClient({
+      jwksUri: SUPABASE_JWKS_URI,
+      cache: true,
+      cacheMaxAge: 86400000, // 24 hours
+      rateLimit: true,
+      jwksRequestsPerMinute: 10
+    });
+  }
+  return supabaseJwksClient;
+}
 
 function getSupabaseKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
-  if (!supabaseJwksClient) {
+  const jwks = getSupabaseJwksClient();
+  if (!jwks) {
     callback(new Error('Supabase JWKS client not initialized'));
     return;
   }
   
-  supabaseJwksClient.getSigningKey(header.kid, (err, key) => {
+  jwks.getSigningKey(header.kid, (err, key) => {
     if (err) {
       callback(err);
       return;
@@ -156,7 +168,8 @@ export function validateSupabaseJwt(req: Request, res: Response, next: NextFunct
   const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET;
 
   // Try JWKS first (ES256/RS256), then fall back to JWT secret (HS256)
-  if (SUPABASE_JWKS_URI && supabaseJwksClient) {
+  const jwks = getSupabaseJwksClient();
+  if (SUPABASE_JWKS_URI && jwks) {
     // Method 1: Validate using JWKS (ES256 or RS256) - Preferred method
     // Supabase uses ES256 (Elliptic Curve) by default
     jwt.verify(
