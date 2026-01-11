@@ -11,6 +11,14 @@
     "./webhook-verifier": {
       "require": "./webhook-verifier.js",
       "types": "./webhook-verifier.d.ts"
+    },
+    "./http-client": {
+      "require": "./http-client.js",
+      "types": "./http-client.d.ts"
+    },
+    "./cache": {
+      "require": "./cache.js",
+      "types": "./cache.d.ts"
     }
   }
 }
