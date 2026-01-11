@@ -129,6 +129,8 @@ steps:
       - 'orchestration-service@${PROJECT_ID}.iam.gserviceaccount.com'
       - '--update-env-vars'
       - 'KYC_SERVICE_URL=https://kyc-kyb-service-saz24fo3sa-ew.a.run.app,CONNECTOR_SERVICE_URL=https://connector-service-saz24fo3sa-ew.a.run.app,OPEN_BANKING_SERVICE_URL=https://open-banking-service-saz24fo3sa-ew.a.run.app,COMPANY_SEARCH_SERVICE_URL=https://company-search-service-saz24fo3sa-ew.a.run.app'
+      - '--update-secrets'
+      - 'SERVICE_JWT_SECRET=service-jwt-secret:latest,LOVABLE_JWKS_URI=lovable-jwks-uri:latest,LOVABLE_AUDIENCE=lovable-audience:latest'
       - '--allow-unauthenticated'
       - '--project'
       - '${PROJECT_ID}'
