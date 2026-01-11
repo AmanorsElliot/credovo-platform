@@ -83,11 +83,19 @@ export class KYCService {
       const isApproved = verificationStatus === 'verification.accepted' || 
                         verificationStatus === 'approved' ||
                         connectorResponse.verification_result?.event === 'verification.accepted';
+      const isRejected = verificationStatus === 'verification.declined' || 
+                        verificationStatus === 'verification.rejected' ||
+                        verificationStatus === 'rejected' ||
+                        connectorResponse.verification_result?.event === 'verification.declined';
+      const isPending = verificationStatus === 'verification.pending' || 
+                       verificationStatus === 'pending' ||
+                       (!isApproved && !isRejected); // Default to pending if no clear status (async processing)
 
       const response: KYCResponse = {
         applicationId: request.applicationId,
         status: (isApproved ? 'approved' : 
-                verificationStatus === 'verification.pending' || verificationStatus === 'pending' ? 'pending' : 'rejected') as 'pending' | 'approved' | 'rejected' | 'requires_review',
+                isRejected ? 'rejected' :
+                isPending ? 'pending' : 'pending') as 'pending' | 'approved' | 'rejected' | 'requires_review',
         provider: 'shufti-pro',
         result: {
           score: isApproved ? 100 : 0,
