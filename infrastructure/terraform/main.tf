@@ -157,6 +157,18 @@ resource "google_project_iam_member" "service_account_bigquery" {
   member  = "serviceAccount:${each.value.email}"
 }
 
+# Grant Cloud Build service account permission to act as service accounts
+# This is required for Cloud Build to deploy Cloud Run services with service accounts
+resource "google_service_account_iam_member" "cloud_build_act_as_services" {
+  for_each = {
+    for svc in google_service_account.services : svc.account_id => svc
+  }
+
+  service_account_id = each.value.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:github-actions@${var.project_id}.iam.gserviceaccount.com"
+}
+
 # Artifact Registry for Docker images
 resource "google_artifact_registry_repository" "docker_repo" {
   location      = var.region
