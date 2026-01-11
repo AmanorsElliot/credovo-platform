@@ -36,6 +36,10 @@ Shufti Pro is the primary KYC/KYB verification provider, supporting 240+ countri
 
 ## Clearbit (Company Search & Autocomplete)
 
+### ⚠️ Important: HubSpot Account Required
+
+**Status**: Clearbit has been acquired by HubSpot and now requires a HubSpot account to access their API. This may require a paid HubSpot plan depending on your needs.
+
 ### Overview
 Clearbit provides company search with autocomplete functionality and company enrichment data.
 
@@ -47,17 +51,23 @@ Clearbit provides company search with autocomplete functionality and company enr
 
 ### Documentation
 - **Clearbit API Docs**: https://clearbit.com/docs#enrichment-api
-- **Pricing**: Free tier (50 requests/month), $99/month for 1,000 requests
+- **HubSpot Integration**: https://www.hubspot.com/company-news/hubspot-completes-acquisition-of-b2b-intelligence-leader-clearbit
 
 ### Quick Start
-1. Sign up at https://clearbit.com
-2. Get API key from dashboard
-3. Store in Secret Manager: `clearbit-api-key`
-4. Use endpoint: `GET /api/v1/companies/search?query=company+name`
+1. **Sign up for HubSpot account** (may require paid plan for API access)
+2. Connect Clearbit through HubSpot
+3. Get API key from HubSpot/Clearbit dashboard
+4. Store in Secret Manager: `clearbit-api-key`
+5. Use endpoint: `GET /api/v1/companies/search?query=company+name`
 
 ### API Endpoints
 - `GET /api/v1/companies/search?query=name&limit=10` - Company search with autocomplete
 - `GET /api/v1/companies/enrich?domain=example.com` - Company enrichment by domain
+
+### Alternatives (No HubSpot Required)
+- **OpenCorporates API**: Global company database (200M+ companies), free tier available
+- **The Companies API**: UK-focused company search, standalone API
+- **Companies House API**: UK company data (already integrated)
 
 ## Credentials Management
 
