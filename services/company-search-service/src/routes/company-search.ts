@@ -130,23 +130,6 @@ CompanySearchRouter.get('/enrich', async (req: Request, res: Response) => {
       error: 'Bad Request',
       message: 'Domain lookup is not supported. Use company search endpoint with the company name instead.'
     });
-
-    const response = await axios.post(
-      `${CONNECTOR_SERVICE_URL}/api/v1/connector/call`,
-      connectorRequest,
-      { headers }
-    );
-
-    if (response.data.success) {
-      res.json({
-        company: response.data.company,
-      });
-    } else {
-      res.status(404).json({
-        error: 'Not Found',
-        message: response.data.error?.message || 'Company not found'
-      });
-    }
   } catch (error: any) {
     logger.error('Failed to enrich company', error);
     res.status(error.response?.status || 500).json({
