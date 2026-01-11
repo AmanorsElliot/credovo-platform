@@ -114,6 +114,19 @@ resource "google_secret_manager_secret_iam_member" "connector_companies_api_key_
   role      = "roles/secretmanager.secretAccessor"
 }
 
+# Grant service accounts access to SERVICE_JWT_SECRET
+resource "google_secret_manager_secret_iam_member" "service_jwt_secret_company_search_access" {
+  secret_id = google_secret_manager_secret.service_jwt_secret.secret_id
+  member    = "serviceAccount:${google_service_account.services["company-search-service"].email}"
+  role      = "roles/secretmanager.secretAccessor"
+}
+
+resource "google_secret_manager_secret_iam_member" "service_jwt_secret_open_banking_access" {
+  secret_id = google_secret_manager_secret.service_jwt_secret.secret_id
+  member    = "serviceAccount:${google_service_account.services["open-banking-service"].email}"
+  role      = "roles/secretmanager.secretAccessor"
+}
+
 # Grant connector service access to Plaid secrets
 resource "google_secret_manager_secret_iam_member" "connector_plaid_client_id_access" {
   secret_id = google_secret_manager_secret.plaid_client_id.secret_id
