@@ -105,6 +105,8 @@ steps:
       - 'managed'
       - '--service-account'
       - 'kyc-kyb-service@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--update-env-vars'
+      - 'CONNECTOR_SERVICE_URL=https://connector-service-saz24fo3sa-ew.a.run.app,ORCHESTRATION_SERVICE_URL=https://orchestration-service-saz24fo3sa-ew.a.run.app'
       - '--allow-unauthenticated'
       - '--project'
       - '${PROJECT_ID}'
