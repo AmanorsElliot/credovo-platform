@@ -129,6 +129,11 @@ export class ShuftiProConnector extends BaseConnector {
                             request.body?.kyb?.company_jurisdiction_code || 
                             'GB';
 
+    // Validate required fields
+    if (!companyNumber) {
+      throw new Error('Company registration number is required for KYB verification');
+    }
+
     // Prepare KYB request according to Shufti Pro API structure
     const kybData: any = {
       reference: request.body?.reference || `kyb-${Date.now()}`,
