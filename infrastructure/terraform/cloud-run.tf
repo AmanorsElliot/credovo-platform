@@ -204,6 +204,18 @@ resource "google_cloud_run_service" "connector_service" {
           value = "sandbox"  # Use sandbox for nonprod, change to "production" for prod
         }
 
+        # Clearbit API key (optional - for company search/autocomplete)
+        # Only add if you have a Clearbit API key from HubSpot
+        # env {
+        #   name = "CLEARBIT_API_KEY"
+        #   value_from {
+        #     secret_key_ref {
+        #       name = "clearbit-api-key"
+        #       key  = "latest"
+        #     }
+        #   }
+        # }
+
         ports {
           container_port = 8080
         }

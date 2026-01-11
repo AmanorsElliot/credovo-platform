@@ -337,6 +337,18 @@ resource "google_secret_manager_secret_version" "shufti_pro_secret_key_version" 
   depends_on = [google_secret_manager_secret.shufti_pro_secret_key]
 }
 
+# Clearbit API key (optional - for company search)
+resource "google_secret_manager_secret" "clearbit_api_key" {
+  secret_id = "clearbit-api-key"
+  replication {
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
+  }
+}
+
 # Plaid secret versions (using sandbox for nonprod)
 resource "google_secret_manager_secret_version" "plaid_client_id_version" {
   secret      = google_secret_manager_secret.plaid_client_id.id

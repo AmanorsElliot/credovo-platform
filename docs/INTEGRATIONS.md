@@ -55,10 +55,15 @@ Clearbit provides company search with autocomplete functionality and company enr
 
 ### Quick Start
 1. **Sign up for HubSpot account** (may require paid plan for API access)
-2. Connect Clearbit through HubSpot
-3. Get API key from HubSpot/Clearbit dashboard
-4. Store in Secret Manager: `clearbit-api-key`
+2. **Get Clearbit API Key**:
+   - Log into https://clearbit.com/ (or access via HubSpot)
+   - Navigate to **Settings** → **API Keys**
+   - Create or copy your API key
+3. **Store API key**: Use `scripts/configure-clearbit-secret.ps1` or see [Clearbit HubSpot Setup Guide](CLEARBIT_HUBSPOT_SETUP.md)
+4. **Configure service**: Set `COMPANY_SEARCH_PROVIDER=clearbit` in company-search-service
 5. Use endpoint: `GET /api/v1/companies/search?query=company+name`
+
+**📖 Detailed Setup**: See [CLEARBIT_HUBSPOT_SETUP.md](CLEARBIT_HUBSPOT_SETUP.md) for step-by-step instructions
 
 ### API Endpoints
 - `GET /api/v1/companies/search?query=name&limit=10` - Company search with autocomplete
