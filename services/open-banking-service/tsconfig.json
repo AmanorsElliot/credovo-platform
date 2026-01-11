@@ -20,6 +20,6 @@
       "@credovo/shared-utils/*": ["../../shared/utils/src/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../shared/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/__tests__/**"]
 }

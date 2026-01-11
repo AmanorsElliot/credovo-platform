@@ -7,9 +7,9 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
   },
   moduleNameMapper: {
-    '^@credovo/shared-types$': '<rootDir>/../../shared/types/src',
-    '^@credovo/shared-auth$': '<rootDir>/../../shared/auth/src',
-    '^@credovo/shared-utils/(.*)$': '<rootDir>/../../shared/utils/src/$1',
+    '^@credovo/shared-types$': '<rootDir>/../../shared/types/index.ts',
+    '^@credovo/shared-auth$': '<rootDir>/../../shared/auth/index.ts',
+    '^@credovo/shared-utils/(.*)$': '<rootDir>/../../shared/utils/$1.ts',
   },
   collectCoverageFrom: [
     'src/**/*.ts',

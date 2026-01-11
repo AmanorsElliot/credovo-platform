@@ -13,7 +13,7 @@ COPY shared ./shared
 RUN npm install
 RUN cd shared/auth && npm install || true
 
-# Build shared packages first
+# Build shared packages first (build from shared directory to handle cross-package imports)
 WORKDIR /app/shared
 RUN cd types && npm install && npm run build && echo "shared/types build successful" || (echo "shared/types build FAILED" && exit 1)
 RUN cd auth && npm install && npm run build && echo "shared/auth build successful" || (echo "shared/auth build FAILED" && exit 1)
@@ -30,6 +30,12 @@ COPY services/open-banking-service/src ./src
 
 # Build service
 RUN npm run build
+
+# Copy compiled shared files back to shared directories for runtime resolution
+RUN if [ -d "dist/shared/types" ]; then cp -r dist/shared/types/*.js shared/types/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/types" ]; then cp -r dist/shared/types/*.d.ts shared/types/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/utils" ]; then cp -r dist/shared/utils/*.js shared/utils/ 2>/dev/null || true; fi
+RUN if [ -d "dist/shared/utils" ]; then cp -r dist/shared/utils/*.d.ts shared/utils/ 2>/dev/null || true; fi
 
 # Production image
 FROM node:20-alpine
@@ -63,6 +69,7 @@ RUN echo "=== Verifying node_modules symlinks ===" && \
     readlink node_modules/@credovo/shared-auth || true
 
 # Install shared packages' production dependencies
+RUN cd shared/types && npm install --omit=dev || true
 RUN cd shared/auth && npm install --omit=dev || true
 
 # Create non-root user
