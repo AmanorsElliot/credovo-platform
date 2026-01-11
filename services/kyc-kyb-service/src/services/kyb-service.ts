@@ -191,18 +191,23 @@ export class KYBService {
           const isVerified = event === 'verification.accepted' || event === 'approved';
           const isPending = event === 'verification.pending' || event === 'pending';
           
+          // Extract business data from various possible locations in the response
+          const businessData = verificationResult?.business || 
+                              (connectorResponse.data as any)?.business ||
+                              (connectorResponse as any)?.business;
+          
           const response: KYBResponse = {
             applicationId,
-            companyNumber: verificationResult.business?.registration_number || 
-                          connectorResponse.business?.registration_number || '',
+            companyNumber: businessData?.registration_number || 
+                          verificationResult?.business?.registration_number || '',
             status: isVerified ? 'verified' : 
                    isPending ? 'pending' : 'not_found',
-            data: verificationResult.business || connectorResponse.business ? {
-              companyName: verificationResult.business?.name || 
-                          connectorResponse.business?.name,
+            data: businessData || verificationResult?.business ? {
+              companyName: businessData?.name || 
+                          verificationResult?.business?.name,
               status: event || 'unknown',
               metadata: connectorResponse,
-              aml: verificationResult.risk_assessment || connectorResponse.risk_assessment
+              aml: verificationResult?.risk_assessment || connectorResponse.risk_assessment
             } : undefined,
             timestamp: new Date()
           };
