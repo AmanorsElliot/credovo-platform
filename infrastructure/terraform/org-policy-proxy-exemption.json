@@ -1,0 +1,13 @@
+{
+  "name": "projects/858440156644/policies/constraints.gcp.resourceLocations/exemptions/proxy-service-public-access",
+  "spec": {
+    "exemptions": [
+      {
+        "name": "proxy-service-public-access",
+        "resource": "//run.googleapis.com/projects/858440156644/locations/europe-west1/services/proxy-service",
+        "reason": "Required for Supabase Edge Function integration. Service only forwards authenticated requests with Supabase JWT tokens. Application layer enforces authentication.",
+        "constraint": "constraints/gcp.resourceLocations"
+      }
+    ]
+  }
+}
