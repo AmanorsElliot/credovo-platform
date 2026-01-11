@@ -36,7 +36,7 @@ export class KYBService {
       // Use Shufti Pro for international KYB verification (240+ countries, 150+ languages)
       const connectorRequest = {
         provider: 'shufti-pro',
-        endpoint: '/business',
+        endpoint: '/',
         method: 'POST' as const,
         body: {
           reference: `kyb-${request.applicationId}-${Date.now()}`,

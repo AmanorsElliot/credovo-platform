@@ -14,8 +14,14 @@ export class ShuftiProConnector extends BaseConnector {
   }
 
   async call(request: ConnectorRequest): Promise<any> {
-    // Shufti Pro uses different endpoints for KYC and KYB
-    if (request.endpoint.startsWith('/verify')) {
+    // Shufti Pro uses the root endpoint (/) for all requests
+    // Different request types are distinguished by payload structure
+    if (request.endpoint.startsWith('/verify') || request.endpoint === '/') {
+      // Check if this is a KYB request (has companyNumber or business data)
+      if (request.body?.companyNumber || request.body?.company_registration_number || request.body?.kyb) {
+        return this.handleKYBRequest(request);
+      }
+      // Otherwise it's a KYC request
       return this.handleVerificationRequest(request);
     }
 
@@ -86,10 +92,11 @@ export class ShuftiProConnector extends BaseConnector {
 
     const response = await this.makeRequest(
       'POST',
-      '/verify',
+      '/',
       {
         'Authorization': `Basic ${authHeader}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       kycData
     );
@@ -99,6 +106,7 @@ export class ShuftiProConnector extends BaseConnector {
 
   private async handleKYBRequest(request: ConnectorRequest): Promise<any> {
     // Shufti Pro KYB (company verification)
+    // According to Shufti Pro API docs, KYB uses root endpoint (/) with kyb payload
     const clientId = await this.getClientId();
     const secretKey = await this.getSecretKey();
 
@@ -108,39 +116,51 @@ export class ShuftiProConnector extends BaseConnector {
 
     const authHeader = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
 
-    // Prepare KYB request with AML screening
-    const kybData = {
+    // Extract company info from various possible locations in request
+    const companyNumber = request.body?.companyNumber || 
+                         request.body?.info?.companyNumber || 
+                         request.body?.company_registration_number ||
+                         request.body?.kyb?.company_registration_number;
+    const companyName = request.body?.companyName || 
+                       request.body?.info?.companyName;
+    const jurisdictionCode = request.body?.country || 
+                            request.body?.info?.country || 
+                            request.body?.jurisdiction_code ||
+                            request.body?.kyb?.company_jurisdiction_code || 
+                            'GB';
+
+    // Prepare KYB request according to Shufti Pro API structure
+    const kybData: any = {
       reference: request.body?.reference || `kyb-${Date.now()}`,
       callback_url: request.body?.callback_url,
-      email: request.body?.email,
-      country: request.body?.country || request.body?.info?.country || 'GB',
+      country: request.body?.country || jurisdictionCode || 'GB',
       language: request.body?.language || 'EN',
-      business: {
-        name: request.body?.info?.companyName || request.body?.companyName,
-        registration_number: request.body?.info?.companyNumber || request.body?.companyNumber,
-        jurisdiction_code: request.body?.info?.country || request.body?.country || 'GB',
-        ...request.body?.business
-      },
-      // AML Screening for businesses
-      risk_assessment: {
-        name: {
-          first_name: request.body?.business?.director_first_name || '',
-          last_name: request.body?.business?.director_last_name || ''
-        },
-        dob: request.body?.business?.director_dob || '',
-        // Company AML checks
-        business_name: request.body?.info?.companyName || request.body?.companyName,
-        // Optional: Enable ongoing AML monitoring
-        ongoing: request.body?.aml_ongoing || 0
+      kyb: {
+        company_registration_number: companyNumber,
+        company_jurisdiction_code: jurisdictionCode
       }
     };
 
+    // Add optional fields if provided
+    if (request.body?.email) {
+      kybData.email = request.body.email;
+    }
+
+    // AML Screening for businesses (optional)
+    if (request.body?.aml_ongoing !== undefined) {
+      kybData.risk_assessment = {
+        business_name: companyName,
+        ongoing: request.body.aml_ongoing || 0
+      };
+    }
+
     const response = await this.makeRequest(
       'POST',
-      '/business',
+      '/',
       {
         'Authorization': `Basic ${authHeader}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       kybData
     );
@@ -254,4 +274,5 @@ export class ShuftiProConnector extends BaseConnector {
     return process.env[secretName.toUpperCase().replace(/-/g, '_')] || '';
   }
 }
+
 

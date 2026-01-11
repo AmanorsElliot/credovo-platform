@@ -34,7 +34,7 @@ export class KYCService {
       // Call connector service to initiate verification with Shufti Pro (primary provider)
       const connectorRequest = {
         provider: 'shufti-pro',
-        endpoint: '/verify',
+        endpoint: '/',
         method: 'POST' as const,
         body: {
           reference: `kyc-${request.applicationId}-${Date.now()}`,
