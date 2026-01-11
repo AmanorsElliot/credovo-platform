@@ -3,9 +3,23 @@ import { validateServiceJwt, configureCors } from '@credovo/shared-auth';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { CompanySearchRouter } from './routes/company-search';
 
-const logger = createLogger('company-search-service');
+// Initialize logger with fallback
+let logger: any;
+try {
+  logger = createLogger('company-search-service');
+} catch (error) {
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    debug: (...args: any[]) => console.log('[DEBUG]', ...args),
+    request: () => {},
+  };
+  console.error('Failed to initialize logger, using console fallback', error);
+}
+
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Middleware
 app.use(express.json());
@@ -43,8 +57,37 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
-  logger.info(`Company Search service started on port ${PORT}`);
-});
+// Start server with error handling
+try {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    const message = `Company Search service started successfully on port ${PORT}`;
+    logger.info(message);
+    console.log(message);
+  });
+
+  server.on('error', (error: any) => {
+    const errorMsg = `Server error: ${error.message || error}`;
+    logger.error(errorMsg, error);
+    console.error(errorMsg, error);
+    process.exit(1);
+  });
+
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught exception', error);
+    console.error('Uncaught exception', error);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error('Unhandled promise rejection', { reason });
+    console.error('Unhandled promise rejection', { reason });
+    process.exit(1);
+  });
+} catch (error: any) {
+  const errorMsg = `Failed to start company search service: ${error.message || error}`;
+  logger.error(errorMsg, error);
+  console.error(errorMsg, error);
+  process.exit(1);
+}
 
 export default app;
