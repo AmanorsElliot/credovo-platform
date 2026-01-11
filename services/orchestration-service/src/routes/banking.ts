@@ -2,12 +2,12 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { validateRequest, validateParams } from '@credovo/shared-types/validation-middleware';
-import { 
-  ApplicationIdParamSchema, 
-  BankLinkRequestSchema, 
+import {
+  ApplicationIdParamSchema,
+  BankLinkRequestSchema,
   BankLinkExchangeRequestSchema,
   AccountBalanceRequestSchema,
-  TransactionRequestSchema
+  TransactionRequestBaseSchema
 } from '@credovo/shared-types/validation';
 
 const logger = createLogger('orchestration-banking');
@@ -201,7 +201,7 @@ BankingRouter.post('/:applicationId/banking/accounts/balance',
  */
 BankingRouter.post('/:applicationId/banking/transactions',
   validateParams(ApplicationIdParamSchema),
-  validateRequest({ body: TransactionRequestSchema.omit({ applicationId: true, userId: true }) }),
+  validateRequest({ body: TransactionRequestBaseSchema.omit({ applicationId: true, userId: true }) }),
   async (req: Request, res: Response) => {
     try {
       const applicationId = req.params.applicationId;

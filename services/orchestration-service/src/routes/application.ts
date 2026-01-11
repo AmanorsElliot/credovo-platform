@@ -3,7 +3,7 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import { createLogger } from '@credovo/shared-utils/logger';
 import { validateRequest, validateParams } from '@credovo/shared-types/validation-middleware';
-import { ApplicationIdParamSchema, KYCRequestSchema, KYBRequestSchema } from '@credovo/shared-types/validation';
+import { ApplicationIdParamSchema, KYCRequestBaseSchema, KYBRequestSchema } from '@credovo/shared-types/validation';
 import { Application, ApplicationStatus } from '@credovo/shared-types';
 
 const logger = createLogger('orchestration-service');
@@ -156,7 +156,7 @@ ApplicationRouter.get('/:applicationId',
 
 ApplicationRouter.post('/:applicationId/kyc/initiate', 
   validateParams(ApplicationIdParamSchema),
-  validateRequest({ body: KYCRequestSchema.omit({ applicationId: true, userId: true }) }),
+  validateRequest({ body: KYCRequestBaseSchema.omit({ applicationId: true, userId: true }) }),
   async (req: Request, res: Response) => {
     try {
       const { applicationId } = req.params;

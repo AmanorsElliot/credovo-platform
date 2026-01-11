@@ -9,8 +9,8 @@ export const AddressSchema = z.object({
   country: z.string().length(2, 'Country must be a 2-letter ISO code').regex(/^[A-Z]{2}$/, 'Country must be uppercase ISO code')
 });
 
-// KYC Request validation schema
-export const KYCRequestSchema = z.object({
+// KYC Request validation schema (base schema without refine for omit operations)
+export const KYCRequestBaseSchema = z.object({
   applicationId: z.string().min(1, 'Application ID is required').max(100, 'Application ID is too long'),
   userId: z.string().min(1, 'User ID is required').max(100, 'User ID is too long'),
   type: z.enum(['individual', 'company']),
@@ -24,7 +24,10 @@ export const KYCRequestSchema = z.object({
     companyNumber: z.string().min(1, 'Company number is required').max(50, 'Company number is too long').optional(),
     companyName: z.string().min(1, 'Company name is required').max(200, 'Company name is too long').optional()
   })
-}).refine(
+});
+
+// KYC Request validation schema (with refine)
+export const KYCRequestSchema = KYCRequestBaseSchema.refine(
   (data: any) => {
     // If type is individual, require firstName and lastName
     if (data.type === 'individual') {
@@ -81,8 +84,8 @@ export const AccountBalanceRequestSchema = z.object({
   accountIds: z.array(z.string().min(1).max(100)).max(100, 'Too many account IDs').optional()
 });
 
-// Transaction Request validation schema
-export const TransactionRequestSchema = z.object({
+// Transaction Request validation schema (base schema without refine for omit operations)
+export const TransactionRequestBaseSchema = z.object({
   applicationId: z.string().min(1, 'Application ID is required').max(100, 'Application ID is too long'),
   userId: z.string().min(1, 'User ID is required').max(100, 'User ID is too long'),
   accessToken: z.string().min(1, 'Access token is required').max(500, 'Access token is too long'),
@@ -90,7 +93,10 @@ export const TransactionRequestSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
   count: z.coerce.number().int('Count must be an integer').min(1, 'Count must be at least 1').max(500, 'Count cannot exceed 500').default(100).optional()
-}).refine(
+});
+
+// Transaction Request validation schema (with refine)
+export const TransactionRequestSchema = TransactionRequestBaseSchema.refine(
   (data: any) => {
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);

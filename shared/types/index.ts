@@ -115,6 +115,15 @@ export interface ConnectorResponse<T = any> {
   verification_result?: any;
   reference?: string;
   risk_assessment?: any;
+  // Plaid specific fields (optional, as they may not be present for all providers)
+  link_token?: string;
+  expiration?: string;
+  access_token?: string;
+  item_id?: string;
+  accounts?: any[];
+  transactions?: any[];
+  total_transactions?: number;
+  request_id?: string;
   metadata?: {
     provider: string;
     latency: number;
