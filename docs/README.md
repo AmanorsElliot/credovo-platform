@@ -13,28 +13,24 @@ This directory contains documentation for the Credovo platform.
 - **[Architecture Overview](architecture.md)** - System architecture and components
 - **[Service Interactions](SERVICE_INTERACTIONS.md)** - How services communicate
 - **[Authentication Guide](AUTHENTICATION.md)** - Authentication patterns and setup
+- **[Multi-Region Strategy](MULTI_REGION_STRATEGY.md)** - Multi-region deployment strategy
+
+### Integrations
+- **[Integrations Guide](INTEGRATIONS.md)** - All external service integrations (Plaid, Shufti Pro)
+- **[Plaid Integration](PLAID_INTEGRATION.md)** - Open banking integration
+- **[Plaid Credentials](PLAID_CREDENTIALS_SETUP.md)** - Plaid credential setup
+- **[Shufti Pro API](SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
+- **[Webhook Setup](WEBHOOK_SETUP.md)** - Webhook endpoint configuration
+- **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
+
+### Operations
+- **[Operations Guide](OPERATIONS.md)** - Monitoring, testing, troubleshooting
+- **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
+- **[Testing Guide](TESTING_GUIDE.md)** - End-to-end testing instructions
+- **[Cloud Build Troubleshooting](CLOUD_BUILD_TROUBLESHOOTING.md)** - Common build issues
 
 ### CI/CD
 - **[Cloud Build Setup](CLOUD_BUILD_GITHUB_SETUP.md)** - Automated builds and deployments
-- **[Cloud Build Troubleshooting](CLOUD_BUILD_TROUBLESHOOTING.md)** - Common build issues and solutions
-
-### Integration
-- **[Shufti Pro API Requirements](SHUFTI_PRO_API_REQUIREMENTS.md)** - KYC/KYB provider integration
-- **[Webhook Setup](WEBHOOK_SETUP.md)** - Webhook endpoint configuration
-- **[Webhook Registration](WEBHOOK_REGISTRATION_GUIDE.md)** - Registering webhooks with Shufti Pro
-- **[Credentials Management](CREDENTIALS.md)** - Credential storage and management
-- **[Lovable Separate Repo](LOVABLE_SEPARATE_REPO.md)** - ⭐ **Recommended**: Separate repository strategy (`credovo-webapp`)
-- **[Credovo Webapp Setup](CREDOVO_WEBAPP_SETUP.md)** - Complete setup guide for `credovo-webapp` repository
-- **[Automated Types Sync](AUTOMATED_TYPES_SYNC.md)** - Keeping shared types in sync between repos
-- **[Lovable Types Setup](LOVABLE_TYPES_SETUP.md)** - Setting up shared types in Lovable
-
-### Testing
-- **[Testing Guide](TESTING_GUIDE.md)** - End-to-end testing instructions
-- **[Test Auth Token](TEST_AUTH_TOKEN.md)** - How to get authentication tokens for testing
-
-### Operations
-- **[Monitoring Setup](MONITORING_SETUP.md)** - Comprehensive monitoring and alerting
-- **[Monitoring Overview](monitoring.md)** - Monitoring concepts and log queries
 
 ## Documentation Structure
 
