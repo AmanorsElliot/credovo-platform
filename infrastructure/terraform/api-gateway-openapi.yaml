@@ -10,23 +10,24 @@ produces:
   - application/json
 paths:
   /{path=**}:
+    parameters:
+      - name: path
+        in: path
+        required: true
+        type: string
     get:
       operationId: orchestrationGet
       parameters:
         - in: header
           name: Authorization
           type: string
-          required: false
+          required: true
           description: Supabase JWT token (will be overwritten by API Gateway with identity token)
         - in: header
           name: X-Supabase-Token
           type: string
-          required: false
+          required: true
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-        - name: path
-          in: path
-          required: false
-          type: string
       x-google-backend:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
@@ -51,10 +52,6 @@ paths:
           type: string
           required: true
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-        - name: path
-          in: path
-          required: false
-          type: string
       x-google-backend:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
@@ -76,10 +73,6 @@ paths:
           type: string
           required: true
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-        - name: path
-          in: path
-          required: false
-          type: string
       x-google-backend:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
@@ -101,10 +94,6 @@ paths:
           type: string
           required: true
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-        - name: path
-          in: path
-          required: false
-          type: string
       x-google-backend:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
