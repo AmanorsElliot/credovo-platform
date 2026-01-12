@@ -1,17 +1,17 @@
 # Deploy API Gateway for Orchestration Service
 # This script deploys API Gateway using gcloud commands since Terraform provider doesn't support it
-# API Gateway connects directly to orchestration service, eliminating the need for proxy service
+# API Gateway connects to proxy service, which handles Supabase JWT forwarding to orchestration service
 
 param(
     [string]$ProjectId = "credovo-eu-apps-nonprod",
     [string]$Region = "europe-west1",
-    [string]$OrchestrationServiceUrl = "https://orchestration-service-saz24fo3sa-ew.a.run.app"
+    [string]$ProxyServiceUrl = "https://proxy-service-saz24fo3sa-ew.a.run.app"
 )
 
-Write-Host "Deploying API Gateway for Orchestration Service..." -ForegroundColor Green
+Write-Host "Deploying API Gateway for Orchestration Service (via Proxy Service)..." -ForegroundColor Green
 Write-Host "Project: $ProjectId" -ForegroundColor Cyan
 Write-Host "Region: $Region" -ForegroundColor Cyan
-Write-Host "Orchestration Service URL: $OrchestrationServiceUrl" -ForegroundColor Cyan
+Write-Host "Proxy Service URL: $ProxyServiceUrl" -ForegroundColor Cyan
 Write-Host ""
 
 # Step 1: Enable API Gateway API
@@ -28,7 +28,7 @@ $openApiPath = "$PSScriptRoot\..\infrastructure\terraform\api-gateway-openapi.ya
 $tempOpenApiPath = "$env:TEMP\api-gateway-openapi-$(Get-Date -Format 'yyyyMMddHHmmss').yaml"
 
 $openApiContent = Get-Content $openApiPath -Raw
-$openApiContent = $openApiContent -replace '\$\{orchestration_service_url\}', $OrchestrationServiceUrl
+$openApiContent = $openApiContent -replace '\$\{proxy_service_url\}', $ProxyServiceUrl
 $openApiContent | Out-File -FilePath $tempOpenApiPath -Encoding utf8 -NoNewline
 
 Write-Host "OpenAPI spec prepared at: $tempOpenApiPath" -ForegroundColor Green
@@ -55,12 +55,12 @@ if ($LASTEXITCODE -ne 0) {
 
 # Step 4: Create API Config
 Write-Host "`nStep 4: Creating API Gateway configuration..." -ForegroundColor Yellow
-$configOutput = gcloud api-gateway api-configs create proxy-api-config `
-    --api=proxy-api `
-    --openapi-spec=$tempOpenApiPath `
-    --project=$ProjectId `
-    --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
-    2>&1
+    $configOutput = gcloud api-gateway api-configs create proxy-api-config `
+        --api=proxy-api `
+        --openapi-spec=$tempOpenApiPath `
+        --project=$ProjectId `
+        --backend-auth-service-account=proxy-service@$ProjectId.iam.gserviceaccount.com `
+        2>&1
 
 if ($LASTEXITCODE -ne 0) {
     if ($configOutput -match "already exists" -or $configOutput -match "ALREADY_EXISTS") {
@@ -95,7 +95,7 @@ if ($LASTEXITCODE -ne 0) {
                     --api=proxy-api `
                     --openapi-spec=$tempOpenApiPath `
                     --project=$ProjectId `
-                    --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+                    --backend-auth-service-account=proxy-service@$ProjectId.iam.gserviceaccount.com `
                     2>&1
                 
                 if ($LASTEXITCODE -eq 0) {
@@ -169,12 +169,12 @@ if ($gatewayUrl -and -not $gatewayUrl.StartsWith("ERROR")) {
     Write-Host "Output: $gatewayUrl" -ForegroundColor Yellow
 }
 
-# Step 7: Grant API Gateway service account permission to orchestration-service
-Write-Host "`nStep 7: Granting API Gateway service account permission to orchestration-service..." -ForegroundColor Yellow
+# Step 7: Grant API Gateway service account permission to proxy-service
+Write-Host "`nStep 7: Granting API Gateway service account permission to proxy-service..." -ForegroundColor Yellow
 $projectNumber = (gcloud projects describe $ProjectId --format="value(projectNumber)")
 $apiGatewaySA = "$projectNumber@cloudservices.gserviceaccount.com"
 
-$iamOutput = gcloud run services add-iam-policy-binding orchestration-service `
+$iamOutput = gcloud run services add-iam-policy-binding proxy-service `
     --region=$Region `
     --member="serviceAccount:$apiGatewaySA" `
     --role=roles/run.invoker `
@@ -182,13 +182,13 @@ $iamOutput = gcloud run services add-iam-policy-binding orchestration-service `
     2>&1
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ API Gateway service account granted permission to orchestration-service" -ForegroundColor Green
+    Write-Host "✅ API Gateway service account granted permission to proxy-service" -ForegroundColor Green
 } else {
     if ($iamOutput -match "already exists" -or $iamOutput -match "already has") {
         Write-Host "✅ Permission already granted" -ForegroundColor Green
     } else {
         Write-Host "WARNING: Failed to grant permission. You may need to do this manually:" -ForegroundColor Yellow
-        Write-Host "gcloud run services add-iam-policy-binding orchestration-service --region=$Region --member='serviceAccount:$apiGatewaySA' --role=roles/run.invoker --project=$ProjectId" -ForegroundColor Cyan
+        Write-Host "gcloud run services add-iam-policy-binding proxy-service --region=$Region --member='serviceAccount:$apiGatewaySA' --role=roles/run.invoker --project=$ProjectId" -ForegroundColor Cyan
         Write-Host "Output: $iamOutput" -ForegroundColor Yellow
     }
 }

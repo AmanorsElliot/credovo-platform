@@ -1,9 +1,9 @@
 swagger: '2.0'
 info:
-  title: Proxy Service API
-  description: API Gateway for proxy service
+  title: Orchestration Service API
+  description: API Gateway for Orchestration Service (via Proxy Service)
   version: 1.0.0
-host: proxy-api-gateway
+host: orchestration-api-gateway
 schemes:
   - https
 produces:
@@ -11,74 +11,85 @@ produces:
 paths:
   /{path=**}:
     get:
-      operationId: proxyGet
+      operationId: orchestrationGet
       parameters:
+        - in: header
+          name: Authorization
+          type: string
+          required: true
+          description: Supabase JWT token
         - name: path
           in: path
           required: true
           type: string
       x-google-backend:
-        address: ${orchestration_service_url}
+        address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
-        jwt_audience: ${orchestration_service_url}
-      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
-      # The original Authorization header (with Supabase JWT) should be forwarded automatically
-      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
+        jwt_audience: ${proxy_service_url}
+      # API Gateway adds Authorization header with identity token for Cloud Run IAM
+      # Proxy service extracts Supabase JWT from Authorization and forwards as X-User-Token
+      # Proxy service uses its own identity token for Cloud Run IAM to orchestration service
       responses:
         '200':
           description: Success
     post:
-      operationId: proxyPost
+      operationId: orchestrationPost
       parameters:
+        - in: header
+          name: Authorization
+          type: string
+          required: true
+          description: Supabase JWT token
         - name: path
           in: path
           required: true
           type: string
       x-google-backend:
-        address: ${orchestration_service_url}
+        address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
-        jwt_audience: ${orchestration_service_url}
-      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
-      # The original Authorization header (with Supabase JWT) should be forwarded automatically
-      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
+        jwt_audience: ${proxy_service_url}
       responses:
         '200':
           description: Success
     put:
-      operationId: proxyPut
+      operationId: orchestrationPut
       parameters:
+        - in: header
+          name: Authorization
+          type: string
+          required: true
+          description: Supabase JWT token
         - name: path
           in: path
           required: true
           type: string
       x-google-backend:
-        address: ${orchestration_service_url}
+        address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
-        jwt_audience: ${orchestration_service_url}
-      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
-      # The original Authorization header (with Supabase JWT) should be forwarded automatically
-      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
+        jwt_audience: ${proxy_service_url}
       responses:
         '200':
           description: Success
     delete:
-      operationId: proxyDelete
+      operationId: orchestrationDelete
       parameters:
+        - in: header
+          name: Authorization
+          type: string
+          required: true
+          description: Supabase JWT token
         - name: path
           in: path
           required: true
           type: string
       x-google-backend:
-        address: ${orchestration_service_url}
+        address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
-        jwt_audience: ${orchestration_service_url}
-      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
-      # The original Authorization header (with Supabase JWT) should be forwarded automatically
-      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
+        jwt_audience: ${proxy_service_url}
       responses:
         '200':
           description: Success
