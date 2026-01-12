@@ -19,11 +19,6 @@ paths:
       operationId: orchestrationGet
       parameters:
         - in: header
-          name: Authorization
-          type: string
-          required: true
-          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
-        - in: header
           name: X-Supabase-Token
           type: string
           required: true
@@ -43,11 +38,6 @@ paths:
       operationId: orchestrationPost
       parameters:
         - in: header
-          name: Authorization
-          type: string
-          required: true
-          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
-        - in: header
           name: X-Supabase-Token
           type: string
           required: true
@@ -64,11 +54,6 @@ paths:
       operationId: orchestrationPut
       parameters:
         - in: header
-          name: Authorization
-          type: string
-          required: true
-          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
-        - in: header
           name: X-Supabase-Token
           type: string
           required: true
@@ -84,11 +69,6 @@ paths:
     delete:
       operationId: orchestrationDelete
       parameters:
-        - in: header
-          name: Authorization
-          type: string
-          required: true
-          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
         - in: header
           name: X-Supabase-Token
           type: string
