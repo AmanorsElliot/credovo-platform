@@ -16,12 +16,12 @@ paths:
         - in: header
           name: Authorization
           type: string
-          required: true
+          required: false
           description: Supabase JWT token (will be overwritten by API Gateway with identity token)
         - in: header
           name: X-Supabase-Token
           type: string
-          required: true
+          required: false
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
