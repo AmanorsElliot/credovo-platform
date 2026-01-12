@@ -29,12 +29,14 @@ paths:
           required: true
           schema:
             type: string
+          description: Company name or search query
         - name: limit
           in: query
           required: false
           schema:
             type: integer
             default: 10
+          description: Maximum number of results to return
       x-google-backend:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
