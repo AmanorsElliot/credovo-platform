@@ -81,7 +81,19 @@ app.all('*', async (req: Request, res: Response) => {
     }
 
     // Forward request to orchestration service
-    const targetUrl = `${ORCHESTRATION_SERVICE_URL}${req.path}${req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''}`;
+    // Construct URL properly: use req.originalUrl (includes query string) or req.url
+    // req.path doesn't include query string, so we need to use req.url or construct from req.path + query
+    const pathWithQuery = req.originalUrl || req.url || req.path;
+    const targetUrl = `${ORCHESTRATION_SERVICE_URL}${pathWithQuery}`;
+    
+    console.log('Proxying request:', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+      url: req.url,
+      path: req.path,
+      query: req.query,
+      targetUrl
+    });
     
     const headers: Record<string, string> = {
       'Content-Type': req.headers['content-type'] || 'application/json',
