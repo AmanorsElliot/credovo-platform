@@ -1,6 +1,12 @@
 # HTTPS Load Balancer for Proxy Service
-# This allows public access to the proxy service without requiring allUsers IAM binding
-# The load balancer is publicly accessible, but the Cloud Run service remains private
+# DEPRECATED: This configuration is no longer used.
+# We switched to API Gateway instead due to Load Balancer authentication issues with serverless NEGs.
+# This file is kept for reference but should not be applied.
+# 
+# To remove completely:
+# 1. terraform state rm <all load balancer resources> (already done)
+# 2. Delete this file
+# 3. Remove outputs from outputs.tf (already done)
 
 variable "proxy_domain" {
   description = "Domain name for the proxy service (e.g., proxy.credovo.app). Leave empty to use IP only."
