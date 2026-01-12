@@ -2,12 +2,13 @@
 
 ## Deployment Status
 
-✅ **API Gateway successfully deployed!**
+✅ **API Gateway successfully deployed and working!**
 - **URL**: `https://proxy-gateway-ayd13s2s.ew.gateway.dev`
 - **State**: ACTIVE
-- **Backend**: Orchestration Service (direct connection, no proxy needed)
-- **Service Account**: `orchestration-service@credovo-eu-apps-nonprod.iam.gserviceaccount.com`
+- **Backend**: Proxy Service (handles Supabase JWT forwarding)
+- **Service Account**: `858440156644@cloudservices.gserviceaccount.com` (API Gateway's own service account)
 - **IAM Permission**: Granted ✅
+- **Health Check**: ✅ Working
 
 ## Architecture
 
@@ -15,7 +16,7 @@
 Supabase Edge Function
     ↓ (Authorization: Bearer <Supabase JWT>)
 API Gateway (publicly accessible)
-    ↓ (authenticates via service account, forwards Supabase JWT in Authorization)
+    ↓ (authenticates via own service account, forwards Supabase JWT in Authorization)
 Proxy Service (Cloud Run - authenticated)
     ↓ (extracts Supabase JWT, forwards as X-User-Token)
     ↓ (uses own identity token in Authorization for Cloud Run IAM)
@@ -26,6 +27,19 @@ Application Logic
 
 **Why Proxy Service?**
 API Gateway overwrites the `Authorization` header with its identity token for Cloud Run IAM authentication. The proxy service extracts the original Supabase JWT and forwards it as `X-User-Token`, while using its own identity token for Cloud Run IAM. This preserves the Supabase JWT for the orchestration service to validate.
+
+## Configuration Details
+
+### API Gateway Configuration
+- **API**: `proxy-api`
+- **Config**: `proxy-api-config`
+- **Gateway**: `proxy-gateway` (location: `europe-west1`)
+- **Backend**: `https://proxy-service-saz24fo3sa-ew.a.run.app`
+- **Authentication**: API Gateway uses its own service account (`PROJECT_NUMBER@cloudservices.gserviceaccount.com`)
+
+### IAM Permissions
+- API Gateway service account (`858440156644@cloudservices.gserviceaccount.com`) has `roles/run.invoker` on proxy-service
+- Proxy service service account has `roles/run.invoker` on orchestration-service
 
 ## Next Steps
 
@@ -80,14 +94,6 @@ supabase secrets set API_GATEWAY_URL=https://proxy-gateway-ayd13s2s.ew.gateway.d
 5. **Proxy Service** → Uses its own identity token in `Authorization` for Cloud Run IAM
 6. **Orchestration Service** → Reads Supabase JWT from `X-User-Token` header (prioritized)
 
-## Testing
-
-After updating the Edge Function, test the full flow:
-1. Edge Function calls API Gateway with Supabase JWT
-2. API Gateway authenticates to orchestration service
-3. Orchestration service validates Supabase JWT
-4. Request succeeds
-
 ## Troubleshooting
 
 If you get authentication errors:
@@ -96,9 +102,16 @@ If you get authentication errors:
 3. Verify API Gateway IAM: `gcloud run services get-iam-policy proxy-service --region=europe-west1 --project=credovo-eu-apps-nonprod`
 4. Verify proxy service IAM: `gcloud run services get-iam-policy orchestration-service --region=europe-west1 --project=credovo-eu-apps-nonprod`
 
+## Important Notes
+
+- **No `backend-auth-service-account`**: API Gateway uses its own service account for authentication. The `backend-auth-service-account` parameter was removed because it was causing authentication issues.
+- **Health endpoint works**: The `/health` endpoint is accessible and returns `{"status": "healthy", "service": "proxy-service"}`.
+- **Proxy service required**: Due to API Gateway's header overwriting behavior, the proxy service is necessary to preserve the Supabase JWT.
+
 ## Summary
 
 ✅ API Gateway deployed and active  
-✅ Points directly to orchestration service  
+✅ Points to proxy service (handles header transformation)  
 ✅ IAM permissions configured  
-⏭️ **Next**: Test and update Edge Function
+✅ Health check working  
+⏭️ **Next**: Update Edge Function to use API Gateway URL
