@@ -27,17 +27,36 @@ app.get('/health', (req: Request, res: Response) => {
 // Proxy all requests to orchestration service
 app.all('*', async (req: Request, res: Response) => {
   try {
-    // Extract Supabase JWT from Authorization header
-    const authHeader = req.headers.authorization;
+    // Extract Supabase JWT
+    // When coming from API Gateway, the Authorization header contains API Gateway's identity token
+    // The original Supabase JWT should be in X-Supabase-Token header (set by Edge Function)
+    // For direct calls (not via API Gateway), the Authorization header contains the Supabase JWT
+    let supabaseToken: string | undefined;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Check for Supabase JWT in custom header first (when coming from API Gateway)
+    if (req.headers['x-supabase-token']) {
+      supabaseToken = req.headers['x-supabase-token'] as string;
+      console.log('Using Supabase JWT from X-Supabase-Token header (API Gateway path)');
+    } else {
+      // Fallback: check Authorization header (for direct calls)
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        // Check if this is a Google identity token (starts with "eyJ" and is long)
+        // Google identity tokens are JWTs but have a different structure
+        // For now, if it's coming from API Gateway, it will be a Google token
+        // We'll assume if X-Supabase-Token is not present and we're here, it's a direct call
+        supabaseToken = token;
+        console.log('Using Supabase JWT from Authorization header (direct call)');
+      }
+    }
+    
+    if (!supabaseToken) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'Missing or invalid authorization header'
+        message: 'Missing Supabase JWT token. Send it in X-Supabase-Token header when using API Gateway, or in Authorization header for direct calls.'
       });
     }
-
-    const supabaseToken = authHeader.substring(7);
 
     // Get Cloud Run identity token for service-to-service authentication
     // This allows the proxy to authenticate to the orchestration service

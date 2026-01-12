@@ -17,7 +17,12 @@ paths:
           name: Authorization
           type: string
           required: true
-          description: Supabase JWT token
+          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
           required: true
@@ -40,7 +45,12 @@ paths:
           name: Authorization
           type: string
           required: true
-          description: Supabase JWT token
+          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
           required: true
@@ -60,7 +70,12 @@ paths:
           name: Authorization
           type: string
           required: true
-          description: Supabase JWT token
+          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
           required: true
@@ -80,7 +95,12 @@ paths:
           name: Authorization
           type: string
           required: true
-          description: Supabase JWT token
+          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
           required: true
