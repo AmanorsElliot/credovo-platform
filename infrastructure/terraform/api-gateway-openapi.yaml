@@ -1,0 +1,68 @@
+swagger: '2.0'
+info:
+  title: Proxy Service API
+  description: API Gateway for proxy service
+  version: 1.0.0
+host: proxy-api-gateway
+schemes:
+  - https
+produces:
+  - application/json
+paths:
+  /{path=**}:
+    get:
+      operationId: proxyGet
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        protocol: h2
+      responses:
+        '200':
+          description: Success
+    post:
+      operationId: proxyPost
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        protocol: h2
+      responses:
+        '200':
+          description: Success
+    put:
+      operationId: proxyPut
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        protocol: h2
+      responses:
+        '200':
+          description: Success
+    delete:
+      operationId: proxyDelete
+      parameters:
+        - name: path
+          in: path
+          required: true
+          type: string
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        protocol: h2
+      responses:
+        '200':
+          description: Success
