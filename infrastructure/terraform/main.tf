@@ -105,6 +105,7 @@ resource "google_project_iam_member" "service_account_permissions" {
 
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${each.value.email}"
 }
 
 # Grant connector service access to The Companies API secret

@@ -29,8 +29,14 @@ resource "google_secret_manager_secret" "grafana_service_account_key" {
   secret_id = "grafana-service-account-key"
   
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
+  
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 # Note: Service account keys should be created manually and stored in Secret Manager
@@ -112,8 +118,14 @@ resource "google_secret_manager_secret" "grafana_admin_password" {
   secret_id = "grafana-admin-password"
   
   replication {
-    automatic = true
+    user_managed {
+      replicas {
+        location = var.region
+      }
+    }
   }
+  
+  depends_on = [time_sleep.wait_for_apis]
 }
 
 # Generate random password for Grafana admin
