@@ -55,11 +55,12 @@ if ($LASTEXITCODE -ne 0) {
 
 # Step 4: Create API Config
 Write-Host "`nStep 4: Creating API Gateway configuration..." -ForegroundColor Yellow
+    # Note: We don't use --backend-auth-service-account because API Gateway's own
+    # service account (PROJECT_NUMBER@cloudservices.gserviceaccount.com) will authenticate
     $configOutput = gcloud api-gateway api-configs create proxy-api-config `
         --api=proxy-api `
         --openapi-spec=$tempOpenApiPath `
         --project=$ProjectId `
-        --backend-auth-service-account=proxy-service@$ProjectId.iam.gserviceaccount.com `
         2>&1
 
 if ($LASTEXITCODE -ne 0) {
@@ -91,11 +92,12 @@ if ($LASTEXITCODE -ne 0) {
                 Start-Sleep -Seconds 2
                 
                 # Recreate config with new spec
+                # Note: We don't use --backend-auth-service-account because API Gateway's own
+                # service account (PROJECT_NUMBER@cloudservices.gserviceaccount.com) will authenticate
                 $recreateConfigOutput = gcloud api-gateway api-configs create proxy-api-config `
                     --api=proxy-api `
                     --openapi-spec=$tempOpenApiPath `
                     --project=$ProjectId `
-                    --backend-auth-service-account=proxy-service@$ProjectId.iam.gserviceaccount.com `
                     2>&1
                 
                 if ($LASTEXITCODE -eq 0) {
