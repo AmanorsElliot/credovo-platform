@@ -9,14 +9,56 @@ schemes:
 produces:
   - application/json
 paths:
-  /{path=**}:
-    parameters:
-      - name: path
-        in: path
-        required: true
-        type: string
+  # Explicit GET endpoints (catch-all has issues with GET requests)
+  /api/v1/health:
     get:
-      operationId: orchestrationGet
+      operationId: healthGet
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        jwt_audience: ${proxy_service_url}
+      responses:
+        '200':
+          description: Health check
+  
+  /api/v1/companies/search:
+    get:
+      operationId: companiesSearchGet
+      parameters:
+        - name: query
+          in: query
+          type: string
+          required: true
+          description: Company name or search query
+        - name: limit
+          in: query
+          type: integer
+          required: false
+          default: 10
+          description: Maximum number of results to return
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        jwt_audience: ${proxy_service_url}
+      responses:
+        '200':
+          description: Company search results
+          schema:
+            type: object
+            properties:
+              companies:
+                type: array
+              count:
+                type: integer
+
+  /api/v1/applications:
+    get:
+      operationId: applicationsGet
       parameters:
         - in: header
           name: X-Supabase-Token
@@ -27,12 +69,32 @@ paths:
         address: ${proxy_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         jwt_audience: ${proxy_service_url}
-      # API Gateway adds Authorization header with identity token for Cloud Run IAM
-      # Proxy service extracts Supabase JWT from Authorization and forwards as X-User-Token
-      # Proxy service uses its own identity token for Cloud Run IAM to orchestration service
       responses:
         '200':
-          description: Success
+          description: List applications
+    post:
+      operationId: applicationsPost
+      parameters:
+        - in: header
+          name: X-Supabase-Token
+          type: string
+          required: true
+          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
+      x-google-backend:
+        address: ${proxy_service_url}
+        path_translation: APPEND_PATH_TO_ADDRESS
+        jwt_audience: ${proxy_service_url}
+      responses:
+        '200':
+          description: Create application
+
+  # Catch-all for other methods (POST, PUT, DELETE) and unknown paths
+  /{path=**}:
+    parameters:
+      - name: path
+        in: path
+        required: true
+        type: string
     post:
       operationId: orchestrationPost
       parameters:
