@@ -15,11 +15,17 @@
 Supabase Edge Function
     ↓ (Authorization: Bearer <Supabase JWT>)
 API Gateway (publicly accessible)
-    ↓ (authenticates via service account, forwards Supabase JWT)
+    ↓ (authenticates via service account, forwards Supabase JWT in Authorization)
+Proxy Service (Cloud Run - authenticated)
+    ↓ (extracts Supabase JWT, forwards as X-User-Token)
+    ↓ (uses own identity token in Authorization for Cloud Run IAM)
 Orchestration Service (Cloud Run - authenticated)
-    ↓ (validates Supabase JWT from Authorization header)
+    ↓ (validates Supabase JWT from X-User-Token header)
 Application Logic
 ```
+
+**Why Proxy Service?**
+API Gateway overwrites the `Authorization` header with its identity token for Cloud Run IAM authentication. The proxy service extracts the original Supabase JWT and forwards it as `X-User-Token`, while using its own identity token for Cloud Run IAM. This preserves the Supabase JWT for the orchestration service to validate.
 
 ## Next Steps
 
@@ -63,15 +69,16 @@ const backendResponse = await fetch(`${apiGatewayUrl}/api/v1/applications`, {
 supabase secrets set API_GATEWAY_URL=https://proxy-gateway-ayd13s2s.ew.gateway.dev
 ```
 
-## Important Note: Header Transformation
+## Header Transformation
 
-**Current Status**: API Gateway points directly to orchestration service.
+**Solution Implemented**: API Gateway points to proxy service, which handles header transformation:
 
-**Potential Issue**: API Gateway will add `Authorization: Bearer <identity-token>` for Cloud Run IAM, which might overwrite the original `Authorization: Bearer <Supabase JWT>` header.
-
-**Solution**: The orchestration service checks `X-User-Token` header first, then falls back to `Authorization` header. If API Gateway doesn't preserve the original Authorization header, we may need to:
-1. Keep the proxy service (it handles header transformation)
-2. Or configure API Gateway to forward Authorization as X-User-Token (if supported)
+1. **API Gateway** → Receives Supabase JWT in `Authorization` header
+2. **API Gateway** → Adds its own identity token to `Authorization` (overwrites original)
+3. **Proxy Service** → Extracts original Supabase JWT from `Authorization` before it was overwritten
+4. **Proxy Service** → Forwards Supabase JWT as `X-User-Token` to orchestration service
+5. **Proxy Service** → Uses its own identity token in `Authorization` for Cloud Run IAM
+6. **Orchestration Service** → Reads Supabase JWT from `X-User-Token` header (prioritized)
 
 ## Testing
 
@@ -81,12 +88,13 @@ After updating the Edge Function, test the full flow:
 3. Orchestration service validates Supabase JWT
 4. Request succeeds
 
-## If It Doesn't Work
+## Troubleshooting
 
-If you get authentication errors, it means API Gateway isn't preserving the Supabase JWT header. In that case:
-- Keep the proxy service
-- Point API Gateway back to proxy service
-- Proxy service handles the header transformation
+If you get authentication errors:
+1. Check proxy service logs: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=proxy-service" --limit=10 --project=credovo-eu-apps-nonprod`
+2. Check orchestration service logs: `gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=orchestration-service" --limit=10 --project=credovo-eu-apps-nonprod`
+3. Verify API Gateway IAM: `gcloud run services get-iam-policy proxy-service --region=europe-west1 --project=credovo-eu-apps-nonprod`
+4. Verify proxy service IAM: `gcloud run services get-iam-policy orchestration-service --region=europe-west1 --project=credovo-eu-apps-nonprod`
 
 ## Summary
 
