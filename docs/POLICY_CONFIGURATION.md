@@ -12,7 +12,7 @@ The project `credovo-eu-apps-nonprod` is configured to **override** the parent f
 
 ### Current Folder Policy (eu-gdpr)
 
-The folder-level policy allows:
+The folder-level policy allows (8 services):
 - `artifactregistry.googleapis.com`
 - `bigquery.googleapis.com`
 - `cloudbuild.googleapis.com`
@@ -21,21 +21,22 @@ The folder-level policy allows:
 - `secretmanager.googleapis.com`
 - `storage.googleapis.com`
 - `vpcaccess.googleapis.com`
-- `apigateway.googleapis.com` (recently added)
+
+**Note**: `apigateway.googleapis.com` should be enabled at folder level (may need to verify if recently added).
 
 ### Current Project Policy (credovo-eu-apps-nonprod)
 
-The project policy (overriding folder) allows:
-- `storage.googleapis.com`
-- `secretmanager.googleapis.com`
-- `pubsub.googleapis.com`
-- `cloudtasks.googleapis.com`
-- `vpcaccess.googleapis.com`
+The project policy (overriding folder) allows (10 services):
 - `artifactregistry.googleapis.com`
-- `run.googleapis.com` ⚠️ **Not in folder policy, but needed for Cloud Run**
+- `apigateway.googleapis.com` ⚠️ **Not in folder policy, but needed for API Gateway**
 - `bigquery.googleapis.com`
 - `cloudbuild.googleapis.com`
-- `apigateway.googleapis.com`
+- `cloudtasks.googleapis.com`
+- `pubsub.googleapis.com`
+- `run.googleapis.com` ⚠️ **Not in folder policy, but needed for Cloud Run**
+- `secretmanager.googleapis.com`
+- `storage.googleapis.com`
+- `vpcaccess.googleapis.com`
 
 ### Important Notes
 
