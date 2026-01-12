@@ -9,47 +9,6 @@ schemes:
 produces:
   - application/json
 paths:
-  /api/v1/companies/search:
-    get:
-      summary: Search companies
-      operationId: searchCompanies
-      parameters:
-        - in: header
-          name: Authorization
-          type: string
-          required: true
-          description: Supabase JWT token (will be overwritten by API Gateway with identity token)
-        - in: header
-          name: X-Supabase-Token
-          type: string
-          required: true
-          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-        - name: query
-          in: query
-          required: true
-          type: string
-          description: Company name or search query
-        - name: limit
-          in: query
-          required: false
-          type: integer
-          default: 10
-          description: Maximum number of results to return
-      x-google-backend:
-        address: ${proxy_service_url}
-        path_translation: APPEND_PATH_TO_ADDRESS
-        protocol: h2
-        jwt_audience: ${proxy_service_url}
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: object
-            properties:
-              companies:
-                type: array
-              count:
-                type: integer
   /{path=**}:
     get:
       operationId: orchestrationGet
