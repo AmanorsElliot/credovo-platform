@@ -64,38 +64,60 @@ $configOutput = gcloud api-gateway api-configs create proxy-api-config `
 
 if ($LASTEXITCODE -ne 0) {
     if ($configOutput -match "already exists" -or $configOutput -match "ALREADY_EXISTS") {
-        Write-Host "API config already exists, deleting and recreating..." -ForegroundColor Yellow
-        # Delete existing config first (required to update with new spec)
-        $deleteOutput = gcloud api-gateway api-configs delete proxy-api-config `
-            --api=proxy-api `
+        Write-Host "API config already exists, deleting gateway and config to recreate..." -ForegroundColor Yellow
+        
+        # Delete gateway first (it's using the config)
+        Write-Host "Deleting gateway..." -ForegroundColor Yellow
+        $deleteGatewayOutput = gcloud api-gateway gateways delete proxy-gateway `
+            --location=$Region `
             --project=$ProjectId `
             --quiet `
             2>&1
         
-        if ($LASTEXITCODE -eq 0 -or $deleteOutput -match "not found") {
-            Write-Host "Deleted existing config, recreating..." -ForegroundColor Yellow
-            # Wait a moment for deletion to complete
-            Start-Sleep -Seconds 2
+        if ($LASTEXITCODE -eq 0 -or $deleteGatewayOutput -match "not found") {
+            Write-Host "Gateway deleted, waiting for cleanup..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 3
             
-            # Recreate with new spec
-            $recreateOutput = gcloud api-gateway api-configs create proxy-api-config `
+            # Now delete the config
+            Write-Host "Deleting API config..." -ForegroundColor Yellow
+            $deleteConfigOutput = gcloud api-gateway api-configs delete proxy-api-config `
                 --api=proxy-api `
-                --openapi-spec=$tempOpenApiPath `
                 --project=$ProjectId `
-                --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+                --quiet `
                 2>&1
             
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "✅ API config recreated successfully" -ForegroundColor Green
+            if ($LASTEXITCODE -eq 0 -or $deleteConfigOutput -match "not found") {
+                Write-Host "Config deleted, recreating..." -ForegroundColor Yellow
+                Start-Sleep -Seconds 2
+                
+                # Recreate config with new spec
+                $recreateConfigOutput = gcloud api-gateway api-configs create proxy-api-config `
+                    --api=proxy-api `
+                    --openapi-spec=$tempOpenApiPath `
+                    --project=$ProjectId `
+                    --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+                    2>&1
+                
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "✅ API config recreated successfully" -ForegroundColor Green
+                    # Gateway will be recreated in Step 5
+                } else {
+                    Write-Host "ERROR: Failed to recreate API config" -ForegroundColor Red
+                    Write-Host $recreateConfigOutput
+                    exit 1
+                }
             } else {
-                Write-Host "ERROR: Failed to recreate API config" -ForegroundColor Red
-                Write-Host $recreateOutput
+                Write-Host "ERROR: Failed to delete API config" -ForegroundColor Red
+                Write-Host $deleteConfigOutput
                 exit 1
             }
         } else {
-            Write-Host "WARNING: Failed to delete existing config. You may need to delete it manually:" -ForegroundColor Yellow
-            Write-Host "gcloud api-gateway api-configs delete proxy-api-config --api=proxy-api --project=$ProjectId" -ForegroundColor Cyan
-            Write-Host "Then run this script again." -ForegroundColor Yellow
+            Write-Host "ERROR: Failed to delete gateway" -ForegroundColor Red
+            Write-Host $deleteGatewayOutput
+            Write-Host "`nYou may need to delete manually:" -ForegroundColor Yellow
+            Write-Host "1. gcloud api-gateway gateways delete proxy-gateway --location=$Region --project=$ProjectId" -ForegroundColor Cyan
+            Write-Host "2. gcloud api-gateway api-configs delete proxy-api-config --api=proxy-api --project=$ProjectId" -ForegroundColor Cyan
+            Write-Host "3. Then run this script again" -ForegroundColor Yellow
             exit 1
         }
     } else {
