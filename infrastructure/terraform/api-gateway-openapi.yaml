@@ -25,7 +25,7 @@ paths:
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
-          required: true
+          required: false
           type: string
       x-google-backend:
         address: ${proxy_service_url}
@@ -53,7 +53,7 @@ paths:
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
-          required: true
+          required: false
           type: string
       x-google-backend:
         address: ${proxy_service_url}
@@ -78,7 +78,7 @@ paths:
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
-          required: true
+          required: false
           type: string
       x-google-backend:
         address: ${proxy_service_url}
@@ -103,7 +103,7 @@ paths:
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
         - name: path
           in: path
-          required: true
+          required: false
           type: string
       x-google-backend:
         address: ${proxy_service_url}
