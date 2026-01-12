@@ -134,9 +134,12 @@ resource "google_compute_url_map" "proxy_url_map" {
     }
   }
 
-  path_matcher {
-    name            = "proxy-path-matcher"
-    default_service = google_compute_backend_service.proxy_backend.id
+  dynamic "path_matcher" {
+    for_each = var.proxy_domain != "" ? [1] : []
+    content {
+      name            = "proxy-path-matcher"
+      default_service = google_compute_backend_service.proxy_backend.id
+    }
   }
 }
 
