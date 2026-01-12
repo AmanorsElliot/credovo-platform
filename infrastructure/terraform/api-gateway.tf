@@ -33,7 +33,7 @@ resource "google_api_gateway_api_config" "proxy_api_config" {
     document {
       path     = "openapi.yaml"
       contents = base64encode(templatefile("${path.module}/api-gateway-openapi.yaml", {
-        proxy_service_url = "https://proxy-service-saz24fo3sa-ew.a.run.app"
+        orchestration_service_url = "https://orchestration-service-saz24fo3sa-ew.a.run.app"
       }))
     }
   }

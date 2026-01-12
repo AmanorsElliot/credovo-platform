@@ -18,9 +18,13 @@ paths:
           required: true
           type: string
       x-google-backend:
-        address: ${proxy_service_url}
+        address: ${orchestration_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
+        jwt_audience: ${orchestration_service_url}
+      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
+      # The original Authorization header (with Supabase JWT) should be forwarded automatically
+      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
       responses:
         '200':
           description: Success
@@ -32,9 +36,13 @@ paths:
           required: true
           type: string
       x-google-backend:
-        address: ${proxy_service_url}
+        address: ${orchestration_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
+        jwt_audience: ${orchestration_service_url}
+      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
+      # The original Authorization header (with Supabase JWT) should be forwarded automatically
+      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
       responses:
         '200':
           description: Success
@@ -46,9 +54,13 @@ paths:
           required: true
           type: string
       x-google-backend:
-        address: ${proxy_service_url}
+        address: ${orchestration_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
+        jwt_audience: ${orchestration_service_url}
+      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
+      # The original Authorization header (with Supabase JWT) should be forwarded automatically
+      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
       responses:
         '200':
           description: Success
@@ -60,9 +72,13 @@ paths:
           required: true
           type: string
       x-google-backend:
-        address: ${proxy_service_url}
+        address: ${orchestration_service_url}
         path_translation: APPEND_PATH_TO_ADDRESS
         protocol: h2
+        jwt_audience: ${orchestration_service_url}
+      # Note: API Gateway will add Authorization header with identity token for Cloud Run IAM
+      # The original Authorization header (with Supabase JWT) should be forwarded automatically
+      # Orchestration service will read from Authorization header (fallback if X-User-Token not present)
       responses:
         '200':
           description: Success
