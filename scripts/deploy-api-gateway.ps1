@@ -64,20 +64,39 @@ $configOutput = gcloud api-gateway api-configs create proxy-api-config `
 
 if ($LASTEXITCODE -ne 0) {
     if ($configOutput -match "already exists" -or $configOutput -match "ALREADY_EXISTS") {
-        Write-Host "API config already exists, updating..." -ForegroundColor Yellow
-        # Update existing config
-        $updateOutput = gcloud api-gateway api-configs update proxy-api-config `
+        Write-Host "API config already exists, deleting and recreating..." -ForegroundColor Yellow
+        # Delete existing config first (required to update with new spec)
+        $deleteOutput = gcloud api-gateway api-configs delete proxy-api-config `
             --api=proxy-api `
-            --openapi-spec=$tempOpenApiPath `
             --project=$ProjectId `
-            --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+            --quiet `
             2>&1
         
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ API config updated successfully" -ForegroundColor Green
+        if ($LASTEXITCODE -eq 0 -or $deleteOutput -match "not found") {
+            Write-Host "Deleted existing config, recreating..." -ForegroundColor Yellow
+            # Wait a moment for deletion to complete
+            Start-Sleep -Seconds 2
+            
+            # Recreate with new spec
+            $recreateOutput = gcloud api-gateway api-configs create proxy-api-config `
+                --api=proxy-api `
+                --openapi-spec=$tempOpenApiPath `
+                --project=$ProjectId `
+                --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+                2>&1
+            
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "✅ API config recreated successfully" -ForegroundColor Green
+            } else {
+                Write-Host "ERROR: Failed to recreate API config" -ForegroundColor Red
+                Write-Host $recreateOutput
+                exit 1
+            }
         } else {
-            Write-Host "WARNING: Failed to update API config, but it exists. Continuing..." -ForegroundColor Yellow
-            Write-Host "Update output: $updateOutput" -ForegroundColor Yellow
+            Write-Host "WARNING: Failed to delete existing config. You may need to delete it manually:" -ForegroundColor Yellow
+            Write-Host "gcloud api-gateway api-configs delete proxy-api-config --api=proxy-api --project=$ProjectId" -ForegroundColor Cyan
+            Write-Host "Then run this script again." -ForegroundColor Yellow
+            exit 1
         }
     } else {
         Write-Host "ERROR: Failed to create API config" -ForegroundColor Red
