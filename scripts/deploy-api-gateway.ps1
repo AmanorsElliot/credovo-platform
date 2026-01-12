@@ -63,9 +63,27 @@ $configOutput = gcloud api-gateway api-configs create proxy-api-config `
     2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Failed to create API config" -ForegroundColor Red
-    Write-Host $configOutput
-    exit 1
+    if ($configOutput -match "already exists" -or $configOutput -match "ALREADY_EXISTS") {
+        Write-Host "API config already exists, updating..." -ForegroundColor Yellow
+        # Update existing config
+        $updateOutput = gcloud api-gateway api-configs update proxy-api-config `
+            --api=proxy-api `
+            --openapi-spec=$tempOpenApiPath `
+            --project=$ProjectId `
+            --backend-auth-service-account=orchestration-service@$ProjectId.iam.gserviceaccount.com `
+            2>&1
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ API config updated successfully" -ForegroundColor Green
+        } else {
+            Write-Host "WARNING: Failed to update API config, but it exists. Continuing..." -ForegroundColor Yellow
+            Write-Host "Update output: $updateOutput" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "ERROR: Failed to create API config" -ForegroundColor Red
+        Write-Host $configOutput
+        exit 1
+    }
 } else {
     Write-Host "✅ API config created successfully" -ForegroundColor Green
 }
