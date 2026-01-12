@@ -10,7 +10,8 @@
       "artifactregistry.googleapis.com",
       "run.googleapis.com",
       "bigquery.googleapis.com",
-      "cloudbuild.googleapis.com"
+      "cloudbuild.googleapis.com",
+      "apigateway.googleapis.com"
     ]
   }
 }
