@@ -35,10 +35,14 @@ serve(async (req) => {
     // GET requests: Call proxy service directly (bypass API Gateway)
     // POST/PUT/DELETE: Use API Gateway
     
-    const apiGatewayUrl = Deno.env.get("API_GATEWAY_URL") || 
-      "https://proxy-gateway-ayd13s2s.ew.gateway.dev";
+    // Environment variables (set in Supabase Edge Function settings):
+    // - PROXY_SERVICE_URL: https://proxy-service-saz24fo3sa-ew.a.run.app
+    // - API_GATEWAY_URL: https://proxy-gateway-ayd13s2s.ew.gateway.dev
+    
     const proxyServiceUrl = Deno.env.get("PROXY_SERVICE_URL") || 
       "https://proxy-service-saz24fo3sa-ew.a.run.app";
+    const apiGatewayUrl = Deno.env.get("API_GATEWAY_URL") || 
+      "https://proxy-gateway-ayd13s2s.ew.gateway.dev";
 
     // Extract query parameters from request URL
     const url = new URL(req.url);
