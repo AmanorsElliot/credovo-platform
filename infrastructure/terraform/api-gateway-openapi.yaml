@@ -3,7 +3,7 @@ info:
   title: Orchestration Service API
   description: API Gateway for Orchestration Service (via Proxy Service)
   version: 1.0.0
-host: orchestration-api-gateway
+host: proxy-gateway-ayd13s2s.ew.gateway.dev
 schemes:
   - https
 produces:
