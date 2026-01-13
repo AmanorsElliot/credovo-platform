@@ -31,35 +31,39 @@ serve(async (req) => {
 
     const supabaseToken = authHeader.substring(7);
 
-    // Get API Gateway URL from environment
+    // HYBRID APPROACH: API Gateway has a bug with GET requests
+    // GET requests: Call proxy service directly (bypass API Gateway)
+    // POST/PUT/DELETE: Use API Gateway
+    
     const apiGatewayUrl = Deno.env.get("API_GATEWAY_URL") || 
       "https://proxy-gateway-ayd13s2s.ew.gateway.dev";
+    const proxyServiceUrl = Deno.env.get("PROXY_SERVICE_URL") || 
+      "https://proxy-service-saz24fo3sa-ew.a.run.app";
 
     // Extract query parameters from request URL
     const url = new URL(req.url);
     const queryString = url.search; // Includes "?" if present, empty string if not
+    const path = url.pathname; // e.g., "/api/v1/companies/search"
     
-    // Build target URL: API Gateway + path + query string
-    // For search function, the path should be /api/v1/companies/search
-    const targetPath = "/api/v1/companies/search";
-    const targetUrl = `${apiGatewayUrl}${targetPath}${queryString}`;
-
     console.log(`[Edge Function] Method: ${req.method}`);
-    console.log(`[Edge Function] Calling API Gateway: ${targetUrl}`);
+    console.log(`[Edge Function] Path: ${path}`);
     console.log(`[Edge Function] Query string: ${queryString}`);
-    console.log(`[Edge Function] Headers: X-Supabase-Token only (no Content-Type, no Authorization)`);
 
-    // For GET requests, call API Gateway with proper format
+    // For GET requests, call proxy service directly (API Gateway bug workaround)
     if (req.method === "GET") {
+      const targetUrl = `${proxyServiceUrl}${path}${queryString}`;
+      console.log(`[Edge Function] GET request - calling proxy directly: ${targetUrl}`);
+      console.log(`[Edge Function] Workaround: Bypassing API Gateway due to GET request bug`);
+      
       const backendResponse = await fetch(targetUrl, {
         method: "GET",
         headers: {
-          // CRITICAL: Only X-Supabase-Token header
-          // DO NOT include Content-Type (GET requests don't have bodies)
-          // DO NOT include Authorization (API Gateway adds it automatically)
+          // Proxy service expects Authorization header with Supabase JWT
+          "Authorization": `Bearer ${supabaseToken}`,
+          // Also send in custom header for consistency
           "X-Supabase-Token": supabaseToken,
         },
-        // CRITICAL: No body for GET requests
+        // No body for GET requests
       });
 
       console.log(`[Edge Function] API Gateway response status: ${backendResponse.status}`);
@@ -95,10 +99,13 @@ serve(async (req) => {
         }
       );
     } else {
-      // POST, PUT, DELETE - include Content-Type and body
+      // POST, PUT, DELETE - Use API Gateway (these work fine)
+      const targetUrl = `${apiGatewayUrl}${path}`;
+      console.log(`[Edge Function] ${req.method} request - calling API Gateway: ${targetUrl}`);
+      
       const body = await req.json();
       
-      const backendResponse = await fetch(`${apiGatewayUrl}${targetPath}`, {
+      const backendResponse = await fetch(targetUrl, {
         method: req.method,
         headers: {
           "X-Supabase-Token": supabaseToken,
