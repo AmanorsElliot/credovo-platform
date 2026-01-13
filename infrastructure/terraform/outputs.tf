@@ -55,3 +55,13 @@ output "vpc_connector" {
   value       = google_vpc_access_connector.cloud_run_connector.name
 }
 
+output "load_balancer_ip" {
+  description = "The IP address of the Load Balancer"
+  value       = try(google_compute_global_address.proxy_ip.address, "")
+}
+
+output "load_balancer_url" {
+  description = "The URL of the Load Balancer"
+  value       = try(var.proxy_domain != "" ? "https://${var.proxy_domain}" : "http://${google_compute_global_address.proxy_ip.address}", "")
+}
+

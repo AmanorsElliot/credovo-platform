@@ -63,3 +63,9 @@ variable "github_repo" {
   default     = "AmanorsElliot/credovo-platform"
 }
 
+variable "proxy_domain" {
+  description = "Domain name for the proxy service Load Balancer (e.g., proxy.credovo.app). Leave empty to use IP only (HTTP)."
+  type        = string
+  default     = ""
+}
+

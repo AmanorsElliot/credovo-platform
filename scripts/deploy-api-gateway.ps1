@@ -55,87 +55,78 @@ if ($LASTEXITCODE -ne 0) {
 
 # Step 4: Create API Config
 Write-Host "`nStep 4: Creating API Gateway configuration..." -ForegroundColor Yellow
-    # Note: We don't use --backend-auth-service-account because API Gateway's own
-    # service account (PROJECT_NUMBER@cloudservices.gserviceaccount.com) will authenticate
-    $configOutput = gcloud api-gateway api-configs create proxy-api-config `
-        --api=proxy-api `
-        --openapi-spec=$tempOpenApiPath `
-        --project=$ProjectId `
-        2>&1
 
-if ($LASTEXITCODE -ne 0) {
-    if ($configOutput -match "already exists" -or $configOutput -match "ALREADY_EXISTS") {
-        Write-Host "API config already exists, deleting gateway and config to recreate..." -ForegroundColor Yellow
+# Use timestamped config name to force new revision
+$configId = "proxy-api-config-$(Get-Date -Format 'yyyyMMddHHmmss')"
+Write-Host "Using config ID: $configId (timestamped to force new revision)" -ForegroundColor Gray
+
+# Verify variable substitution worked
+Write-Host "Verifying variable substitution in OpenAPI spec..." -ForegroundColor Gray
+$specCheck = Get-Content $tempOpenApiPath -Raw
+if ($specCheck -match '\$\{proxy_service_url\}') {
+    Write-Host "⚠️  WARNING: Found unsubstituted \${proxy_service_url} in spec!" -ForegroundColor Red
+    Write-Host "Variable substitution may have failed" -ForegroundColor Yellow
+    exit 1
+} else {
+    Write-Host "✅ Variable substitution verified - all \${proxy_service_url} replaced" -ForegroundColor Green
+}
+
+# Check if old config exists and delete gateway if needed
+$existingConfig = gcloud api-gateway api-configs describe proxy-api-config --api=proxy-api --project=$ProjectId --format="value(name)" 2>&1
+if ($LASTEXITCODE -eq 0 -and -not $existingConfig.StartsWith("ERROR")) {
+    Write-Host "Old config 'proxy-api-config' exists, deleting gateway first..." -ForegroundColor Yellow
+    
+    # Delete gateway first (it's using the old config)
+    Write-Host "Deleting gateway..." -ForegroundColor Yellow
+    $deleteGatewayOutput = gcloud api-gateway gateways delete proxy-gateway `
+        --location=$Region `
+        --project=$ProjectId `
+        --quiet `
+        2>&1
+    
+    if ($LASTEXITCODE -eq 0 -or $deleteGatewayOutput -match "not found") {
+        Write-Host "Gateway deleted, waiting for cleanup..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
         
-        # Delete gateway first (it's using the config)
-        Write-Host "Deleting gateway..." -ForegroundColor Yellow
-        $deleteGatewayOutput = gcloud api-gateway gateways delete proxy-gateway `
-            --location=$Region `
+        # Delete old config
+        Write-Host "Deleting old API config..." -ForegroundColor Yellow
+        $deleteConfigOutput = gcloud api-gateway api-configs delete proxy-api-config `
+            --api=proxy-api `
             --project=$ProjectId `
             --quiet `
             2>&1
         
-        if ($LASTEXITCODE -eq 0 -or $deleteGatewayOutput -match "not found") {
-            Write-Host "Gateway deleted, waiting for cleanup..." -ForegroundColor Yellow
-            Start-Sleep -Seconds 3
-            
-            # Now delete the config
-            Write-Host "Deleting API config..." -ForegroundColor Yellow
-            $deleteConfigOutput = gcloud api-gateway api-configs delete proxy-api-config `
-                --api=proxy-api `
-                --project=$ProjectId `
-                --quiet `
-                2>&1
-            
-            if ($LASTEXITCODE -eq 0 -or $deleteConfigOutput -match "not found") {
-                Write-Host "Config deleted, recreating..." -ForegroundColor Yellow
-                Start-Sleep -Seconds 2
-                
-                # Recreate config with new spec
-                # Note: We don't use --backend-auth-service-account because API Gateway's own
-                # service account (PROJECT_NUMBER@cloudservices.gserviceaccount.com) will authenticate
-                $recreateConfigOutput = gcloud api-gateway api-configs create proxy-api-config `
-                    --api=proxy-api `
-                    --openapi-spec=$tempOpenApiPath `
-                    --project=$ProjectId `
-                    2>&1
-                
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Host "✅ API config recreated successfully" -ForegroundColor Green
-                    # Gateway will be recreated in Step 5
-                } else {
-                    Write-Host "ERROR: Failed to recreate API config" -ForegroundColor Red
-                    Write-Host $recreateConfigOutput
-                    exit 1
-                }
-            } else {
-                Write-Host "ERROR: Failed to delete API config" -ForegroundColor Red
-                Write-Host $deleteConfigOutput
-                exit 1
-            }
-        } else {
-            Write-Host "ERROR: Failed to delete gateway" -ForegroundColor Red
-            Write-Host $deleteGatewayOutput
-            Write-Host "`nYou may need to delete manually:" -ForegroundColor Yellow
-            Write-Host "1. gcloud api-gateway gateways delete proxy-gateway --location=$Region --project=$ProjectId" -ForegroundColor Cyan
-            Write-Host "2. gcloud api-gateway api-configs delete proxy-api-config --api=proxy-api --project=$ProjectId" -ForegroundColor Cyan
-            Write-Host "3. Then run this script again" -ForegroundColor Yellow
-            exit 1
+        if ($LASTEXITCODE -ne 0 -and $deleteConfigOutput -notmatch "not found") {
+            Write-Host "WARNING: Failed to delete old config, continuing anyway..." -ForegroundColor Yellow
         }
+        Start-Sleep -Seconds 2
     } else {
-        Write-Host "ERROR: Failed to create API config" -ForegroundColor Red
-        Write-Host $configOutput
-        exit 1
+        Write-Host "WARNING: Failed to delete gateway, continuing anyway..." -ForegroundColor Yellow
     }
+}
+
+# Create new config with timestamped name
+# Note: We don't use --backend-auth-service-account because API Gateway's own
+# service account (PROJECT_NUMBER@cloudservices.gserviceaccount.com) will authenticate
+$configOutput = gcloud api-gateway api-configs create $configId `
+    --api=proxy-api `
+    --openapi-spec=$tempOpenApiPath `
+    --project=$ProjectId `
+    2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: Failed to create API config" -ForegroundColor Red
+    Write-Host $configOutput
+    exit 1
 } else {
-    Write-Host "✅ API config created successfully" -ForegroundColor Green
+    Write-Host "✅ API config created successfully: $configId" -ForegroundColor Green
 }
 
 # Step 5: Create Gateway
 Write-Host "`nStep 5: Creating API Gateway..." -ForegroundColor Yellow
 $gatewayOutput = gcloud api-gateway gateways create proxy-gateway `
     --api=proxy-api `
-    --api-config=proxy-api-config `
+    --api-config=$configId `
     --location=$Region `
     --project=$ProjectId `
     2>&1
@@ -169,6 +160,30 @@ if ($gatewayUrl -and -not $gatewayUrl.StartsWith("ERROR")) {
 } else {
     Write-Host "WARNING: Could not retrieve Gateway URL" -ForegroundColor Yellow
     Write-Host "Output: $gatewayUrl" -ForegroundColor Yellow
+}
+
+# Step 6.5: Verify deployed backend address
+Write-Host "`nStep 6.5: Verifying deployed backend address..." -ForegroundColor Yellow
+$deployedConfig = gcloud api-gateway api-configs describe $configId `
+    --api=proxy-api `
+    --project=$ProjectId `
+    --format="yaml" `
+    2>&1
+
+if ($LASTEXITCODE -eq 0) {
+    # Check if backend address is a real URL (not a variable)
+    if ($deployedConfig -match 'address:\s*(https://[^\s]+)') {
+        $backendAddress = $matches[1]
+        Write-Host "✅ Backend address verified: $backendAddress" -ForegroundColor Green
+        if ($backendAddress -match '\$\{') {
+            Write-Host "⚠️  WARNING: Backend address contains unsubstituted variable!" -ForegroundColor Red
+            Write-Host "This would cause 400 errors. Variable substitution may have failed." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "⚠️  Could not extract backend address from deployed config" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "⚠️  Could not verify deployed config (may need permissions)" -ForegroundColor Yellow
 }
 
 # Step 7: Grant API Gateway service account permission to proxy-service
