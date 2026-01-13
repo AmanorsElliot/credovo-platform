@@ -91,31 +91,8 @@ paths:
       responses:
         '200':
           description: Create application
-
-  # Catch-all for other methods (POST, PUT, DELETE) and unknown paths
-  /{path=**}:
-    parameters:
-      - name: path
-        in: path
-        required: true
-        type: string
-    post:
-      operationId: orchestrationPost
-      parameters:
-        - in: header
-          name: X-Supabase-Token
-          type: string
-          required: true
-          description: Supabase JWT token (preserved by API Gateway, used by proxy service)
-      x-google-backend:
-        address: ${proxy_service_url}
-        path_translation: APPEND_PATH_TO_ADDRESS
-        jwt_audience: ${proxy_service_url}
-      responses:
-        '200':
-          description: Success
     put:
-      operationId: orchestrationPut
+      operationId: applicationsPut
       parameters:
         - in: header
           name: X-Supabase-Token
@@ -128,9 +105,9 @@ paths:
         jwt_audience: ${proxy_service_url}
       responses:
         '200':
-          description: Success
+          description: Update application
     delete:
-      operationId: orchestrationDelete
+      operationId: applicationsDelete
       parameters:
         - in: header
           name: X-Supabase-Token
@@ -143,4 +120,4 @@ paths:
         jwt_audience: ${proxy_service_url}
       responses:
         '200':
-          description: Success
+          description: Delete application
