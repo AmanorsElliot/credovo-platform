@@ -20,6 +20,11 @@ paths:
       responses:
         '200':
           description: Health check
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
   
   /api/v1/companies/search:
     get:
@@ -28,18 +33,17 @@ paths:
         - name: query
           in: query
           type: string
-          required: true
+          required: false
           description: Company name or search query
         - name: limit
           in: query
           type: integer
           required: false
-          default: 10
           description: Maximum number of results to return
         - in: header
           name: X-Supabase-Token
           type: string
-          required: true
+          required: false
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
       x-google-backend:
         address: ${proxy_service_url}
@@ -63,7 +67,7 @@ paths:
         - in: header
           name: X-Supabase-Token
           type: string
-          required: true
+          required: false
           description: Supabase JWT token (preserved by API Gateway, used by proxy service)
       x-google-backend:
         address: ${proxy_service_url}
